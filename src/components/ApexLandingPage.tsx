@@ -17,6 +17,7 @@ import {
   User,
   ShieldCheck,
 } from "lucide-react";
+import apexLogo from "@/assets/apex-logo.png";
 
 function CountdownTimer({ initialMinutes = 5 }: { initialMinutes?: number }) {
   const [timeLeft, setTimeLeft] = useState(Math.floor(initialMinutes * 60));
