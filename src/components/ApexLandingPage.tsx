@@ -17,7 +17,7 @@ import {
   User,
   ShieldCheck,
 } from "lucide-react";
-import apexLogo from "@/assets/apex-logo.png";
+import apexIcon from "@/assets/apex-icon.png";
 
 function CountdownTimer({ initialMinutes = 5 }: { initialMinutes?: number }) {
   const [timeLeft, setTimeLeft] = useState(Math.floor(initialMinutes * 60));
@@ -131,18 +131,24 @@ export default function ApexLandingPage() {
     <div className="min-h-screen bg-[oklch(0.18_0.04_250)] font-sans text-gray-200 antialiased">
       <ActiveRouteBanner />
 
-      <header className="border-b border-white/5">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="border-b border-white/5 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-2.5 group">
             <img
-              src={apexLogo}
-              alt="Apex Suspensión"
-              className="h-10 w-auto drop-shadow-[0_2px_8px_rgba(255,90,0,0.25)]"
+              src={apexIcon}
+              alt=""
+              aria-hidden="true"
+              className="h-8 w-auto transition-transform group-hover:scale-105"
             />
-            <span className="hidden sm:inline text-xs uppercase tracking-[0.2em] text-gray-500 border-l border-gray-700 pl-3">
-              Logística de precisión
-            </span>
-          </div>
+            <div className="flex flex-col leading-none">
+              <span className="text-base font-extrabold tracking-tight text-white">
+                APEX <span className="text-[oklch(0.7_0.2_40)]">/</span> Suspensión
+              </span>
+              <span className="text-[10px] uppercase tracking-[0.22em] text-gray-500 mt-1">
+                Logística de precisión
+              </span>
+            </div>
+          </a>
           <a
             href="#despacho"
             className="text-xs sm:text-sm font-semibold text-gray-300 hover:text-[oklch(0.7_0.2_40)] transition-colors"
@@ -154,10 +160,10 @@ export default function ApexLandingPage() {
 
       <section className="relative flex flex-col items-center justify-center px-4 py-20 md:py-32 text-center overflow-hidden">
         <img
-          src={apexLogo}
+          src={apexIcon}
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute -right-20 top-1/2 -translate-y-1/2 w-[600px] max-w-none opacity-[0.04] hidden md:block"
+          className="pointer-events-none absolute -right-32 top-1/2 -translate-y-1/2 h-[520px] w-auto opacity-[0.05] hidden md:block"
         />
         <div className="max-w-3xl mx-auto relative">
           <p className="text-xs uppercase tracking-[0.3em] text-[oklch(0.7_0.2_40)] font-bold mb-4">
