@@ -29,14 +29,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "apex-suspension" },
+      { name: "description", content: "Swift Dispatch Hub is a logistics application for automotive repair shops." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "apex-suspension" },
+      { property: "og:description", content: "Swift Dispatch Hub is a logistics application for automotive repair shops." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "apex-suspension" },
+      { name: "twitter:description", content: "Swift Dispatch Hub is a logistics application for automotive repair shops." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/19669fd7-cf6e-4a8b-b15f-526f5bce8c5b/id-preview-e511633b--5d7fbcc0-6240-4508-b2af-73328494ebb7.lovable.app-1777320456374.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/19669fd7-cf6e-4a8b-b15f-526f5bce8c5b/id-preview-e511633b--5d7fbcc0-6240-4508-b2af-73328494ebb7.lovable.app-1777320456374.png" },
     ],
     links: [
       {
