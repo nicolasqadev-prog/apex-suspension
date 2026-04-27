@@ -17,6 +17,7 @@ import {
   User,
   ShieldCheck,
 } from "lucide-react";
+import apexLogo from "@/assets/apex-logo.png";
 
 function CountdownTimer({ initialMinutes = 5 }: { initialMinutes?: number }) {
   const [timeLeft, setTimeLeft] = useState(Math.floor(initialMinutes * 60));
@@ -130,14 +131,45 @@ export default function ApexLandingPage() {
     <div className="min-h-screen bg-[oklch(0.18_0.04_250)] font-sans text-gray-200 antialiased">
       <ActiveRouteBanner />
 
-      <section className="relative flex flex-col items-center justify-center px-4 py-20 md:py-32 text-center">
-        <div className="max-w-3xl mx-auto">
+      <header className="border-b border-white/5">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img
+              src={apexLogo}
+              alt="Apex Suspensión"
+              className="h-10 w-auto drop-shadow-[0_2px_8px_rgba(255,90,0,0.25)]"
+            />
+            <span className="hidden sm:inline text-xs uppercase tracking-[0.2em] text-gray-500 border-l border-gray-700 pl-3">
+              Logística de precisión
+            </span>
+          </div>
+          <a
+            href="#despacho"
+            className="text-xs sm:text-sm font-semibold text-gray-300 hover:text-[oklch(0.7_0.2_40)] transition-colors"
+          >
+            Despacho urgente →
+          </a>
+        </div>
+      </header>
+
+      <section className="relative flex flex-col items-center justify-center px-4 py-20 md:py-32 text-center overflow-hidden">
+        <img
+          src={apexLogo}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-20 top-1/2 -translate-y-1/2 w-[600px] max-w-none opacity-[0.04] hidden md:block"
+        />
+        <div className="max-w-3xl mx-auto relative">
+          <p className="text-xs uppercase tracking-[0.3em] text-[oklch(0.7_0.2_40)] font-bold mb-4">
+            Apex Suspensión · KTC
+          </p>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold uppercase tracking-tight text-white leading-tight">
-            El impulso exacto para no detenerte.
+            El impulso exacto <br className="hidden sm:block" /> para no detenerte.
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
             Suspensión a tiempo, trabajo terminado. Entregas flash de repuestos KTC directamente en tu taller en menos de 45 minutos.
           </p>
+
           <button className="mt-10 inline-flex items-center gap-3 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-bold text-lg px-8 py-5 rounded-lg shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400">
             <Search className="w-6 h-6" />
             Buscar Repuesto Urgente
