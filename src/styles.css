@@ -63,8 +63,12 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --background: oklch(0.18 0.04 250);
+  --foreground: oklch(0.95 0.01 250);
+  --apex-bg: oklch(0.18 0.04 250);
+  --apex-bg-deep: oklch(0.14 0.04 250);
+  --apex-surface: oklch(0.24 0.05 255);
+  --apex-orange: oklch(0.7 0.2 40);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
