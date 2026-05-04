@@ -20,6 +20,9 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Local Claude / Cursor assistant metadata
+.claude/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

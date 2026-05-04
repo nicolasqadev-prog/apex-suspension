@@ -33,7 +33,9 @@ function CountdownTimer({ initialMinutes = 5 }: { initialMinutes?: number }) {
   const seconds = timeLeft % 60;
   const formatted = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
-  return <span className="font-mono font-bold text-[oklch(0.7_0.2_40)]">{formatted} min restantes</span>;
+  return (
+    <span className="font-mono font-bold text-[oklch(0.7_0.2_40)]">{formatted} min restantes</span>
+  );
 }
 
 function ActiveRouteBanner() {
@@ -44,8 +46,9 @@ function ActiveRouteBanner() {
           <Bike className="w-6 h-6 text-[oklch(0.7_0.2_40)] animate-pulse" />
         </div>
         <p className="text-sm sm:text-base font-bold text-[oklch(0.18_0.04_250)] leading-tight flex-1">
-          🔔 Ruta Activa hacia <span className="underline">Zona Norte / Tocancipá</span>: Haz tu pedido en los próximos{" "}
-          <CountdownTimer initialMinutes={10} /> y súmate a este despacho flash sin costo adicional de envío.
+          🔔 Ruta Activa hacia <span className="underline">Zona Norte / Tocancipá</span>: Haz tu
+          pedido en los próximos <CountdownTimer initialMinutes={10} /> y súmate a este despacho
+          flash sin costo adicional de envío.
         </p>
       </div>
     </div>
@@ -109,7 +112,10 @@ function AdminDispatchPanel() {
               Pedidos agrupados ({route.activeOrders.length})
             </p>
             {route.activeOrders.map((order, idx) => (
-              <div key={idx} className="flex items-center gap-3 bg-[oklch(0.24_0.05_255)] rounded-lg px-3 py-2">
+              <div
+                key={idx}
+                className="flex items-center gap-3 bg-[oklch(0.24_0.05_255)] rounded-lg px-3 py-2"
+              >
                 <PackageOpen className="w-4 h-4 text-[oklch(0.7_0.2_40)]" />
                 <div>
                   <p className="text-sm font-medium text-gray-200">{order.part}</p>
@@ -173,7 +179,8 @@ export default function ApexLandingPage() {
             El impulso exacto <br className="hidden sm:block" /> para no detenerte.
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
-            Suspensión a tiempo, trabajo terminado. Entregas flash de repuestos KTC directamente en tu taller en menos de 45 minutos.
+            Suspensión a tiempo, trabajo terminado. Entregas flash de repuestos KTC directamente en
+            tu taller en menos de 45 minutos.
           </p>
 
           <button className="mt-10 inline-flex items-center gap-3 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-bold text-lg px-8 py-5 rounded-lg shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400">
@@ -192,11 +199,26 @@ export default function ApexLandingPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { Icon: AlertTriangle, title: "Elevador Ocupado", text: "Un vehículo esperando repuestos es dinero perdido para tu taller. Cada minuto sin rotación reduce tu facturación diaria." },
-              { Icon: Truck, title: "Proveedores Lentos", text: "Olvida las horas perdidas esperando a que llegue el mensajero. La improductividad no es un costo que puedas seguir cargando." },
-              { Icon: Package, title: "Falta de Stock", text: "Nuestro enfoque especializado garantiza hiper‑rotación en piezas clave. Deja de rechazar trabajos por falta de componentes." },
+              {
+                Icon: AlertTriangle,
+                title: "Elevador Ocupado",
+                text: "Un vehículo esperando repuestos es dinero perdido para tu taller. Cada minuto sin rotación reduce tu facturación diaria.",
+              },
+              {
+                Icon: Truck,
+                title: "Proveedores Lentos",
+                text: "Olvida las horas perdidas esperando a que llegue el mensajero. La improductividad no es un costo que puedas seguir cargando.",
+              },
+              {
+                Icon: Package,
+                title: "Falta de Stock",
+                text: "Nuestro enfoque especializado garantiza hiper‑rotación en piezas clave. Deja de rechazar trabajos por falta de componentes.",
+              },
             ].map(({ Icon, title, text }) => (
-              <div key={title} className="bg-[oklch(0.18_0.04_250)] border border-gray-800 rounded-xl p-6 flex flex-col items-start transition-transform hover:scale-[1.02]">
+              <div
+                key={title}
+                className="bg-[oklch(0.18_0.04_250)] border border-gray-800 rounded-xl p-6 flex flex-col items-start transition-transform hover:scale-[1.02]"
+              >
                 <div className="w-12 h-12 bg-[oklch(0.7_0.2_40)]/10 rounded-full flex items-center justify-center mb-5">
                   <Icon className="w-6 h-6 text-[oklch(0.7_0.2_40)]" />
                 </div>
@@ -215,19 +237,35 @@ export default function ApexLandingPage() {
           </h2>
           <div className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
             {[
-              { Icon: Search, title: "Busca en el catálogo PWA", text: "Encuentra el repuesto exacto con referencia o descripción. Búsqueda optimizada para grasa en los dedos." },
-              { Icon: CheckCircle2, title: "Confirma tu pedido y taller", text: "Sin registros engorrosos. Solo tu nombre y WhatsApp para coordinar la entrega." },
-              { Icon: Clock, title: "Recibe en Chía en < 45 min", text: "Nuestro último entregador sale con tu repuesto antes de que termines de desmontar el anterior." },
+              {
+                Icon: Search,
+                title: "Busca en el catálogo PWA",
+                text: "Encuentra el repuesto exacto con referencia o descripción. Búsqueda optimizada para grasa en los dedos.",
+              },
+              {
+                Icon: CheckCircle2,
+                title: "Confirma tu pedido y taller",
+                text: "Sin registros engorrosos. Solo tu nombre y WhatsApp para coordinar la entrega.",
+              },
+              {
+                Icon: Clock,
+                title: "Recibe en Chía en < 45 min",
+                text: "Nuestro último entregador sale con tu repuesto antes de que termines de desmontar el anterior.",
+              },
             ].map(({ Icon, title, text }, i, arr) => (
               <div key={title} className="contents">
                 <div className="flex flex-col items-center max-w-xs">
                   <div className="w-16 h-16 bg-[oklch(0.7_0.2_40)] rounded-full flex items-center justify-center text-white font-extrabold text-2xl shadow-lg mb-4">
                     <Icon className="w-8 h-8" />
                   </div>
-                  <p className="text-sm font-bold text-gray-300 uppercase tracking-wider">{title}</p>
+                  <p className="text-sm font-bold text-gray-300 uppercase tracking-wider">
+                    {title}
+                  </p>
                   <p className="text-xs text-gray-500 mt-1">{text}</p>
                 </div>
-                {i < arr.length - 1 && <div className="hidden md:block w-12 h-px bg-gray-700 self-center"></div>}
+                {i < arr.length - 1 && (
+                  <div className="hidden md:block w-12 h-px bg-gray-700 self-center"></div>
+                )}
               </div>
             ))}
           </div>
@@ -265,10 +303,15 @@ export default function ApexLandingPage() {
                 placeholder="+57 300 123 4567"
                 className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
               />
-              <p className="text-xs text-gray-500 mt-1">Solo para enviar la ruta de entrega y confirmación.</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Solo para enviar la ruta de entrega y confirmación.
+              </p>
             </div>
             <div className="relative">
-              <label htmlFor="requerimiento" className="block text-sm font-semibold text-gray-300 mb-1">
+              <label
+                htmlFor="requerimiento"
+                className="block text-sm font-semibold text-gray-300 mb-1"
+              >
                 Requerimiento urgente de suspensión:
               </label>
               <div className="relative">
@@ -323,7 +366,8 @@ export default function ApexLandingPage() {
 
       <footer className="text-center py-6 border-t border-gray-800">
         <p className="text-xs text-gray-600">
-          &copy; {new Date().getFullYear()} Apex Suspensión – Logística de precisión para el taller moderno.
+          &copy; {new Date().getFullYear()} Apex Suspensión – Logística de precisión para el taller
+          moderno.
         </p>
       </footer>
     </div>
