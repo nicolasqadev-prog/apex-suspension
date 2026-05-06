@@ -1,7 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "apex-suspension",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
+  // Secretos (no van en el repo): wrangler secret put SUPABASE_URL | SUPABASE_SERVICE_ROLE_KEY | ADMIN_PIN
 }

@@ -1,0 +1,110 @@
+{
+  "meta": {
+    "fuente": "ejemplo-local",
+    "actualizado": "2026-05-04",
+    "moneda": "COP",
+    "nota": "Reemplazar o sincronizar con Supabase cuando pases a producción."
+  },
+  "piezas": [
+    {
+      "slug": "ktc-bij-spark-del",
+      "referencia": "KTC-BIJ-SPARK-DEL",
+      "nombre": "Bieleta barra estabilizadora delantera",
+      "aplicacion": "Chevrolet Spark GT 2011-2016",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 118000,
+      "stock": 4,
+      "marca": "KTC"
+    },
+    {
+      "slug": "ktc-buj-mazda3-inf",
+      "referencia": "KTC-BUJ-MAZDA3-INF",
+      "nombre": "Buje horquilla inferior",
+      "aplicacion": "Mazda 3 2004-2009",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 165000,
+      "stock": 1,
+      "marca": "KTC"
+    },
+    {
+      "slug": "ktc-rot-logan-dir",
+      "referencia": "KTC-ROT-LOGAN-DIR",
+      "nombre": "Rótula de dirección",
+      "aplicacion": "Renault Logan / Sandero 2007-2014",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 89000,
+      "stock": 6,
+      "marca": "KTC"
+    },
+    {
+      "slug": "ktc-amt-sailant-tras",
+      "referencia": "KTC-AMT-SAILANT-TRAS",
+      "nombre": "Amortiguador trasero",
+      "aplicacion": "Chevrolet Sail / Aveo Family",
+      "categoria": "Amortiguadores",
+      "precioLista": 245000,
+      "stock": 2,
+      "marca": "KTC"
+    },
+    {
+      "slug": "ktc-term-rav4-ext",
+      "referencia": "KTC-TERM-RAV4-EXT",
+      "nombre": "Terminal de dirección externo",
+      "aplicacion": "Toyota RAV4 2006-2012",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 142000,
+      "stock": 0,
+      "marca": "KTC"
+    },
+    {
+      "slug": "ktc-bij-aveo-del",
+      "referencia": "KTC-BIJ-AVEO-DEL",
+      "nombre": "Bieleta delantera izquierda",
+      "aplicacion": "Chevrolet Aveo Emotion 2009-2013",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 99000,
+      "stock": 8,
+      "marca": "KTC"
+    },
+    {
+      "slug": "corven-amt-logan-del",
+      "referencia": "CORVEN-AMT-LOGAN-DEL",
+      "nombre": "Amortiguador delantero",
+      "aplicacion": "Renault Logan / Sandero 2007-2014",
+      "categoria": "Amortiguadores",
+      "precioLista": 238000,
+      "stock": 3,
+      "marca": "Corven"
+    },
+    {
+      "slug": "nakata-rot-sail-dir",
+      "referencia": "NAKATA-ROT-SAIL-DIR",
+      "nombre": "Rótula de dirección",
+      "aplicacion": "Chevrolet Sail 2013-2018",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 112000,
+      "stock": 5,
+      "marca": "Nakata"
+    },
+    {
+      "slug": "sabo-reten-caja-aveo",
+      "referencia": "SABO-RETEN-CAJA-AVEO",
+      "nombre": "Retén de caja (selector)",
+      "aplicacion": "Chevrolet Aveo 2006-2012",
+      "categoria": "Sellos y Retenes",
+      "precioLista": 46000,
+      "stock": 7,
+      "marca": "SABO"
+    },
+    {
+      "slug": "moog-bij-rav4-del",
+      "referencia": "MOOG-BIJ-RAV4-DEL",
+      "nombre": "Bieleta barra estabilizadora delantera",
+      "aplicacion": "Toyota RAV4 2006-2012",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 176000,
+      "stock": 2,
+      "marca": "MOOG"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+
+# Cuando tengas dominio público, agregá una línea (URL absoluta), por ejemplo:
+# Sitemap: https://tudominio.com/sitemap.xml

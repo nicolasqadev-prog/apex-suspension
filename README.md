@@ -1,6 +1,6 @@
-# Apex Suspensión (Ockham Systems)
+# Apex Suspensión
 
-Proyecto web/PWA para venta y logística de repuestos de suspensión.
+PWA del negocio **Apex Suspensión** (repuestos y logística). En la interfaz, **Ockham Systems** solo figura en el pie como presencia técnica; el resto del producto habla a nombre de Apex.
 
 ## Estado de independencia
 
@@ -26,6 +26,23 @@ Comandos principales:
 - `npm run build`: build de producción.
 - `npm run preview`: vista previa del build.
 - `npm run check`: lint + build.
+
+## Rutas útiles del MVP
+
+- `/` — landing comercial.
+- `/catalogo` — listado + búsqueda (lee `data/inventario.ejemplo.json`).
+- `/repuesto/$slug` — detalle y botón a WhatsApp.
+
+Configura tu número real copiando `.env.example` a `.env.local` y ajustando `VITE_WHATSAPP_APEX`.
+
+## Documentación de producto y agentes
+
+- `docs/mvp-flujo.md` — flujo realista y estados de pedido.
+- `docs/esquema-datos.md` — JSON actual + tablas sugeridas para Supabase.
+- `docs/whatsapp-webhook-estados.md` — evento Meta → estado del pedido → modo de agente.
+- `supabase/migrations/20260504120000_init_apex.sql` — esquema inicial (ejecutar en Supabase o vía CLI).
+- `docs/prompts/` — prompts base (mostrador, despachos, compras) y `plantillas-whatsapp.md` (textos listos para pegar).
+- `docs/division-claude-deepseek-cursor.md` — cómo repartir trabajo entre herramientas.
 
 ## PWA (base lista)
 

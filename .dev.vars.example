@@ -1,0 +1,6 @@
+# Variables SOLO servidor (Wrangler / Cloudflare Worker)
+# Copia este archivo como `.dev.vars` para desarrollo local con Wrangler.
+#
+# PIN del panel /admin (no usar VITE_*)
+# Pruebas locales: Panel1234 (cámbialo en .dev.vars y en producción en Cloudflare)
+ADMIN_PIN=Panel1234
