@@ -161,7 +161,7 @@ export default function ApexLandingPage() {
               {
                 Icon: ShieldCheck,
                 title: "Anticipo con reglas claras",
-                text: "Express con 50% para reservar y priorizar ruta; Programado contra entrega si preferís pagar al recibir. Si no podemos despachar, no te dejamos colgado: te avisamos y el anticipo se gestiona sin rodeos.",
+                text: "Express con 50% para reservar y priorizar ruta; Programado contra entrega si prefieres pagar al recibir. Si no podemos despachar, no te dejamos colgado: te avisamos y el anticipo se gestiona sin rodeos.",
               },
             ].map(({ Icon, title, text }) => (
               <div
@@ -236,7 +236,7 @@ export default function ApexLandingPage() {
               },
               {
                 Icon: Clock,
-                title: "Recibe en Chía en franja corta",
+                title: "Recibe en tu taller en franja corta",
                 text: "Cuando hay stock y cupo en ruta, coordinamos salida rápida; el ETA exacto te lo confirma despachos antes de salir.",
               },
             ].map(({ Icon, title, text }, i, arr) => (
@@ -529,9 +529,7 @@ export default function ApexLandingPage() {
         </div>
 
         <div className="max-w-md mx-auto mt-10 pt-8 border-t border-white/10 flex flex-col items-center gap-3 text-center">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
-            Plataforma y presencia técnica
-          </p>
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">Tecnología</p>
           <div className="rounded-2xl border border-white/10 bg-black/20 px-6 py-4 backdrop-blur-sm">
             <img
               src="/ockham-systems-marca.png"

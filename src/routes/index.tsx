@@ -5,11 +5,11 @@ export const Route = createFileRoute("/")({
   component: ApexLandingPage,
   head: () => ({
     meta: [
-      { title: "Apex Suspensión – Repuestos KTC en menos de 45 min" },
+      { title: "Apex Suspensión — repuestos con entrega rápida" },
       {
         name: "description",
         content:
-          "Entregas flash de repuestos de suspensión KTC directo en tu taller. Logística de precisión en Chía, Cajicá y Tocancipá.",
+          "Repuestos de suspensión y dirección para tu taller en la Sabana. Entregas rápidas cuando hay stock y ruta disponible (Chía y alrededores).",
       },
     ],
   }),

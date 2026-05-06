@@ -1,7 +1,50 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Apex Suspensi�n Maskable">
-  <rect width="512" height="512" fill="#111827" />
-  <rect x="56" y="56" width="400" height="400" rx="88" fill="#0f172a" />
-  <circle cx="256" cy="256" r="128" fill="none" stroke="#f59e0b" stroke-width="24" />
-  <path d="M150 306h212" stroke="#f8fafc" stroke-width="22" stroke-linecap="round" />
-  <path d="M174 210l68 68 96-96" stroke="#22c55e" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Apex Suspensión Maskable">
+  <!-- Fondo navy completo sin recorte (maskable: safe zone = círculo central 80%) -->
+  <rect width="512" height="512" fill="#0f172a"/>
+
+  <!-- Cuerpo navy (forma de A / link de suspensión) -->
+  <path
+    d="M256 88
+       C256 88 310 100 345 160
+       L390 330
+       C395 350 385 375 365 382
+       L340 390
+       C325 395 308 385 302 370
+       L280 315
+       L232 315
+       L210 370
+       C204 385 187 395 172 390
+       L147 382
+       C127 375 117 350 122 330
+       L167 160
+       C202 100 256 88 256 88 Z"
+    fill="#1d3461"
+  />
+  <!-- Hueco interior del A -->
+  <path
+    d="M256 195 L278 275 L234 275 Z"
+    fill="#0f172a"
+  />
+
+  <!-- Swoosh naranja -->
+  <path
+    d="M148 390
+       C138 410 125 420 108 418
+       C90 416 82 398 90 380
+       L155 225
+       C168 190 195 175 220 182
+       L310 205
+       C345 215 368 198 382 168
+       C395 138 420 128 438 138
+       C456 148 458 172 444 192
+       L370 315
+       C352 342 320 352 292 342
+       L202 318
+       C178 310 158 325 148 390 Z"
+    fill="#f47920"
+  />
+
+  <!-- Ball joint (articulación naranja) -->
+  <circle cx="200" cy="162" r="52" fill="#f47920"/>
+  <circle cx="200" cy="162" r="28" fill="#0f172a"/>
 </svg>

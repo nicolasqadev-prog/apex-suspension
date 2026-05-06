@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
-import markUrl from "../assets/apex-mark.webp";
+import markUrl from "../assets/apex-icon.png";
 
 export default function ApexHeaderBrand() {
   return (
@@ -10,11 +10,11 @@ export default function ApexHeaderBrand() {
       className="group relative flex flex-col items-start gap-1 rounded-lg py-0.5 pr-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.7_0.2_40)]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[oklch(0.18_0.04_250)]"
     >
       <div className="flex items-center gap-3">
-        <span className="grid size-10 place-items-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-white/15 transition-transform duration-300 group-hover:scale-[1.02] sm:size-11">
+        <span className="grid size-10 place-items-center overflow-hidden rounded-full transition-transform duration-300 group-hover:scale-[1.02] sm:size-11">
           <img
             src={markUrl}
             alt=""
-            className="h-7 w-auto select-none sm:h-8"
+            className="h-9 w-auto select-none sm:h-10"
             loading="eager"
             decoding="async"
           />

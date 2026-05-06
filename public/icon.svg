@@ -1,6 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Apex Suspensi�n">
-  <rect width="512" height="512" rx="96" fill="#0f172a" />
-  <circle cx="256" cy="256" r="150" fill="none" stroke="#f59e0b" stroke-width="28" />
-  <path d="M142 306h228" stroke="#f8fafc" stroke-width="24" stroke-linecap="round" />
-  <path d="M170 210l72 72 100-100" stroke="#22c55e" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Apex Suspensión">
+  <!-- Fondo navy con esquinas redondeadas (estilo app icon) -->
+  <rect width="512" height="512" rx="96" fill="#0f172a"/>
+
+  <!-- Isotipo Apex Suspensión — colores de marca: navy #1d3461, naranja #f47920 -->
+
+  <!-- Cuerpo navy (forma de A / link de suspensión) -->
+  <path
+    d="M256 68
+       C256 68 310 80 345 140
+       L390 310
+       C395 330 385 355 365 362
+       L340 370
+       C325 375 308 365 302 350
+       L280 295
+       L232 295
+       L210 350
+       C204 365 187 375 172 370
+       L147 362
+       C127 355 117 330 122 310
+       L167 140
+       C202 80 256 68 256 68 Z"
+    fill="#1d3461"
+  />
+  <!-- Hueco interior del cuerpo (recorte tipo A) -->
+  <path
+    d="M256 175 L278 255 L234 255 Z"
+    fill="#0f172a"
+  />
+
+  <!-- Swoosh naranja (banda curva diagonal) -->
+  <path
+    d="M148 370
+       C138 390 125 400 108 398
+       C90 396 82 378 90 360
+       L155 205
+       C168 170 195 155 220 162
+       L310 185
+       C345 195 368 178 382 148
+       C395 118 420 108 438 118
+       C456 128 458 152 444 172
+       L370 295
+       C352 322 320 332 292 322
+       L202 298
+       C178 290 158 305 148 370 Z"
+    fill="#f47920"
+  />
+
+  <!-- Articulación / ball joint (anillo naranja arriba) -->
+  <circle cx="200" cy="148" r="52" fill="#f47920"/>
+  <circle cx="200" cy="148" r="28" fill="#0f172a"/>
 </svg>
