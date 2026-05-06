@@ -10,15 +10,13 @@ export default function ApexHeaderBrand() {
       className="group relative flex flex-col items-start gap-1 rounded-lg py-0.5 pr-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.7_0.2_40)]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[oklch(0.18_0.04_250)]"
     >
       <div className="flex items-center gap-3">
-        <span className="grid size-10 place-items-center overflow-hidden rounded-full transition-transform duration-300 group-hover:scale-[1.02] sm:size-11">
-          <img
-            src={markUrl}
-            alt=""
-            className="h-9 w-auto select-none sm:h-10"
-            loading="eager"
-            decoding="async"
-          />
-        </span>
+        <img
+          src={markUrl}
+          alt=""
+          className="h-10 w-auto select-none transition-transform duration-300 group-hover:scale-[1.02] sm:h-11"
+          loading="eager"
+          decoding="async"
+        />
 
         <div className="flex flex-col items-start gap-1">
           <div className="relative inline-block">

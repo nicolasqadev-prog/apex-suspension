@@ -536,19 +536,15 @@ export default function ApexLandingPage() {
           </nav>
         </div>
 
-        <div className="max-w-md mx-auto mt-10 pt-8 border-t border-white/10 flex flex-col items-center gap-3 text-center">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
-            Tecnología
-          </p>
-          <div className="rounded-2xl border border-white/10 bg-black/20 px-6 py-4 backdrop-blur-sm">
-            <img
-              src="/ockham-systems-marca.png"
-              alt="Ockham Systems"
-              className="h-12 sm:h-14 w-auto max-w-[min(100%,280px)] object-contain opacity-90"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
+        <div className="max-w-md mx-auto mt-8 pt-6 border-t border-white/10 flex items-center justify-center gap-3">
+          <span className="text-[11px] text-gray-600">Plataforma</span>
+          <img
+            src="/ockham-systems-marca.png"
+            alt="Ockham Systems"
+            className="h-5 w-auto object-contain opacity-40 brightness-0 invert"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
       </footer>
     </div>
