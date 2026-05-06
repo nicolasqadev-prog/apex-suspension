@@ -3,6 +3,6 @@
   "name": "apex-suspension",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
+  "main": "src/server.ts"
   // Secretos (no van en el repo): wrangler secret put SUPABASE_URL | SUPABASE_SERVICE_ROLE_KEY | ADMIN_PIN
 }

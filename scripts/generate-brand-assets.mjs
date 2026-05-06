@@ -40,7 +40,10 @@ async function makeIcon(size, filename) {
   const top = Math.max(0, Math.round((badgeSize - logoInfo.height) / 2));
   const left = Math.max(0, Math.round((badgeSize - logoInfo.width) / 2));
 
-  const badge = await sharp(badgeBase).composite([{ input: logoForBadge, top, left }]).png().toBuffer();
+  const badge = await sharp(badgeBase)
+    .composite([{ input: logoForBadge, top, left }])
+    .png()
+    .toBuffer();
 
   await sharp({ create: { width: size, height: size, channels: 4, background: "#0f172a" } })
     .composite([{ input: badge, top: pad, left: pad }])
@@ -53,4 +56,3 @@ await makeIcon(512, "icon-512.png");
 await makeIcon(180, "apple-touch-icon.png");
 
 console.log("Generated brand assets (wordmark + PWA icons).");
-

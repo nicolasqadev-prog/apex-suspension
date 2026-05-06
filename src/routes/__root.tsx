@@ -58,6 +58,10 @@ export const Route = createRootRoute({
         href: appCss,
       },
       {
+        rel: "canonical",
+        href: "https://apex-suspension.nicolas-qa-dev.workers.dev/",
+      },
+      {
         rel: "manifest",
         href: "/manifest.webmanifest",
       },

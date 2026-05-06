@@ -537,7 +537,9 @@ export default function ApexLandingPage() {
         </div>
 
         <div className="max-w-md mx-auto mt-10 pt-8 border-t border-white/10 flex flex-col items-center gap-3 text-center">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">Tecnología</p>
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-gray-500">
+            Tecnología
+          </p>
           <div className="rounded-2xl border border-white/10 bg-black/20 px-6 py-4 backdrop-blur-sm">
             <img
               src="/ockham-systems-marca.png"
