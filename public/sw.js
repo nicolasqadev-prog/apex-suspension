@@ -1,6 +1,14 @@
 // Increment this when shipping a new release to force cache refresh.
-const CACHE_NAME = "apex-suspension-pwa-v2";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/icon.svg", "/icon-maskable.svg"];
+const CACHE_NAME = "apex-suspension-pwa-v3";
+const APP_SHELL = [
+  "/",
+  "/manifest.webmanifest",
+  "/icon.svg",
+  "/icon-maskable.svg",
+  "/icon-192.png",
+  "/icon-512.png",
+  "/apple-touch-icon.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

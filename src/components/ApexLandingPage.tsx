@@ -91,6 +91,12 @@ export default function ApexLandingPage() {
               Catálogo
             </Link>
             <a
+              href="#pagos"
+              className="hidden sm:inline text-xs sm:text-sm font-semibold text-gray-300 hover:text-[oklch(0.7_0.2_40)] transition-colors"
+            >
+              Pagos y garantía
+            </a>
+            <a
               href="#despacho"
               className="text-xs sm:text-sm font-semibold text-gray-300 hover:text-[oklch(0.7_0.2_40)] transition-colors"
             >
@@ -123,15 +129,17 @@ export default function ApexLandingPage() {
             <ArrowRight className="w-5 h-5 ml-1" />
           </a>
 
-          <div className="mt-4 flex items-center justify-center gap-4 text-sm">
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-sm">
             <Link
               to="/catalogo"
-              className="text-gray-300 hover:text-[oklch(0.7_0.2_40)] font-semibold"
+              className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 font-semibold text-gray-200 hover:border-[oklch(0.7_0.2_40)]/40 hover:text-[oklch(0.7_0.2_40)] transition-colors"
             >
               Ver catálogo
             </Link>
-            <span className="text-gray-700">|</span>
-            <a href="#pagos" className="text-gray-300 hover:text-[oklch(0.7_0.2_40)] font-semibold">
+            <a
+              href="#pagos"
+              className="inline-flex items-center justify-center rounded-full border border-white/10 bg-black/20 px-4 py-2 font-semibold text-gray-200 hover:border-[oklch(0.7_0.2_40)]/40 hover:text-[oklch(0.7_0.2_40)] transition-colors"
+            >
               Ver pagos y garantía
             </a>
           </div>
