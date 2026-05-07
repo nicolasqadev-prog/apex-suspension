@@ -6,6 +6,7 @@ import {
   Truck,
   Package,
   Search,
+  CheckCircle2,
   Wrench,
   Send,
   ArrowRight,
