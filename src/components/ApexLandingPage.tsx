@@ -115,9 +115,9 @@ export default function ApexLandingPage() {
             El impulso exacto <br className="hidden sm:block" /> para no detenerte.
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
-            Suspensión a tiempo, trabajo terminado. Entregas rápidas a tu taller en la Sabana; en
-            Chía y zonas muy cercanas muchas salidas se coordinan en franjas cortas (referencia
-            típica &lt; 45 min cuando hay stock y ruta disponible).
+            Cotiza repuestos de suspensión y dirección para tu taller: respuesta en minutos y entrega
+            donde trabajas en la Sabana de Bogotá. En Chía y alrededores, con pieza en stock,
+            solemos coordinar salidas muy rápidas del mismo día.
           </p>
 
           <a
