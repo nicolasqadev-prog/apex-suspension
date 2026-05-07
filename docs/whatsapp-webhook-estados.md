@@ -38,6 +38,15 @@ borrador → cotizado → confirmado → empacando → en_ruta → entregado
 
 ---
 
+## Regla de talleres fidelizados (precios / contra entrega)
+
+Al inicio de cada conversación, el orquestador debe consultar `talleres_fidelizados` por número de WhatsApp.
+
+- Si existe y `activo = true`: inyecta un objeto `{{taller}}` al prompt del agente con
+  `descuentoPorcentaje` y `contraEntregaHabilitada`.
+- El agente cotiza con el precio correcto (descuento aplicado) y confirma el flujo de pago como
+  **contra entrega** cuando esté habilitado, **sin mencionar** "descuento", "programa" o "membresía".
+
 ## Estructura mínima del payload de entrada (referencia)
 
 ```json

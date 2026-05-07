@@ -6,14 +6,14 @@ Con esto no hace falta tocar el panel de Cloudflare para cada clave: **las carg�
 
 En el repo: **Settings → Secrets and variables → Actions → New repository secret**.
 
-| Nombre | Qué es |
-|--------|--------|
-| `CLOUDFLARE_API_TOKEN` | Token con permiso de editar Workers (y lectura de cuenta si hace falta). [Crear token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) (plantilla “Edit Cloudflare Workers” o equivalente). |
-| `CLOUDFLARE_ACCOUNT_ID` | En Cloudflare: **Overview** de tu cuenta, columna derecha, **Account ID**. |
-| `VITE_WHATSAPP_APEX` | Mismo valor que en `.env.example` (número WhatsApp; se inyecta en el **build**). |
-| `SUPABASE_URL` | URL del proyecto Supabase (podés normalizarla como en local). |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role de Supabase (solo servidor). |
-| `ADMIN_PIN` | PIN fuerte para `/admin` en producción. |
+| Nombre                      | Qué es                                                                                                                                                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`      | Token con permiso de editar Workers (y lectura de cuenta si hace falta). [Crear token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) (plantilla “Edit Cloudflare Workers” o equivalente). |
+| `CLOUDFLARE_ACCOUNT_ID`     | En Cloudflare: **Overview** de tu cuenta, columna derecha, **Account ID**.                                                                                                                                                |
+| `VITE_WHATSAPP_APEX`        | Mismo valor que en `.env.example` (número WhatsApp; se inyecta en el **build**).                                                                                                                                          |
+| `SUPABASE_URL`              | URL del proyecto Supabase (podés normalizarla como en local).                                                                                                                                                             |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role de Supabase (solo servidor).                                                                                                                                                                                 |
+| `ADMIN_PIN`                 | PIN fuerte para `/admin` en producción.                                                                                                                                                                                   |
 
 Los nombres tienen que coincidir **exactamente** con la tabla (mayúsculas incluidas).
 

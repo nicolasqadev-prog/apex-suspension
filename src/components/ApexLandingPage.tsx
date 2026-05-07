@@ -19,6 +19,7 @@ import {
 import ApexHeaderBrand from "@/components/ApexHeaderBrand";
 import MarcasSection from "@/components/MarcasSection";
 import { crearPedidoDesdeWeb } from "@/lib/pedidos.functions";
+import { consultarTallerFidelizado } from "@/lib/talleres.functions";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 
 export default function ApexLandingPage() {
@@ -30,6 +31,16 @@ export default function ApexLandingPage() {
   const [requerimiento, setRequerimiento] = useState("");
   const [modalidad, setModalidad] = useState<"express" | "programado">("express");
   const [enviando, setEnviando] = useState(false);
+  const [tallerValidado, setTallerValidado] = useState(false);
+
+  async function refreshTallerValidado(raw: string) {
+    try {
+      const res = await consultarTallerFidelizado({ data: { whatsapp: raw } });
+      setTallerValidado(Boolean(res.validado));
+    } catch {
+      setTallerValidado(false);
+    }
+  }
 
   async function onSubmitDespacho(e: FormEvent) {
     e.preventDefault();
@@ -115,9 +126,9 @@ export default function ApexLandingPage() {
             El impulso exacto <br className="hidden sm:block" /> para no detenerte.
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
-            Cotiza repuestos de suspensión y dirección para tu taller: respuesta en minutos y entrega
-            donde trabajas en la Sabana de Bogotá. En Chía y alrededores, con pieza en stock,
-            solemos coordinar salidas muy rápidas del mismo día.
+            Cotiza repuestos de suspensión y dirección para tu taller: respuesta en minutos y
+            entrega donde trabajas en la Sabana de Bogotá. En Chía y alrededores, con pieza en
+            stock, solemos coordinar salidas muy rápidas del mismo día.
           </p>
 
           <a
@@ -285,6 +296,11 @@ export default function ApexLandingPage() {
             className="mb-8 rounded-xl border border-white/10 bg-black/20 px-5 py-4 scroll-mt-20"
           >
             <p className="text-sm font-semibold text-white">Pagos y modalidades</p>
+            <p className="mt-2 text-xs text-gray-400 leading-relaxed">
+              {tallerValidado
+                ? "Los precios son por unidad. Tu pedido se despacha contra entrega."
+                : "Los precios son por unidad. Para confirmar tu pedido necesitamos el 50% de anticipo."}
+            </p>
             <ul className="mt-2 text-xs text-gray-400 space-y-1 leading-relaxed">
               <li>
                 - <span className="text-gray-200 font-medium">Express (prioritario):</span> anticipo
@@ -337,6 +353,7 @@ export default function ApexLandingPage() {
                 placeholder="+57 300 123 4567"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
+                onBlur={() => refreshTallerValidado(whatsapp)}
                 className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
               />
               <p className="text-xs text-gray-500 mt-1">

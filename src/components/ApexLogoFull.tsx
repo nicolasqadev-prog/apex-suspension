@@ -8,13 +8,16 @@ interface Props {
   className?: string;
 }
 
-const sizes: Record<Size, {
-  mark: string;
-  apex: string;
-  sub: string;
-  tag: string;
-  gap: string;
-}> = {
+const sizes: Record<
+  Size,
+  {
+    mark: string;
+    apex: string;
+    sub: string;
+    tag: string;
+    gap: string;
+  }
+> = {
   sm: {
     mark: "h-10",
     apex: "text-2xl",
@@ -38,11 +41,7 @@ const sizes: Record<Size, {
   },
 };
 
-export default function ApexLogoFull({
-  size = "md",
-  showTagline = true,
-  className = "",
-}: Props) {
+export default function ApexLogoFull({ size = "md", showTagline = true, className = "" }: Props) {
   const s = sizes[size];
 
   return (
@@ -59,9 +58,7 @@ export default function ApexLogoFull({
 
       {/* Texto tipográfico en blanco — natural sobre fondos oscuros */}
       <div className="flex flex-col leading-none">
-        <span
-          className={`${s.apex} font-black text-white tracking-[-0.04em] leading-none`}
-        >
+        <span className={`${s.apex} font-black text-white tracking-[-0.04em] leading-none`}>
           APEX
         </span>
 
@@ -71,9 +68,7 @@ export default function ApexLogoFull({
           className="my-[3px] block h-[2px] w-full rounded-full bg-gradient-to-r from-orange-500 via-orange-400 to-amber-300"
         />
 
-        <span
-          className={`${s.sub} font-semibold uppercase text-white leading-none`}
-        >
+        <span className={`${s.sub} font-semibold uppercase text-white leading-none`}>
           Suspensión
         </span>
 

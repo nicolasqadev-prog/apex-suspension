@@ -44,9 +44,7 @@ async function matteBlackToAlpha(inputPath, outputPath) {
     out[i + 2] = Math.min(255, Math.round(b * invA));
   }
 
-  await sharp(out, { raw: info })
-    .png({ compressionLevel: 9 })
-    .toFile(outputPath);
+  await sharp(out, { raw: info }).png({ compressionLevel: 9 }).toFile(outputPath);
 }
 
 const input =
@@ -58,4 +56,3 @@ const output =
 
 await matteBlackToAlpha(input, output);
 console.log(`OK: wrote ${output}`);
-
