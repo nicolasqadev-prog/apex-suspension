@@ -17,6 +17,18 @@ type Pedido = {
   created_at: string;
 };
 
+const RATE_WINDOW_MS = 10 * 60_000;
+const RATE_MAX_FAILS = 5;
+const rateFailsByIp = new Map<string, { count: number; firstAt: number }>();
+
+function getIpFromHeaders(headers: Headers): string {
+  const cf = headers.get("CF-Connecting-IP");
+  if (cf) return cf.trim();
+  const xff = headers.get("X-Forwarded-For");
+  if (xff) return xff.split(",")[0]?.trim() || "unknown";
+  return "unknown";
+}
+
 const verifyAdminPin = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => {
     if (!data || typeof data !== "object") throw new Error("Datos inválidos");
@@ -24,20 +36,38 @@ const verifyAdminPin = createServerFn({ method: "POST" })
     if (typeof pin !== "string") throw new Error("PIN inválido");
     return { pin };
   })
-  .handler(async ({ data }) => {
+  .handler(async (ctx) => {
+    const data = (ctx as { data: { pin: string } }).data;
+    const request = (ctx as { request?: Request }).request;
+    const ip = request ? getIpFromHeaders(request.headers) : "unknown";
+    const now = Date.now();
+    const slot = rateFailsByIp.get(ip);
+    if (slot && now - slot.firstAt <= RATE_WINDOW_MS && slot.count >= RATE_MAX_FAILS) {
+      return { ok: false, reason: "bloqueado" } as const;
+    }
+
     // En desarrollo, PIN de prueba si no hay variable (cambiar en producción vía ADMIN_PIN).
     const expected = process.env.ADMIN_PIN ?? (import.meta.env.DEV ? "Panel1234" : undefined);
     if (!expected) {
       return { ok: false, reason: "ADMIN_PIN no configurado en el servidor" } as const;
     }
     const ok = data.pin === expected;
+    if (!ok) {
+      if (!slot || now - slot.firstAt > RATE_WINDOW_MS) {
+        rateFailsByIp.set(ip, { count: 1, firstAt: now });
+      } else {
+        rateFailsByIp.set(ip, { count: slot.count + 1, firstAt: slot.firstAt });
+      }
+    } else {
+      rateFailsByIp.delete(ip);
+    }
     return { ok } as const;
   });
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
   head: () => ({
-    meta: [{ title: "Admin | Apex Suspensión" }],
+    meta: [{ title: "Admin | Apex Suspensión" }, { name: "robots", content: "noindex, nofollow" }],
   }),
 });
 

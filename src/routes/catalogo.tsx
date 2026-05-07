@@ -101,9 +101,7 @@ function CatalogoPage() {
               <Package className="h-6 w-6 text-[oklch(0.7_0.2_40)]" />
               Catálogo
             </h1>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Stock y precio de referencia · {moneda}
-            </p>
+            <p className="text-xs text-gray-500 mt-0.5">Stock y precio de referencia · {moneda}</p>
           </div>
         </div>
       </header>

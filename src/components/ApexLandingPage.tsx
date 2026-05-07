@@ -6,11 +6,9 @@ import {
   Truck,
   Package,
   Search,
-  CheckCircle2,
   Wrench,
   Send,
   ArrowRight,
-  ChevronDown,
   Clock,
   ShieldCheck,
   MapPin,
@@ -18,76 +16,27 @@ import {
 } from "lucide-react";
 import ApexHeaderBrand from "@/components/ApexHeaderBrand";
 import MarcasSection from "@/components/MarcasSection";
-import { crearPedidoDesdeWeb } from "@/lib/pedidos.functions";
-import { consultarTallerFidelizado } from "@/lib/talleres.functions";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 
 export default function ApexLandingPage() {
-  const [taller, setTaller] = useState("");
+  const [pieza, setPieza] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
-  const [municipio, setMunicipio] = useState("");
-  const [direccion, setDireccion] = useState("");
-  const [referencia, setReferencia] = useState("");
-  const [requerimiento, setRequerimiento] = useState("");
-  const [modalidad, setModalidad] = useState<"express" | "programado">("express");
   const [enviando, setEnviando] = useState(false);
-  const [tallerValidado, setTallerValidado] = useState(false);
-
-  async function refreshTallerValidado(raw: string) {
-    try {
-      const res = await consultarTallerFidelizado({ data: { whatsapp: raw } });
-      setTallerValidado(Boolean(res.validado));
-    } catch {
-      setTallerValidado(false);
-    }
-  }
 
   async function onSubmitDespacho(e: FormEvent) {
     e.preventDefault();
-    if (!taller.trim() || !whatsapp.trim() || !municipio.trim() || !direccion.trim()) return;
-
-    const isChia =
-      municipio.trim().toLowerCase().includes("chía") ||
-      municipio.trim().toLowerCase().includes("chia");
+    if (!whatsapp.trim()) return;
 
     const mensaje = [
-      "Hola Apex Suspensión, necesito despacho.",
-      `Taller: ${taller}`,
-      `WhatsApp: ${whatsapp}`,
-      `Municipio: ${municipio}`,
-      `Dirección: ${direccion}`,
-      referencia.trim() ? `Referencia / pieza: ${referencia.trim()}` : null,
-      requerimiento.trim() ? `Categoría: ${requerimiento.trim()}` : null,
-      `Modalidad: ${modalidad === "express" ? "Express (anticipo 50%)" : "Programado (contra entrega)"}`,
-      isChia ? "Domicilio: Gratis en Chía" : "Domicilio: se confirma por zona",
+      `Hola, necesito: ${pieza.trim() || "repuesto de suspensión/dirección"}.`,
+      `Mi WhatsApp es ${whatsapp.trim()}.`,
     ]
       .filter(Boolean)
       .join("\n");
 
-    // 1) Guardar pedido (si backend/Supabase está configurado).
-    // 2) Abrir WhatsApp siempre (la venta real pasa por WA).
     setEnviando(true);
-    try {
-      await crearPedidoDesdeWeb({
-        data: {
-          tallerNombre: taller.trim(),
-          whatsapp: whatsapp.trim(),
-          municipio: municipio.trim(),
-          direccion: direccion.trim(),
-          referencia: referencia.trim() || undefined,
-          requerimiento: requerimiento.trim() || undefined,
-          notas:
-            modalidad === "express"
-              ? "Modalidad express (anticipo 50%)."
-              : "Modalidad programado (contra entrega).",
-        },
-      });
-    } catch {
-      // Si el backend no está listo, igual se abre WhatsApp.
-    } finally {
-      setEnviando(false);
-      window.open(enlaceWhatsApp(mensaje), "_blank", "noreferrer");
-    }
+    setEnviando(false);
+    window.open(enlaceWhatsApp(mensaje), "_blank", "noreferrer");
   }
   return (
     <div className="min-h-screen bg-[oklch(0.18_0.04_250)] font-sans text-gray-200 antialiased">
@@ -128,7 +77,7 @@ export default function ApexLandingPage() {
           <p className="mt-6 text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
             Cotiza repuestos de suspensión y dirección para tu taller: respuesta en minutos y
             entrega donde trabajas en la Sabana de Bogotá. En Chía y alrededores, con pieza en
-            stock, solemos coordinar salidas muy rápidas del mismo día.
+            stock, coordinamos salida el mismo día.
           </p>
 
           <a
@@ -140,26 +89,13 @@ export default function ApexLandingPage() {
             <ArrowRight className="w-5 h-5 ml-1" />
           </a>
 
-          <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-sm">
-            <Link
-              to="/catalogo"
-              className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 font-semibold text-gray-200 hover:border-[oklch(0.7_0.2_40)]/40 hover:text-[oklch(0.7_0.2_40)] transition-colors"
-            >
-              Ver catálogo
-            </Link>
-            <a
-              href="#pagos"
-              className="inline-flex items-center justify-center rounded-full border border-white/10 bg-black/20 px-4 py-2 font-semibold text-gray-200 hover:border-[oklch(0.7_0.2_40)]/40 hover:text-[oklch(0.7_0.2_40)] transition-colors"
-            >
-              Ver pagos y garantía
-            </a>
-          </div>
+          <div className="mt-4" />
 
           <div className="mt-8 mx-auto max-w-2xl rounded-xl border border-white/10 bg-black/20 px-5 py-5 text-left">
             <p className="text-sm font-semibold text-white">Trabajamos con talleres</p>
             <p className="mt-2 text-sm text-gray-400 leading-relaxed">
-              Si tienes taller, tienes condiciones diferentes: precio de distribuidor, despacho contra
-              entrega y atención directa por WhatsApp. Sin trámites, sin intermediarios.
+              Si tienes taller, tienes condiciones diferentes: precio de distribuidor, despacho
+              contra entrega y atención directa por WhatsApp. Sin trámites, sin intermediarios.
             </p>
             <a
               href={enlaceWhatsApp(
@@ -175,6 +111,35 @@ export default function ApexLandingPage() {
         </div>
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-[oklch(0.7_0.2_40)]/30 rounded-full mt-12 hidden md:block">
           {" "}
+        </div>
+      </section>
+
+      <section className="px-4 py-12 md:py-16 bg-[oklch(0.14_0.04_250)]">
+        <div className="max-w-5xl mx-auto text-center">
+          <p className="text-xs uppercase tracking-[0.3em] text-gray-500 font-semibold">
+            QUIÉNES SOMOS
+          </p>
+          <p className="mt-4 text-base sm:text-lg text-white leading-relaxed max-w-3xl mx-auto">
+            Somos operadores de taller. Armamos Apex porque lo necesitábamos nosotros primero: un
+            proveedor que llegara rápido, sin llamadas perdidas y sin excusas.
+          </p>
+
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            <div className="rounded-xl border border-white/10 bg-black/20 px-6 py-5">
+              <p className="text-4xl font-extrabold text-[oklch(0.7_0.2_40)] leading-none">5</p>
+              <p className="mt-2 text-sm text-gray-300">marcas especializadas en catálogo</p>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-black/20 px-6 py-5">
+              <p className="text-4xl font-extrabold text-[oklch(0.7_0.2_40)] leading-none">4</p>
+              <p className="mt-2 text-sm text-gray-300">
+                municipios de la Sabana con cobertura activa
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8 inline-flex items-center justify-center rounded-full border border-[oklch(0.7_0.2_40)]/30 bg-black/20 px-4 py-2 text-xs text-gray-200">
+            Abriendo operaciones — cupos de taller fidelizado limitados en la primera temporada
+          </div>
         </div>
       </section>
 
@@ -197,8 +162,8 @@ export default function ApexLandingPage() {
               },
               {
                 Icon: ShieldCheck,
-                title: "Anticipo con reglas claras",
-                text: "Express con 50% para reservar y priorizar ruta; Programado contra entrega si prefieres pagar al recibir. Si no podemos despachar, no te dejamos colgado: te avisamos y el anticipo se gestiona sin rodeos.",
+                title: "Tu plata, protegida",
+                text: "El anticipo se pide solo cuando el despacho está confirmado por nosotros. Si no podemos cumplir, te avisamos y se devuelve sin rodeos.",
               },
             ].map(({ Icon, title, text }) => (
               <div
@@ -302,253 +267,65 @@ export default function ApexLandingPage() {
         <div className="max-w-2xl mx-auto bg-[oklch(0.18_0.04_250)] border border-gray-800 rounded-2xl p-8 shadow-2xl">
           <h2 className="text-xl sm:text-2xl font-extrabold uppercase text-white mb-2 flex items-center gap-2">
             <Wrench className="w-6 h-6 text-[oklch(0.7_0.2_40)]" />
-            Despacho inmediato
+            ¿Qué pieza necesitas?
           </h2>
-          <p className="text-gray-400 mb-8">
-            Completa los datos y abrimos hilo en WhatsApp para cotizar, confirmar stock y coordinar
-            la ruta.
-          </p>
 
-          <div
-            id="pagos"
-            className="mb-8 rounded-xl border border-white/10 bg-black/20 px-5 py-4 scroll-mt-20"
-          >
-            <p className="text-sm font-semibold text-white">Pagos y modalidades</p>
-            <p className="mt-2 text-xs text-gray-400 leading-relaxed">
-              {tallerValidado
-                ? "Los precios son por unidad. Tu pedido se despacha contra entrega."
-                : "Los precios son por unidad. Para confirmar tu pedido necesitamos el 50% de anticipo."}
-            </p>
-            <ul className="mt-2 text-xs text-gray-400 space-y-1 leading-relaxed">
-              <li>
-                - <span className="text-gray-200 font-medium">Express (prioritario):</span> anticipo
-                del <span className="text-gray-200 font-medium">50%</span> para reservar y salir en
-                ruta el mismo día. Saldo contra entrega.
-              </li>
-              <li>
-                - <span className="text-gray-200 font-medium">Programado:</span> pago completo
-                contra entrega (según disponibilidad de ruta).
-              </li>
-              <li>
-                - <span className="text-gray-200 font-medium">Transparencia:</span> el anticipo se
-                solicita cuando el despacho está confirmado por nuestra parte. Si por disponibilidad
-                o ruta no podemos cumplir, te avisamos y el anticipo se devuelve sin rodeos.
-              </li>
-              <li>
-                - <span className="text-gray-200 font-medium">Domicilio:</span> gratis en{" "}
-                <span className="text-gray-200 font-medium">Chía</span>. Otras zonas: confirmamos
-                costo por WhatsApp antes de salir.
-              </li>
-              <li>
-                - Métodos: <span className="text-gray-200 font-medium">Nequi</span>,{" "}
-                <span className="text-gray-200 font-medium">Daviplata</span>,{" "}
-                <span className="text-gray-200 font-medium">transferencia</span> o{" "}
-                <span className="text-gray-200 font-medium">efectivo</span> contra entrega.
-              </li>
-            </ul>
-          </div>
-          <form className="space-y-6" onSubmit={onSubmitDespacho}>
+          <form className="mt-6 space-y-6" onSubmit={onSubmitDespacho}>
             <div>
-              <label htmlFor="taller" className="block text-sm font-semibold text-gray-300 mb-1">
-                Nombre del Taller
+              <label htmlFor="pieza" className="block text-sm font-semibold text-gray-300 mb-1">
+                Pieza o referencia
               </label>
               <input
                 type="text"
-                id="taller"
-                placeholder="Ej. Taller El Rápido"
-                value={taller}
-                onChange={(e) => setTaller(e.target.value)}
+                id="pieza"
+                placeholder="Ej: rotula delantera Chevrolet Sail 2018"
+                value={pieza}
+                onChange={(e) => setPieza(e.target.value)}
                 className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
               />
             </div>
             <div>
               <label htmlFor="whatsapp" className="block text-sm font-semibold text-gray-300 mb-1">
-                WhatsApp del encargado
+                Tu WhatsApp
               </label>
               <input
                 type="tel"
                 id="whatsapp"
-                placeholder="+57 300 123 4567"
+                placeholder="3001234567"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
-                onBlur={() => refreshTallerValidado(whatsapp)}
-                className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Solo para enviar la ruta de entrega y confirmación.
-              </p>
-              {tallerValidado && (
-                <p className="text-xs text-emerald-300/90 mt-2">
-                  Condiciones de taller activas: despacho contra entrega.
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="municipio"
-                  className="block text-sm font-semibold text-gray-300 mb-1"
-                >
-                  Municipio / zona
-                </label>
-                <input
-                  type="text"
-                  id="municipio"
-                  placeholder="Ej. Chía / Cajicá / Tocancipá"
-                  value={municipio}
-                  onChange={(e) => setMunicipio(e.target.value)}
-                  className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="direccion"
-                  className="block text-sm font-semibold text-gray-300 mb-1"
-                >
-                  Dirección del taller
-                </label>
-                <input
-                  type="text"
-                  id="direccion"
-                  placeholder="Ej. Calle 12 # 3-45, barrio X"
-                  value={direccion}
-                  onChange={(e) => setDireccion(e.target.value)}
-                  className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div>
-              <p className="block text-sm font-semibold text-gray-300 mb-2">Modalidad</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="rounded-lg border border-gray-700 bg-[oklch(0.24_0.05_255)] px-4 py-3 cursor-pointer hover:border-[oklch(0.7_0.2_40)]/50 transition-colors">
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      name="modalidad"
-                      checked={modalidad === "express"}
-                      onChange={() => setModalidad("express")}
-                      className="mt-1"
-                    />
-                    <div>
-                      <p className="text-sm font-bold text-white">Express (prioritario)</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        Requiere anticipo del 50% para reservar y salir en ruta.
-                      </p>
-                    </div>
-                  </div>
-                </label>
-                <label className="rounded-lg border border-gray-700 bg-[oklch(0.24_0.05_255)] px-4 py-3 cursor-pointer hover:border-[oklch(0.7_0.2_40)]/50 transition-colors">
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      name="modalidad"
-                      checked={modalidad === "programado"}
-                      onChange={() => setModalidad("programado")}
-                      className="mt-1"
-                    />
-                    <div>
-                      <p className="text-sm font-bold text-white">Programado</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        Pago contra entrega y salida por ruta.
-                      </p>
-                    </div>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="referencia"
-                className="block text-sm font-semibold text-gray-300 mb-1"
-              >
-                Pieza o referencia (opcional)
-              </label>
-              <input
-                type="text"
-                id="referencia"
-                placeholder="Ej. Bieletas Spark / KTC-..."
-                value={referencia}
-                onChange={(e) => setReferencia(e.target.value)}
                 className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
               />
             </div>
 
-            <div className="relative">
-              <label
-                htmlFor="requerimiento"
-                className="block text-sm font-semibold text-gray-300 mb-1"
-              >
-                Requerimiento urgente de suspensión:
-              </label>
-              <div className="relative">
-                <select
-                  id="requerimiento"
-                  value={requerimiento}
-                  onChange={(e) => setRequerimiento(e.target.value)}
-                  className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
-                >
-                  <option value="" disabled>
-                    Selecciona la categoría técnica
-                  </option>
-                  <option>Amortiguadores (Alta Rotación)</option>
-                  <option>Terminales y Rótulas</option>
-                  <option>Bujes y Bieletas</option>
-                  <option>Consulta Específica</option>
-                </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
             <button
               type="submit"
-              disabled={
-                enviando ||
-                !taller.trim() ||
-                !whatsapp.trim() ||
-                !municipio.trim() ||
-                !direccion.trim()
-              }
-              className="w-full flex items-center justify-center gap-3 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-bold text-lg px-6 py-4 rounded-lg shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400"
+              disabled={enviando || !whatsapp.trim()}
+              className="w-full flex items-center justify-center gap-3 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-bold text-lg px-6 py-4 rounded-lg shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:opacity-60"
             >
               <Send className="w-5 h-5" />
-              {enviando ? "Enviando…" : "Solicitar despacho por WhatsApp"}
+              {enviando ? "Abriendo…" : "Solicitar por WhatsApp →"}
             </button>
-            <p className="text-center text-xs text-gray-500 mt-4 flex items-center justify-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[oklch(0.7_0.2_40)]" />
-              Confirmación y coordinación final por WhatsApp.
+            <p className="text-xs text-gray-500 text-center">
+              El equipo de despachos confirma stock y ruta por WhatsApp.
             </p>
           </form>
+        </div>
+      </section>
 
-          <div className="mt-10 grid grid-cols-1 gap-4">
-            <div className="rounded-xl border border-white/10 bg-black/20 px-5 py-4">
-              <p className="text-sm font-semibold text-white">Cobertura y tiempos</p>
-              <ul className="mt-2 text-xs text-gray-400 space-y-1 leading-relaxed">
-                <li>
-                  - Cobertura activa en la Sabana: Chía, Cajicá, Tocancipá, Zipaquirá y municipios
-                  cercanos.
-                </li>
-                <li>- Horario: lunes a viernes, 8:30 a. m. – 4:30 p. m.</li>
-                <li>- Express (con anticipo) tiene prioridad en la ruta del día.</li>
-                <li>- Programado se coordina según disponibilidad; confirma tu franja horaria.</li>
-                <li>- El equipo de despachos te informa el ETA real antes de salir.</li>
-              </ul>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-black/20 px-5 py-4">
-              <p className="text-sm font-semibold text-white">Garantía</p>
-              <ul className="mt-2 text-xs text-gray-400 space-y-1 leading-relaxed">
-                <li>- Cubre defectos de fabricación comprobados en la pieza entregada.</li>
-                <li>- No aplica por mala instalación, uso indebido o modificaciones.</li>
-                <li>
-                  - Para gestionar la garantía, escríbenos por WhatsApp con foto o video del defecto
-                  dentro de los 7 días calendario.
-                </li>
-                <li>- Evaluamos el caso máximo en 3 días hábiles.</li>
-                <li>- Piezas intervenidas o con señales de instalación incorrecta no aplican.</li>
-              </ul>
-            </div>
-          </div>
+      <section id="pagos" className="px-4 py-12 md:py-16 bg-[oklch(0.16_0.04_248)] scroll-mt-20">
+        <div className="max-w-3xl mx-auto rounded-2xl border border-white/10 bg-black/20 px-6 py-6">
+          <p className="text-sm font-semibold text-white">Pagos y modalidades</p>
+          <ul className="mt-3 text-sm text-gray-400 space-y-2 leading-relaxed">
+            <li>
+              - Los precios son por unidad. Para confirmar tu pedido necesitamos el 50% de anticipo.
+            </li>
+            <li>- Métodos: Nequi, Daviplata, transferencia o efectivo contra entrega.</li>
+            <li>
+              - El anticipo se pide solo cuando el despacho está confirmado por nosotros. Si no
+              podemos cumplir, te avisamos y se devuelve sin rodeos.
+            </li>
+          </ul>
         </div>
       </section>
 

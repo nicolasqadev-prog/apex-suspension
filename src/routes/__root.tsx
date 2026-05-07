@@ -1,7 +1,38 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+
+class RootErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (!this.state.hasError) return this.props.children;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[oklch(0.18_0.04_250)] px-4 text-gray-200">
+        <div className="max-w-md text-center">
+          <p className="text-white font-semibold">Algo falló inesperadamente.</p>
+          <p className="mt-2 text-sm text-gray-400">Recarga la página o escríbenos por WhatsApp.</p>
+          <div className="mt-6">
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center rounded-md bg-[oklch(0.7_0.2_40)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+            >
+              Ir al inicio
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
 
 function NotFoundComponent() {
   return (
@@ -27,31 +58,41 @@ function NotFoundComponent() {
 
 export const Route = createRootRoute({
   head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Apex Suspensión" },
-      {
-        name: "description",
-        content:
-          "Repuestos de suspensión y dirección para taller en la Sabana. Catálogo, stock referencial y entregas coordinadas. Chía, Cajicá, Zipaquirá y más.",
-      },
-      { name: "author", content: "Apex Suspensión" },
-      { property: "og:title", content: "Apex Suspensión" },
-      {
-        property: "og:description",
-        content:
-          "Repuestos de suspensión y dirección para taller en la Sabana. Entregas coordinadas en Chía y alrededores.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Apex Suspensión" },
-      {
-        name: "twitter:description",
-        content:
-          "Repuestos de suspensión y dirección para taller en la Sabana. Entregas coordinadas.",
-      },
-    ],
+    meta: (() => {
+      const siteUrl =
+        (import.meta.env.VITE_SITE_URL as string | undefined) ??
+        "https://apex-suspension.nicolas-qa-dev.workers.dev";
+      return [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title: "Apex Suspensión" },
+        {
+          name: "description",
+          content:
+            "Repuestos de suspensión y dirección para taller en la Sabana. Catálogo, stock referencial y entregas coordinadas. Chía, Cajicá, Zipaquirá y más.",
+        },
+        { name: "author", content: "Apex Suspensión" },
+        { property: "og:title", content: "Apex Suspensión" },
+        {
+          property: "og:description",
+          content:
+            "Repuestos de suspensión y dirección para taller en la Sabana. Entregas coordinadas en Chía y alrededores.",
+        },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: `${siteUrl}/` },
+        { property: "og:image", content: "/og-image.png" },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:image", content: "/og-image.png" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: "Apex Suspensión" },
+        {
+          name: "twitter:description",
+          content:
+            "Repuestos de suspensión y dirección para taller en la Sabana. Entregas coordinadas.",
+        },
+      ];
+    })(),
     links: [
       {
         rel: "stylesheet",
@@ -59,7 +100,9 @@ export const Route = createRootRoute({
       },
       {
         rel: "canonical",
-        href: "https://apex-suspension.nicolas-qa-dev.workers.dev/",
+        href:
+          ((import.meta.env.VITE_SITE_URL as string | undefined) ??
+            "https://apex-suspension.nicolas-qa-dev.workers.dev") + "/",
       },
       {
         rel: "manifest",
@@ -104,7 +147,9 @@ function RootComponent() {
   return (
     <>
       <ServiceWorkerRegistration />
-      <Outlet />
+      <RootErrorBoundary>
+        <Outlet />
+      </RootErrorBoundary>
     </>
   );
 }
