@@ -154,6 +154,24 @@ export default function ApexLandingPage() {
               Ver pagos y garantía
             </a>
           </div>
+
+          <div className="mt-8 mx-auto max-w-2xl rounded-xl border border-white/10 bg-black/20 px-5 py-5 text-left">
+            <p className="text-sm font-semibold text-white">Trabajamos con talleres</p>
+            <p className="mt-2 text-sm text-gray-400 leading-relaxed">
+              Si tienes taller, tienes condiciones diferentes: precio de distribuidor, despacho contra
+              entrega y atención directa por WhatsApp. Sin trámites, sin intermediarios.
+            </p>
+            <a
+              href={enlaceWhatsApp(
+                "Hola, tengo un taller y quiero conocer las condiciones especiales de Apex.",
+              )}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
+            >
+              Quiero condiciones de taller →
+            </a>
+          </div>
         </div>
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-[oklch(0.7_0.2_40)]/30 rounded-full mt-12 hidden md:block">
           {" "}
@@ -359,6 +377,11 @@ export default function ApexLandingPage() {
               <p className="text-xs text-gray-500 mt-1">
                 Solo para enviar la ruta de entrega y confirmación.
               </p>
+              {tallerValidado && (
+                <p className="text-xs text-emerald-300/90 mt-2">
+                  Condiciones de taller activas: despacho contra entrega.
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
