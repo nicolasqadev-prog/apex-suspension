@@ -103,11 +103,6 @@ function CatalogoPage() {
             </h1>
             <p className="text-xs text-gray-500 mt-0.5">
               Stock y precio de referencia · {moneda}
-              {fuente === "supabase" ? (
-                <span className="ml-2 text-emerald-500/90">· Catálogo en vivo (Supabase)</span>
-              ) : (
-                <span className="ml-2 text-amber-500/80">· Archivo local de ejemplo</span>
-              )}
             </p>
           </div>
         </div>

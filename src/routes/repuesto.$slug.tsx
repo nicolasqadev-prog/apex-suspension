@@ -151,9 +151,7 @@ function RepuestoDetallePage() {
         </div>
 
         <p className="text-[10px] text-gray-600 mt-8 text-center leading-relaxed">
-          {fuente === "supabase"
-            ? "Precios y existencias según catálogo en Supabase; la venta definitiva la confirma el equipo Apex por WhatsApp."
-            : "Precios y existencias son referencia del archivo local de ejemplo. La venta definitiva la confirma el equipo Apex por WhatsApp."}
+          Precios y existencias son referencia. La venta definitiva la confirma el equipo Apex por WhatsApp.
         </p>
       </main>
     </div>
