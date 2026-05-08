@@ -93,7 +93,7 @@ export default function ApexLandingPage() {
 
           <a
             href={enlaceWhatsApp(
-              "Hola, mi carro tiene un problema y no sé qué pieza necesita. ¿Me pueden ayudar?",
+              "Hola, mi carro tiene un problema y no sé qué pieza necesita. ¿Me pueden orientar para cotizar? Yo confirmo el diagnóstico con mi mecánico.",
             )}
             target="_blank"
             rel="noreferrer"
@@ -141,11 +141,12 @@ export default function ApexLandingPage() {
                 <p className="text-sm font-semibold text-white">Mi carro falla pero no sé qué es</p>
                 <p className="mt-2 text-sm text-gray-400 leading-relaxed">
                   Cuéntanos qué pasa — un ruido, una vibración, el volante que jala — y te
-                  orientamos sobre qué pieza revisar.
+                  orientamos para cotizar. Siempre confirma el diagnóstico con tu mecánico de
+                  confianza.
                 </p>
                 <a
                   href={enlaceWhatsApp(
-                    "Hola, mi carro tiene un problema con la suspensión. No sé qué pieza necesita, ¿me pueden orientar?",
+                    "Hola, mi carro tiene un problema con la suspensión. No sé qué pieza necesita, ¿me pueden orientar para cotizar? Yo confirmo el diagnóstico con mi mecánico.",
                   )}
                   target="_blank"
                   rel="noreferrer"

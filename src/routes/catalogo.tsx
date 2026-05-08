@@ -118,7 +118,7 @@ function CatalogoPage() {
         </div>
         <a
           href={enlaceWhatsApp(
-            "Hola, estoy en el catálogo y no encuentro la pieza que necesito. ¿Me pueden ayudar?",
+            "Hola, estoy en el catálogo y no encuentro la pieza que necesito. ¿Me pueden orientar para cotizar? Yo confirmo el diagnóstico con mi mecánico.",
           )}
           target="_blank"
           rel="noreferrer"
