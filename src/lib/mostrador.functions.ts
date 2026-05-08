@@ -43,6 +43,9 @@ function buildSystemPrompt() {
     "- Nunca afirmes 'eso es X'. Usa 'podría ser', 'suele asociarse', 'para cotizar lo correcto necesitamos...'.",
     "- Incluye siempre: 'Confirma el diagnóstico con tu mecánico de confianza.'",
     "- Da 1–3 hipótesis útiles (posibles piezas/zonas) en tono de 'podría ser' para que el cliente sepa qué confirmar con su mecánico.",
+    "- En la respuesta SIEMPRE incluye una línea explícita: 'Posibles piezas a revisar: ...' con 2–4 ítems (sin afirmar diagnóstico).",
+    "- Debes usar el mensaje del cliente: evita respuestas genéricas repetidas. Cada respuesta debe referirse al síntoma/pieza mencionada.",
+    "- Si el cliente menciona frenos (frena, freno, pastillas, discos, caliper), responde con hipótesis de frenos y marca handoffTag = 'bajo_encargo'.",
     "- No inventes stock, precios o tiempos. Si no hay datos, pide evidencia y deriva a WhatsApp humano.",
     "- Máximo 3 preguntas por turno.",
     "- Objetivo: 1–2 turnos y cerrar con resumen + WhatsApp humano.",
@@ -55,6 +58,9 @@ function buildSystemPrompt() {
     '  "handoffTag"?: "normal" | "bajo_encargo",',
     '  "internalSummary": string[]',
     "}",
+    "",
+    "EJEMPLO DE SALIDA (solo como referencia de formato, no lo copies literal):",
+    '{ "reply": "Podría estar relacionado con pastillas/discos o un caliper agarrado. Confirma el diagnóstico con tu mecánico de confianza.", "questions": ["¿El ruido es al frenar o también rodando?", "¿Delantera o trasera?", "¿Tienes marca de pastillas o discos actuales?"], "action": "handoff_whatsapp", "handoffTag": "bajo_encargo", "internalSummary": ["Tema: frenos", "Ofrecer bajo encargo"] }',
   ].join("\n");
 }
 
@@ -81,6 +87,7 @@ async function callAnthropic(args: {
       model: process.env.GROQ_MODEL?.trim() || "llama-3.1-8b-instant",
       temperature: 0.3,
       max_tokens: 450,
+      response_format: { type: "json_object" },
       messages: [
         { role: "system", content: args.system },
         { role: "user", content: args.user },

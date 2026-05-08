@@ -199,7 +199,7 @@ export default function MostradorChat() {
                   className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    className={`max-w-[85%] min-w-0 rounded-2xl px-4 py-3 text-[13px] sm:text-sm leading-snug ${
                       m.role === "user"
                         ? "bg-[oklch(0.7_0.2_40)] text-white"
                         : "bg-black/25 border border-white/10 text-gray-200"
