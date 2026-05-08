@@ -30,6 +30,8 @@ type MostradorResponse = {
   questions: string[];
   action: "ask_more" | "handoff_whatsapp";
   handoffTag?: "normal" | "bajo_encargo";
+  /** Una pieza concreta para priorizar la cotización (orientación, no diagnóstico). */
+  primarySuggestion?: string;
   internalSummary: string[];
 };
 
@@ -44,6 +46,8 @@ function buildSystemPrompt() {
     "- Incluye siempre: 'Confirma el diagnóstico con tu mecánico de confianza.'",
     "- Da 1–3 hipótesis útiles (posibles piezas/zonas) en tono de 'podría ser' para que el cliente sepa qué confirmar con su mecánico.",
     "- En la respuesta SIEMPRE incluye una línea explícita: 'Posibles piezas a revisar: ...' con 2–4 ítems (sin afirmar diagnóstico).",
+    "- Incluye SIEMPRE al final una línea: 'Para cotizar primero (orientación, no diagnóstico): ...' con UNA pieza concreta (la más probable para pedir referencia).",
+    "- Devuelve también JSON.primarySuggestion con esa misma pieza (texto corto, 6–18 palabras).",
     "- Debes usar el mensaje del cliente: evita respuestas genéricas repetidas. Cada respuesta debe referirse al síntoma/pieza mencionada.",
     "- Si el cliente menciona frenos (frena, freno, pastillas, discos, caliper), responde con hipótesis de frenos y marca handoffTag = 'bajo_encargo'.",
     "- No inventes stock, precios o tiempos. Si no hay datos, pide evidencia y deriva a WhatsApp humano.",
@@ -56,6 +60,7 @@ function buildSystemPrompt() {
     '  "questions": string[],',
     '  "action": "ask_more" | "handoff_whatsapp",',
     '  "handoffTag"?: "normal" | "bajo_encargo",',
+    '  "primarySuggestion"?: string,',
     '  "internalSummary": string[]',
     "}",
     "",
@@ -170,12 +175,18 @@ export const responderMostrador = createServerFn({ method: "POST" })
       } satisfies MostradorResponse;
     }
 
+    const primarySuggestion =
+      typeof parsed.primarySuggestion === "string"
+        ? parsed.primarySuggestion.slice(0, 180).trim()
+        : "";
+
     const safe: MostradorResponse = {
       ok: true,
       reply: parsed.reply.slice(0, 700),
       questions: parsed.questions.map((q) => String(q).slice(0, 140)).slice(0, 3),
       action: parsed.action === "ask_more" ? "ask_more" : "handoff_whatsapp",
       handoffTag: parsed.handoffTag === "bajo_encargo" ? "bajo_encargo" : "normal",
+      primarySuggestion: primarySuggestion || undefined,
       internalSummary: (parsed.internalSummary ?? []).map((s) => String(s).slice(0, 180)).slice(0, 6),
     };
     return safe;

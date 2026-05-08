@@ -36,6 +36,8 @@ export default function MostradorChat() {
   const [loading, setLoading] = useState(false);
   const [lastQuestions, setLastQuestions] = useState<string[]>([]);
   const [handoffTag, setHandoffTag] = useState<"normal" | "bajo_encargo">("normal");
+  const [primarySuggestion, setPrimarySuggestion] = useState("");
+  const [handoffReady, setHandoffReady] = useState(false);
 
   const draft: MostradorDraft = useMemo(
     () => ({
@@ -46,14 +48,16 @@ export default function MostradorChat() {
       version,
       municipio,
       handoffTag,
+      primarySuggestion: primarySuggestion.trim() || undefined,
     }),
-    [piezaOSintoma, whatsapp, carro, ano, version, municipio, handoffTag],
+    [piezaOSintoma, whatsapp, carro, ano, version, municipio, handoffTag, primarySuggestion],
   );
 
   const whatsappLink = useMemo(() => buildWhatsappHandoffLink(draft), [draft]);
 
   const canAskMore = turns < 2; // máximo 2 turnos
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const handoffRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     function onOpen() {
@@ -70,9 +74,29 @@ export default function MostradorChat() {
     el.scrollTop = el.scrollHeight;
   }, [msgs.length, loading, open]);
 
+  useEffect(() => {
+    if (!handoffReady || !open) return;
+    handoffRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [handoffReady, open]);
+
+  function enrichAssistantReply(raw: string, suggestion?: string) {
+    let out = raw.trim();
+    const sug = suggestion?.trim();
+    if (sug && !out.toLowerCase().includes("para cotizar primero")) {
+      out += `\n\nPara cotizar primero (orientación, no diagnóstico): ${sug}. Confirma el diagnóstico con tu mecánico de confianza.`;
+    }
+    if (!out.toLowerCase().includes("whatsapp")) {
+      out +=
+        "\n\nSiguiente paso: toca el botón naranja **Confirmar por WhatsApp** abajo para enviar esto al equipo y cotizar.";
+    }
+    return out;
+  }
+
   async function onSend() {
     const text = normalizeShortText(composer, 280);
     if (!text || loading) return;
+
+    const nextTurn = turns + 1;
 
     // Heurística rápida para evitar respuestas tontas en casos obvios (frenos = bajo encargo).
     const brakeLike = /\b(freno|frenos|frena|pastilla|pastillas|disco|discos|caliper|balata)\b/i.test(
@@ -80,7 +104,7 @@ export default function MostradorChat() {
     );
 
     setMsgs((m) => [...m, { role: "user", content: text }]);
-    setTurns((t) => t + 1);
+    setTurns(nextTurn);
     setLoading(true);
     setLastQuestions([]);
     setComposer("");
@@ -89,19 +113,26 @@ export default function MostradorChat() {
     try {
       if (brakeLike) {
         setHandoffTag("bajo_encargo");
+        setPrimarySuggestion("Pastillas y discos de freno (lado delantero/trasero a confirmar con el mecánico)");
+        setHandoffReady(true);
         setMsgs((m) => [
           ...m,
           {
             role: "assistant",
-            content:
-              "Por lo que describes, podría estar relacionado con frenos (pastillas/discos) o con un caliper agarrado. Confirma el diagnóstico con tu mecánico de confianza. Si quieres, te lo cotizamos bajo encargo con proveedor.",
+            content: enrichAssistantReply(
+              "Por lo que describes, podría estar relacionado con frenos (pastillas/discos) o con un caliper agarrado. Posibles piezas a revisar: pastillas, discos, caliper, sensor ABS. Si quieres, te lo cotizamos bajo encargo con proveedor.",
+              "Pastillas y discos de freno (lado delantero/trasero a confirmar con el mecánico)",
+            ),
           },
         ]);
-        const qs = [
-          "¿El ruido es solo al frenar o también rodando?",
-          "¿Delantera o trasera?",
-          "¿Tienes referencia/marca de pastillas o discos?",
-        ];
+        const qs =
+          nextTurn < 2
+            ? [
+                "¿El ruido es solo al frenar o también rodando?",
+                "¿Delantera o trasera?",
+                "¿Tienes referencia/marca de pastillas o discos?",
+              ]
+            : [];
         setLastQuestions(qs);
         return;
       }
@@ -120,7 +151,12 @@ export default function MostradorChat() {
         },
       });
 
-      const reply = res?.reply?.trim() || "Listo. Escríbenos por WhatsApp para confirmar la referencia.";
+      const sug = typeof res?.primarySuggestion === "string" ? res.primarySuggestion.trim() : "";
+      setPrimarySuggestion(sug);
+      let reply =
+        res?.reply?.trim() || "Listo. Escríbenos por WhatsApp para confirmar la referencia.";
+      reply = enrichAssistantReply(reply, sug || undefined);
+
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
       const qs = Array.isArray(res?.questions) ? res.questions : [];
       const filtered = qs.filter((q) => {
@@ -131,8 +167,11 @@ export default function MostradorChat() {
         if (municipio.trim() && qq.includes("municipio")) return false;
         return true;
       });
-      setLastQuestions(filtered);
+      setLastQuestions(nextTurn < 2 ? filtered : []);
       setHandoffTag(res?.handoffTag === "bajo_encargo" ? "bajo_encargo" : "normal");
+      const ready =
+        nextTurn >= 2 || res?.action === "handoff_whatsapp" || res?.handoffTag === "bajo_encargo";
+      setHandoffReady(ready);
     } catch {
       setMsgs((m) => [
         ...m,
@@ -155,6 +194,8 @@ export default function MostradorChat() {
     setMunicipio("");
     setComposer("");
     setHandoffTag("normal");
+    setPrimarySuggestion("");
+    setHandoffReady(false);
   }
 
   return (
@@ -304,6 +345,27 @@ export default function MostradorChat() {
               </p>
             </div>
 
+            {handoffReady && (
+              <div
+                ref={handoffRef}
+                className="mt-4 rounded-xl border border-[oklch(0.7_0.2_40)]/40 bg-black/30 px-4 py-3 shrink-0"
+              >
+                <p className="text-xs font-semibold text-white">Siguiente paso — cotizar por WhatsApp</p>
+                <p className="mt-2 text-xs text-gray-300 leading-relaxed">
+                  Aquí cerramos la orientación automática. Toca el botón naranja para enviar tu
+                  síntoma, carro y datos al equipo Apex y que te confirmen referencia y precio.
+                </p>
+                {primarySuggestion.trim() ? (
+                  <p className="mt-2 text-xs text-gray-200">
+                    <span className="font-semibold text-[oklch(0.7_0.2_40)]">
+                      Pieza prioritaria para cotizar
+                    </span>{" "}
+                    (orientación, no diagnóstico): {primarySuggestion.trim()}
+                  </p>
+                ) : null}
+              </div>
+            )}
+
             <div className="mt-5 flex flex-col sm:flex-row gap-3 shrink-0">
               <Button asChild className="bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-semibold">
                 <a href={whatsappLink} target="_blank" rel="noreferrer">
@@ -320,7 +382,7 @@ export default function MostradorChat() {
               </Button>
             </div>
 
-            {!canAskMore && (
+            {!canAskMore && !handoffReady && (
               <div className="mt-4 text-[11px] text-gray-500 shrink-0">
                 Para evitar vueltas, aquí cerramos la orientación y confirmamos por WhatsApp con el
                 equipo.

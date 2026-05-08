@@ -8,13 +8,22 @@ export type MostradorDraft = {
   municipio?: string;
   whatsapp?: string;
   handoffTag?: "normal" | "bajo_encargo";
+  /** Pieza prioritaria para cotizar (orientación). */
+  primarySuggestion?: string;
 };
 
 export function buildWhatsappHandoffLink(d: MostradorDraft): string {
   const pieza = d.piezaOSintoma?.trim();
+  const prioridad = d.primarySuggestion?.trim();
+  const piezaConPrioridad =
+    pieza && prioridad
+      ? `${pieza}\nPrioridad para cotizar (orientación, no diagnóstico): ${prioridad}`
+      : pieza;
   const prefix = d.handoffTag === "bajo_encargo" ? "BAJO ENCARGO — " : "";
   const msg = mensajeConfirmacionCotizacion({
-    pieza: pieza ? `${prefix}Orientación para cotizar: ${pieza}` : `${prefix}Orientación para cotizar`,
+    pieza: piezaConPrioridad
+      ? `${prefix}Orientación para cotizar: ${piezaConPrioridad}`
+      : `${prefix}Orientación para cotizar`,
     whatsapp: d.whatsapp,
     vehiculo: d.carro,
     ano: d.ano,
