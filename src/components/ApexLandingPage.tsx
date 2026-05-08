@@ -281,7 +281,7 @@ export default function ApexLandingPage() {
               },
               {
                 Icon: CheckCircle2,
-                title: "Confirma tu pedido y taller",
+                title: "Confirma tu pedido",
                 text: "Solo la pieza que necesitas y tu WhatsApp. En segundos abres el hilo.",
               },
               {
@@ -405,7 +405,7 @@ export default function ApexLandingPage() {
           </p>
           <p className="text-xs text-gray-400 leading-relaxed">
             Repuestos de suspensión y dirección (KTC, Corven, Nakata, MOOG, SABO y otras marcas de
-            trayectoria) con logística para tu taller en la Sabana.
+            trayectoria) con entrega en tu dirección en la Sabana.
           </p>
           <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pt-2 text-[11px] text-gray-500">
             <Link to="/legal" hash="datos" className="hover:text-[oklch(0.7_0.2_40)]">

@@ -43,7 +43,7 @@ function LegalPage() {
         <section id="datos">
           <h2 className="text-base font-bold text-white mb-3">Tratamiento de datos personales</h2>
           <p>
-            Los datos que nos facilitas por este sitio o por WhatsApp (nombre del taller, teléfono,
+            Los datos que nos facilitas por este sitio o por WhatsApp (tu nombre o taller, teléfono,
             dirección de entrega y mensajes) se usan únicamente para cotizar, coordinar entregas y
             dar seguimiento al pedido.
           </p>
