@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -53,6 +53,7 @@ export default function MostradorChat() {
   const whatsappLink = useMemo(() => buildWhatsappHandoffLink(draft), [draft]);
 
   const canAskMore = turns < 2; // máximo 2 turnos
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     function onOpen() {
@@ -62,9 +63,21 @@ export default function MostradorChat() {
     return () => window.removeEventListener("apex:mostrador:open", onOpen);
   }, []);
 
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // Keep latest messages visible.
+    el.scrollTop = el.scrollHeight;
+  }, [msgs.length, loading, open]);
+
   async function onSend() {
     const text = normalizeShortText(composer, 280);
     if (!text || loading) return;
+
+    // Heurística rápida para evitar respuestas tontas en casos obvios (frenos = bajo encargo).
+    const brakeLike = /\b(freno|frenos|frena|pastilla|pastillas|disco|discos|caliper|balata)\b/i.test(
+      text,
+    );
 
     setMsgs((m) => [...m, { role: "user", content: text }]);
     setTurns((t) => t + 1);
@@ -74,6 +87,25 @@ export default function MostradorChat() {
     if (!piezaOSintoma.trim()) setPiezaOSintoma(text);
 
     try {
+      if (brakeLike) {
+        setHandoffTag("bajo_encargo");
+        setMsgs((m) => [
+          ...m,
+          {
+            role: "assistant",
+            content:
+              "Por lo que describes, podría estar relacionado con frenos (pastillas/discos) o con un caliper agarrado. Confirma el diagnóstico con tu mecánico de confianza. Si quieres, te lo cotizamos bajo encargo con proveedor.",
+          },
+        ]);
+        const qs = [
+          "¿El ruido es solo al frenar o también rodando?",
+          "¿Delantera o trasera?",
+          "¿Tienes referencia/marca de pastillas o discos?",
+        ];
+        setLastQuestions(qs);
+        return;
+      }
+
       const history = [...msgs, { role: "user" as const, content: text }].slice(-10);
       const res = await responderMostrador({
         data: {
@@ -90,7 +122,16 @@ export default function MostradorChat() {
 
       const reply = res?.reply?.trim() || "Listo. Escríbenos por WhatsApp para confirmar la referencia.";
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
-      setLastQuestions(Array.isArray(res?.questions) ? res.questions : []);
+      const qs = Array.isArray(res?.questions) ? res.questions : [];
+      const filtered = qs.filter((q) => {
+        const qq = q.toLowerCase();
+        if (carro.trim() && qq.includes("carro")) return false;
+        if (ano.trim() && (qq.includes("año") || qq.includes("ano"))) return false;
+        if (version.trim() && qq.includes("versión")) return false;
+        if (municipio.trim() && qq.includes("municipio")) return false;
+        return true;
+      });
+      setLastQuestions(filtered);
       setHandoffTag(res?.handoffTag === "bajo_encargo" ? "bajo_encargo" : "normal");
     } catch {
       setMsgs((m) => [
@@ -148,7 +189,10 @@ export default function MostradorChat() {
           </div>
 
           <div className="px-5 py-4 flex-1 min-h-0 flex flex-col">
-            <div className="space-y-3 flex-1 min-h-0 overflow-auto pr-2">
+            <div
+              ref={scrollRef}
+              className="space-y-3 flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 py-2 pr-3"
+            >
               {msgs.map((m, idx) => (
                 <div
                   key={idx}
