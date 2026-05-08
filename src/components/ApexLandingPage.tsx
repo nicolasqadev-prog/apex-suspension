@@ -169,8 +169,9 @@ export default function ApexLandingPage() {
             QUIÉNES SOMOS
           </p>
           <p className="mt-4 text-base sm:text-lg text-white leading-relaxed max-w-3xl mx-auto">
-            Somos operadores de taller. Armamos Apex porque lo necesitábamos nosotros primero: un
-            proveedor que llegara rápido, sin llamadas perdidas y sin excusas.
+            No somos taller: vendemos repuestos y los llevamos a tu dirección. Armamos Apex para
+            resolver lo que más frena el día a día: conseguir la pieza correcta y que llegue a
+            tiempo, sin llamadas perdidas y sin excusas.
           </p>
 
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
@@ -278,7 +279,7 @@ export default function ApexLandingPage() {
               {
                 Icon: Search,
                 title: "Busca en el catálogo PWA",
-                text: "Encuentra el repuesto exacto con referencia o descripción. Búsqueda optimizada para grasa en los dedos.",
+                text: "Ej: rótula delantera Chevrolet Sail 2018. Busca por referencia o descripción.",
               },
               {
                 Icon: CheckCircle2,

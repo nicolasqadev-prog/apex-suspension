@@ -11,11 +11,11 @@ export default function MarcasSection() {
             Marcas principales
           </p>
           <h2 className="mt-3 text-2xl sm:text-3xl font-extrabold uppercase text-white tracking-wide">
-            Referencias confiables para el taller
+            Marcas reconocidas detrás de cada pieza
           </h2>
           <p className="mt-4 text-sm sm:text-base text-gray-400 leading-relaxed">
-            Trabajamos con marcas reconocidas en suspensión, dirección y sellos. Si no ves una
-            referencia, la buscamos por ti.
+            Seleccionamos marcas con trayectoria en suspensión, dirección y sellos para reducir
+            devoluciones y reprocesos. Si no ves una referencia, la buscamos por ti.
           </p>
         </div>
 
