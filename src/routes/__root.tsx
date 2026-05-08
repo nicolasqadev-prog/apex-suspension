@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import MostradorChat from "@/components/MostradorChat";
 
 class RootErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -150,6 +151,7 @@ function RootComponent() {
       <RootErrorBoundary>
         <Outlet />
       </RootErrorBoundary>
+      <MostradorChat />
     </>
   );
 }

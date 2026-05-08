@@ -81,8 +81,8 @@ export default function ApexLandingPage() {
             El impulso exacto <br className="hidden sm:block" /> para no detenerte.
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
-            Tu carro no puede esperar. Cotiza el repuesto que necesitas en minutos — con entrega el
-            mismo día en la Sabana de Bogotá.
+            Tu carro no puede esperar. Busca en el catálogo y confirma por WhatsApp en minutos — con
+            entrega el mismo día en la Sabana de Bogotá.
           </p>
 
           <a
@@ -96,16 +96,13 @@ export default function ApexLandingPage() {
             <ArrowRight className="w-5 h-5 ml-1" />
           </a>
 
-          <a
-            href={enlaceWhatsApp(
-              "Hola, mi carro tiene un problema y no sé qué pieza necesita. ¿Me pueden orientar para cotizar? Yo confirmo el diagnóstico con mi mecánico.",
-            )}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("apex:mostrador:open"))}
             className="mt-4 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
           >
-            ¿No sabes qué pieza es? Cuéntanos qué le pasa a tu carro →
-          </a>
+            ¿No sabes qué pieza es? Te orientamos para cotizar →
+          </button>
 
           <div className="mt-8 mx-auto max-w-2xl rounded-xl border border-white/10 bg-black/20 px-5 py-5 text-left">
             <p className="text-sm font-semibold text-white">Trabajamos con talleres</p>
@@ -213,7 +210,7 @@ export default function ApexLandingPage() {
               {
                 Icon: MapPin,
                 title: "Sabana, sin vueltas",
-                text: "Chía, Cajicá, Zipaquirá, Tocancipá y alrededores. Te decimos domicilio (gratis en Chía) y ETA real antes de salir.",
+                text: "Chía, Cajicá, Zipaquirá, Tocancipá y alrededores. Te confirmamos el costo de domicilio (gratis en Chía) y el tiempo estimado de llegada antes de salir.",
               },
               {
                 Icon: ShieldCheck,
@@ -289,12 +286,12 @@ export default function ApexLandingPage() {
               {
                 Icon: CheckCircle2,
                 title: "Confirma tu pedido",
-                text: "Solo la pieza que necesitas y tu WhatsApp. En segundos abres el hilo.",
+                text: "Solo la pieza que necesitas y tu WhatsApp. En segundos inicias el chat para confirmar referencia y disponibilidad.",
               },
               {
                 Icon: Clock,
                 title: "Recibe en tu dirección el mismo día",
-                text: "Cuando hay stock y cupo en ruta, coordinamos salida el mismo día. El ETA exacto te lo confirma el equipo antes de salir.",
+                text: "Cuando hay stock y cupo en ruta, coordinamos salida el mismo día. La hora de llegada estimada te la confirma el equipo antes de salir.",
               },
             ].map(({ Icon, title, text }, i, arr) => (
               <div key={title} className="contents">
