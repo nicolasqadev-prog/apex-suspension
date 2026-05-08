@@ -7,12 +7,14 @@ export type MostradorDraft = {
   version?: string;
   municipio?: string;
   whatsapp?: string;
+  handoffTag?: "normal" | "bajo_encargo";
 };
 
 export function buildWhatsappHandoffLink(d: MostradorDraft): string {
   const pieza = d.piezaOSintoma?.trim();
+  const prefix = d.handoffTag === "bajo_encargo" ? "BAJO ENCARGO — " : "";
   const msg = mensajeConfirmacionCotizacion({
-    pieza: pieza ? `Orientación para cotizar: ${pieza}` : "Orientación para cotizar",
+    pieza: pieza ? `${prefix}Orientación para cotizar: ${pieza}` : `${prefix}Orientación para cotizar`,
     whatsapp: d.whatsapp,
     vehiculo: d.carro,
     ano: d.ano,

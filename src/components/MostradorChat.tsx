@@ -25,7 +25,8 @@ export default function MostradorChat() {
   const [ano, setAno] = usePersistentState("apex.ano", "");
   const [version, setVersion] = usePersistentState("apex.version", "");
 
-  const [piezaOSintoma, setPiezaOSintoma] = useState("");
+  const [piezaOSintoma, setPiezaOSintoma] = useState(""); // guardado para el resumen/handoff
+  const [composer, setComposer] = useState(""); // texto que el cliente escribe (se limpia al enviar)
   const [municipio, setMunicipio] = useState("");
 
   const [msgs, setMsgs] = useState<ChatMsg[]>([
@@ -34,6 +35,7 @@ export default function MostradorChat() {
   const [turns, setTurns] = useState(0); // user turns
   const [loading, setLoading] = useState(false);
   const [lastQuestions, setLastQuestions] = useState<string[]>([]);
+  const [handoffTag, setHandoffTag] = useState<"normal" | "bajo_encargo">("normal");
 
   const draft: MostradorDraft = useMemo(
     () => ({
@@ -43,8 +45,9 @@ export default function MostradorChat() {
       ano,
       version,
       municipio,
+      handoffTag,
     }),
-    [piezaOSintoma, whatsapp, carro, ano, version, municipio],
+    [piezaOSintoma, whatsapp, carro, ano, version, municipio, handoffTag],
   );
 
   const whatsappLink = useMemo(() => buildWhatsappHandoffLink(draft), [draft]);
@@ -60,13 +63,15 @@ export default function MostradorChat() {
   }, []);
 
   async function onSend() {
-    const text = normalizeShortText(piezaOSintoma, 280);
+    const text = normalizeShortText(composer, 280);
     if (!text || loading) return;
 
     setMsgs((m) => [...m, { role: "user", content: text }]);
     setTurns((t) => t + 1);
     setLoading(true);
     setLastQuestions([]);
+    setComposer("");
+    if (!piezaOSintoma.trim()) setPiezaOSintoma(text);
 
     try {
       const history = [...msgs, { role: "user" as const, content: text }].slice(-10);
@@ -75,6 +80,10 @@ export default function MostradorChat() {
           history,
           context: {
             whatsapp: whatsapp.trim() || undefined,
+            carro: carro.trim() || undefined,
+            ano: ano.trim() || undefined,
+            version: version.trim() || undefined,
+            municipio: municipio.trim() || undefined,
           },
         },
       });
@@ -82,6 +91,7 @@ export default function MostradorChat() {
       const reply = res?.reply?.trim() || "Listo. Escríbenos por WhatsApp para confirmar la referencia.";
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
       setLastQuestions(Array.isArray(res?.questions) ? res.questions : []);
+      setHandoffTag(res?.handoffTag === "bajo_encargo" ? "bajo_encargo" : "normal");
     } catch {
       setMsgs((m) => [
         ...m,
@@ -102,6 +112,8 @@ export default function MostradorChat() {
     setLastQuestions([]);
     setPiezaOSintoma("");
     setMunicipio("");
+    setComposer("");
+    setHandoffTag("normal");
   }
 
   return (
@@ -117,8 +129,8 @@ export default function MostradorChat() {
       </button>
 
       <Dialog open={open} onOpenChange={(v) => (setOpen(v), v ? null : null)}>
-        <DialogContent className="bg-[oklch(0.18_0.04_250)] border border-white/10 text-gray-200 p-0 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+        <DialogContent className="bg-[oklch(0.18_0.04_250)] border border-white/10 text-gray-200 p-0 overflow-hidden max-w-[680px] w-[min(680px,calc(100vw-24px))] max-h-[85vh] h-[85vh] flex flex-col">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
             <DialogHeader className="space-y-0 text-left">
               <DialogTitle className="text-white text-base font-bold">Mostrador Apex</DialogTitle>
               <p className="text-xs text-gray-400 mt-1">
@@ -135,8 +147,8 @@ export default function MostradorChat() {
             </button>
           </div>
 
-          <div className="px-5 py-4">
-            <div className="space-y-3 max-h-[48vh] overflow-auto pr-1">
+          <div className="px-5 py-4 flex-1 min-h-0 flex flex-col">
+            <div className="space-y-3 flex-1 min-h-0 overflow-auto pr-2">
               {msgs.map((m, idx) => (
                 <div
                   key={idx}
@@ -149,7 +161,7 @@ export default function MostradorChat() {
                         : "bg-black/25 border border-white/10 text-gray-200"
                     }`}
                   >
-                    {m.content}
+                    <span className="whitespace-pre-wrap break-words">{m.content}</span>
                   </div>
                 </div>
               ))}
@@ -159,7 +171,7 @@ export default function MostradorChat() {
             </div>
 
             {lastQuestions.length > 0 && canAskMore && (
-              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3">
+              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3 shrink-0">
                 <p className="text-xs font-semibold text-white">Para afinar la cotización</p>
                 <ul className="mt-2 space-y-1 text-xs text-gray-400">
                   {lastQuestions.slice(0, 3).map((q) => (
@@ -169,7 +181,7 @@ export default function MostradorChat() {
               </div>
             )}
 
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0">
               <div>
                 <label className="text-[11px] text-gray-500">Tu WhatsApp</label>
                 <Input
@@ -219,12 +231,12 @@ export default function MostradorChat() {
               </div>
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 shrink-0">
               <label className="text-[11px] text-gray-500">Pieza o síntoma (requerido)</label>
               <div className="mt-1 flex gap-2">
                 <Input
-                  value={piezaOSintoma}
-                  onChange={(e) => setPiezaOSintoma(e.target.value)}
+                  value={composer}
+                  onChange={(e) => setComposer(e.target.value)}
                   placeholder="Ej: ruido al girar / rótula delantera Sail 2018"
                   className="bg-[oklch(0.14_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
                   onKeyDown={(e) => {
@@ -236,7 +248,7 @@ export default function MostradorChat() {
                 />
                 <Button
                   onClick={() => void onSend()}
-                  disabled={!piezaOSintoma.trim() || loading}
+                  disabled={!composer.trim() || loading}
                   className="bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-semibold"
                 >
                   <Send className="h-4 w-4" />
@@ -248,7 +260,7 @@ export default function MostradorChat() {
               </p>
             </div>
 
-            <div className="mt-5 flex flex-col sm:flex-row gap-3">
+            <div className="mt-5 flex flex-col sm:flex-row gap-3 shrink-0">
               <Button asChild className="bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-semibold">
                 <a href={whatsappLink} target="_blank" rel="noreferrer">
                   Confirmar por WhatsApp →
@@ -265,7 +277,7 @@ export default function MostradorChat() {
             </div>
 
             {!canAskMore && (
-              <div className="mt-4 text-[11px] text-gray-500">
+              <div className="mt-4 text-[11px] text-gray-500 shrink-0">
                 Para evitar vueltas, aquí cerramos la orientación y confirmamos por WhatsApp con el
                 equipo.
               </div>

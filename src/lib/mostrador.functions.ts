@@ -13,6 +13,10 @@ const InputSchema = z.object({
   context: z
     .object({
       whatsapp: z.string().optional(),
+      carro: z.string().optional(),
+      ano: z.string().optional(),
+      version: z.string().optional(),
+      municipio: z.string().optional(),
       tallerTipo: z.enum(["particular", "taller_validado"]).optional(),
       contraEntregaHabilitada: z.boolean().optional(),
       inventarioSnippet: z.string().max(8000).optional(),
@@ -25,6 +29,7 @@ type MostradorResponse = {
   reply: string;
   questions: string[];
   action: "ask_more" | "handoff_whatsapp";
+  handoffTag?: "normal" | "bajo_encargo";
   internalSummary: string[];
 };
 
@@ -32,10 +37,12 @@ function buildSystemPrompt() {
   return [
     "Eres el agente 'Mostrador Apex' (Colombia) para Apex Suspensión.",
     "Orientas para cotizar repuestos de suspensión y dirección, pero NO diagnosticas.",
+    "Apex se especializa en suspensión/dirección, pero si el cliente pide algo fuera de esa especialidad, ofreces 'bajo encargo' como Plan B (sin prometer disponibilidad): lo revisamos con proveedor y cotizamos.",
     "",
     "REGLAS DURAS:",
     "- Nunca afirmes 'eso es X'. Usa 'podría ser', 'suele asociarse', 'para cotizar lo correcto necesitamos...'.",
     "- Incluye siempre: 'Confirma el diagnóstico con tu mecánico de confianza.'",
+    "- Da 1–3 hipótesis útiles (posibles piezas/zonas) en tono de 'podría ser' para que el cliente sepa qué confirmar con su mecánico.",
     "- No inventes stock, precios o tiempos. Si no hay datos, pide evidencia y deriva a WhatsApp humano.",
     "- Máximo 3 preguntas por turno.",
     "- Objetivo: 1–2 turnos y cerrar con resumen + WhatsApp humano.",
@@ -45,6 +52,7 @@ function buildSystemPrompt() {
     '  "reply": string,',
     '  "questions": string[],',
     '  "action": "ask_more" | "handoff_whatsapp",',
+    '  "handoffTag"?: "normal" | "bajo_encargo",',
     '  "internalSummary": string[]',
     "}",
   ].join("\n");
@@ -106,6 +114,10 @@ export const responderMostrador = createServerFn({ method: "POST" })
         : null,
       data.context?.contraEntregaHabilitada === true ? "Contra entrega habilitada: sí" : null,
       data.context?.whatsapp ? `WhatsApp: ${data.context.whatsapp}` : null,
+      data.context?.carro ? `Carro: ${data.context.carro}` : null,
+      data.context?.ano ? `Año: ${data.context.ano}` : null,
+      data.context?.version ? `Versión: ${data.context.version}` : null,
+      data.context?.municipio ? `Municipio: ${data.context.municipio}` : null,
       data.context?.inventarioSnippet ? `Inventario (snippet):\n${data.context.inventarioSnippet}` : null,
     ].filter(Boolean);
 
@@ -130,6 +142,7 @@ export const responderMostrador = createServerFn({ method: "POST" })
           "Te puedo orientar para cotizar, pero ahora mismo no tengo el asistente automático activo. Confirma el diagnóstico con tu mecánico de confianza y escríbenos por WhatsApp para confirmar la referencia.",
         questions: ["¿Qué carro es (marca/línea) y de qué año?", "¿Qué síntoma presenta o qué pieza necesitas?"],
         action: "handoff_whatsapp",
+        handoffTag: "normal",
         internalSummary: ["Sin GROQ_API_KEY en servidor; usar WhatsApp humano."],
       };
       return fallback;
@@ -145,6 +158,7 @@ export const responderMostrador = createServerFn({ method: "POST" })
           "Listo, te oriento para cotizar. No hago diagnóstico: confirma con tu mecánico de confianza. Para avanzar rápido: ¿qué carro es (marca/línea), año y qué síntoma presenta? Si puedes, envía foto o video por WhatsApp.",
         questions: ["¿Qué carro es (marca/línea) y de qué año?", "¿Qué síntoma presenta o qué pieza necesitas?"],
         action: "handoff_whatsapp",
+        handoffTag: "normal",
         internalSummary: ["Respuesta IA no parseable; usando fallback seguro."],
       } satisfies MostradorResponse;
     }
@@ -154,6 +168,7 @@ export const responderMostrador = createServerFn({ method: "POST" })
       reply: parsed.reply.slice(0, 700),
       questions: parsed.questions.map((q) => String(q).slice(0, 140)).slice(0, 3),
       action: parsed.action === "ask_more" ? "ask_more" : "handoff_whatsapp",
+      handoffTag: parsed.handoffTag === "bajo_encargo" ? "bajo_encargo" : "normal",
       internalSummary: (parsed.internalSummary ?? []).map((s) => String(s).slice(0, 180)).slice(0, 6),
     };
     return safe;

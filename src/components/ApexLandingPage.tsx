@@ -146,16 +146,13 @@ export default function ApexLandingPage() {
                   orientamos para cotizar. Siempre confirma el diagnóstico con tu mecánico de
                   confianza.
                 </p>
-                <a
-                  href={enlaceWhatsApp(
-                    "Hola, mi carro tiene un problema con la suspensión. No sé qué pieza necesita, ¿me pueden orientar para cotizar? Yo confirmo el diagnóstico con mi mecánico.",
-                  )}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new Event("apex:mostrador:open"))}
                   className="mt-3 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
                 >
                   Describir el problema →
-                </a>
+                </button>
               </div>
             </div>
           </section>
