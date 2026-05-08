@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { loadCatalogo } from "@/lib/inventario.server";
 import type { PiezaInventario } from "@/lib/inventario";
 import { marcaInfo } from "@/lib/marcas";
-import { enlaceWhatsApp } from "@/lib/whatsapp";
+import { enlaceWhatsApp, mensajeConfirmacionCotizacion } from "@/lib/whatsapp";
+import { usePersistentState } from "@/lib/usePersistentState";
 
 export const Route = createFileRoute("/catalogo")({
   loader: () => loadCatalogo(),
@@ -51,6 +52,7 @@ function mensajeConsultaStock(p: PiezaInventario, moneda: string): string {
 function CatalogoPage() {
   const { piezas: piezasBase, moneda, fuente } = Route.useLoaderData();
   const [q, setQ] = useState("");
+  const [whatsappGuardado] = usePersistentState("apex.whatsapp", "");
   const [marca, setMarca] = useState("");
   const [categoria, setCategoria] = useState("");
   const [stockFiltro, setStockFiltro] = useState<"todos" | "con-stock">("todos");
@@ -118,7 +120,11 @@ function CatalogoPage() {
         </div>
         <a
           href={enlaceWhatsApp(
-            "Hola, estoy en el catálogo y no encuentro la pieza que necesito. ¿Me pueden orientar para cotizar? Yo confirmo el diagnóstico con mi mecánico.",
+            mensajeConfirmacionCotizacion({
+              pieza:
+                "Estoy en el catálogo y no encuentro la pieza. ¿Me pueden orientar para cotizar? Yo confirmo el diagnóstico con mi mecánico.",
+              whatsapp: whatsappGuardado,
+            }),
           )}
           target="_blank"
           rel="noreferrer"

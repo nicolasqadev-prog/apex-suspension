@@ -17,23 +17,28 @@ import {
 } from "lucide-react";
 import ApexHeaderBrand from "@/components/ApexHeaderBrand";
 import MarcasSection from "@/components/MarcasSection";
-import { enlaceWhatsApp } from "@/lib/whatsapp";
+import { enlaceWhatsApp, mensajeConfirmacionCotizacion } from "@/lib/whatsapp";
+import { usePersistentState } from "@/lib/usePersistentState";
 
 export default function ApexLandingPage() {
   const [pieza, setPieza] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
+  const [whatsapp, setWhatsapp] = usePersistentState("apex.whatsapp", "");
+  const [vehiculo, setVehiculo] = useState("");
+  const [ano, setAno] = useState("");
+  const [version, setVersion] = useState("");
   const [enviando, setEnviando] = useState(false);
 
   async function onSubmitDespacho(e: FormEvent) {
     e.preventDefault();
     if (!whatsapp.trim()) return;
 
-    const mensaje = [
-      `Hola, necesito: ${pieza.trim() || "repuesto de suspensión/dirección"}.`,
-      `Mi WhatsApp es ${whatsapp.trim()}.`,
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const mensaje = mensajeConfirmacionCotizacion({
+      pieza: pieza.trim() || "repuesto de suspensión/dirección",
+      whatsapp: whatsapp.trim(),
+      vehiculo,
+      ano,
+      version,
+    });
 
     setEnviando(true);
     setEnviando(false);
@@ -188,7 +193,7 @@ export default function ApexLandingPage() {
           </div>
 
           <div className="mt-8 inline-flex items-center justify-center rounded-full border border-[oklch(0.7_0.2_40)]/30 bg-black/20 px-4 py-2 text-xs text-gray-200">
-            Abriendo operaciones — cupos de taller fidelizado limitados en la primera temporada
+            Atención para talleres · respuesta en minutos por WhatsApp
           </div>
         </div>
       </section>
@@ -278,7 +283,7 @@ export default function ApexLandingPage() {
             {[
               {
                 Icon: Search,
-                title: "Busca en el catálogo PWA",
+                title: "Busca en el catálogo",
                 text: "Ej: rótula delantera Chevrolet Sail 2018. Busca por referencia o descripción.",
               },
               {
@@ -319,6 +324,10 @@ export default function ApexLandingPage() {
             <Wrench className="w-6 h-6 text-[oklch(0.7_0.2_40)]" />
             ¿Qué pieza necesitas?
           </h2>
+          <p className="mt-2 text-sm text-gray-400 leading-relaxed">
+            Para confirmar compatibilidad más rápido: vehículo, año y versión. Si puedes, envía foto
+            de la pieza vieja (y placa opcional).
+          </p>
 
           <form className="mt-6 space-y-6" onSubmit={onSubmitDespacho}>
             <div>
@@ -331,6 +340,50 @@ export default function ApexLandingPage() {
                 placeholder="Ej: rotula delantera Chevrolet Sail 2018"
                 value={pieza}
                 onChange={(e) => setPieza(e.target.value)}
+                className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2">
+                <label htmlFor="vehiculo" className="block text-sm font-semibold text-gray-300 mb-1">
+                  Vehículo (opcional)
+                </label>
+                <input
+                  type="text"
+                  id="vehiculo"
+                  placeholder="Ej: Chevrolet Sail"
+                  value={vehiculo}
+                  onChange={(e) => setVehiculo(e.target.value)}
+                  className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label htmlFor="ano" className="block text-sm font-semibold text-gray-300 mb-1">
+                  Año (opcional)
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  id="ano"
+                  placeholder="2018"
+                  value={ano}
+                  onChange={(e) => setAno(e.target.value)}
+                  className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="version" className="block text-sm font-semibold text-gray-300 mb-1">
+                Versión (opcional)
+              </label>
+              <input
+                type="text"
+                id="version"
+                placeholder="Ej: LS / LT / 1.4 / 1.6"
+                value={version}
+                onChange={(e) => setVersion(e.target.value)}
                 className="w-full bg-[oklch(0.24_0.05_255)] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[oklch(0.7_0.2_40)] focus:border-transparent"
               />
             </div>
@@ -371,9 +424,10 @@ export default function ApexLandingPage() {
           <p className="text-sm font-semibold text-white">Pagos y modalidades</p>
           <ul className="mt-3 text-sm text-gray-400 space-y-2 leading-relaxed">
             <li>
-              - Los precios son por unidad. El anticipo y las condiciones de pago se coordinan por
-              WhatsApp según tu modalidad de entrega.
+              - Los precios son por unidad.
             </li>
+            <li>- Particular: para confirmar tu pedido necesitamos el 50% de anticipo.</li>
+            <li>- Taller validado: tu pedido se despacha contra entrega.</li>
             <li>- Métodos: Nequi, Daviplata, transferencia o efectivo contra entrega.</li>
             <li>
               - El anticipo se pide solo cuando el despacho está confirmado por nosotros. Si no

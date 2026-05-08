@@ -3,6 +3,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
 import AdminDispatchPanel, { ActiveRouteBanner } from "@/components/AdminDispatchPanel";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { listarPedidosRecientes } from "@/lib/pedidos.functions";
@@ -299,8 +305,183 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
           </div>
         </div>
 
+        <OperacionConversionPlaybook />
         <AdminDispatchPanel />
       </main>
     </div>
+  );
+}
+
+function OperacionConversionPlaybook() {
+  return (
+    <section className="rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-5 mb-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-white">Compendio operativo y conversión</p>
+          <p className="text-xs text-gray-500 mt-1">
+            Uso interno. Esto no se comparte con clientes.
+          </p>
+        </div>
+      </div>
+
+      <Accordion type="multiple" className="mt-4">
+        <AccordionItem value="principio">
+          <AccordionTrigger className="text-gray-200">
+            Principio que gobierna todo
+          </AccordionTrigger>
+          <AccordionContent className="text-xs text-gray-400 leading-relaxed">
+            <p>
+              El cliente decide por emoción y lo justifica con razones. Apex no vende repuestos:
+              vende certeza. Certeza de que la pieza es correcta, de que llega, de que el precio es
+              justo y de que si algo falla, alguien responde.
+            </p>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="fase1">
+          <AccordionTrigger className="text-gray-200">Fase 1 — Antes del primer cliente</AccordionTrigger>
+          <AccordionContent className="text-xs text-gray-400 leading-relaxed space-y-3">
+            <div>
+              <p className="text-gray-200 font-semibold">Google Business Profile (prioridad)</p>
+              <ul className="mt-2 space-y-1">
+                <li>- Nombre: Apex Suspensión</li>
+                <li>- Categoría: tienda de repuestos para automóviles</li>
+                <li>- Municipios de cobertura en descripción</li>
+                <li>- Horario real</li>
+                <li>- Enlace a la PWA</li>
+                <li>- Fotos reales: piezas, empaque, proceso</li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-gray-200 font-semibold">SEO local mínimo (cuando haya señales reales)</p>
+              <p className="mt-1">
+                Una página por municipio con cobertura (Chía, Cajicá, Zipaquirá, Tocancipá) con
+                texto simple: qué venden, cobertura y referencias de alta rotación.
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-200 font-semibold">Simulacros</p>
+              <p className="mt-1">
+                Hacer pedidos internos para encontrar huecos operativos antes de atender clientes.
+              </p>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="fase2">
+          <AccordionTrigger className="text-gray-200">Fase 2 — Primer contacto (WhatsApp)</AccordionTrigger>
+          <AccordionContent className="text-xs text-gray-400 leading-relaxed space-y-3">
+            <div>
+              <p className="text-gray-200 font-semibold">Regla</p>
+              <p className="mt-1">
+                Nunca responder solo “hola”. Responder demostrando competencia y pidiendo el dato
+                mínimo para confirmar referencia.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-gray-200 font-semibold">Ejemplo (cliente ya sabe la pieza)</p>
+              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
+Buenos días. Para confirmar la referencia exacta: ¿qué año es el Sail y qué versión, LS o LT? Con eso te confirmo disponibilidad y precio.
+              </pre>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-gray-200 font-semibold">Respuestas rápidas (atajos)</p>
+              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
+/confirmar → Para confirmar tu pedido necesito: pieza, vehículo, año, versión y tu dirección de entrega.
+/stock → Revisamos disponibilidad y te confirmamos en minutos.
+/precio → Los precios están en el catálogo. Dime la referencia y te confirmo disponibilidad.
+/entrega → Coordinamos entrega el mismo día cuando hay stock y cupo en ruta. El ETA exacto te lo confirmamos antes de salir.
+/garantia → Cada pieza tiene garantía por defecto de fabricación. Si algo falla, lo resolvemos sin rodeos.
+              </pre>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-gray-200 font-semibold">Mensaje automático (bienvenida/ausencia)</p>
+              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
+Hola, gracias por escribirnos. Somos Apex Suspensión — repuestos de suspensión y dirección con entrega el mismo día en la Sabana de Bogotá. Te respondemos en minutos. Mientras tanto puedes ver el catálogo aquí: [enlace PWA]
+              </pre>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="fase3">
+          <AccordionTrigger className="text-gray-200">Fase 3 — Cuando algo falla</AccordionTrigger>
+          <AccordionContent className="text-xs text-gray-400 leading-relaxed space-y-3">
+            <p className="text-gray-200 font-semibold">
+              Avisar antes de que pregunten. Resolver antes de que exijan. Reconocer antes de que
+              escale.
+            </p>
+
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-gray-200 font-semibold">Referencia equivocada</p>
+              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
+Revisando tu pedido encontramos que la referencia no corresponde a tu vehículo. Te confirmamos la correcta antes de salir para que no tengas que hacer una devolución.
+              </pre>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-gray-200 font-semibold">Sin stock</p>
+              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
+La referencia que necesitas no la tenemos en este momento. Podemos conseguirla o revisar una marca equivalente con el mismo estándar. ¿Cuál prefieres?
+              </pre>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-gray-200 font-semibold">Domicilio tarde</p>
+              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
+Te escribimos para avisarte que el domicilio va con un retraso aproximado de [tiempo real]. Ya está en camino. Te confirmamos cuando llegue.
+              </pre>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-gray-200 font-semibold">Pieza incorrecta entregada</p>
+              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
+Entendemos lo que pasó y lo resolvemos hoy. Te enviamos la correcta y coordinamos la devolución sin costo para ti.
+              </pre>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-gray-200 font-semibold">Pieza falla después de instalada</p>
+              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
+Si la pieza falló por defecto de fabricación la reponemos. Cuéntanos qué pasó.
+Si hay duda: ¿tu mecánico puede confirmarnos cómo quedó montada? Eso nos ayuda a separar fabricación vs instalación.
+              </pre>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="fase4">
+          <AccordionTrigger className="text-gray-200">Fase 4 — Después de la primera venta</AccordionTrigger>
+          <AccordionContent className="text-xs text-gray-400 leading-relaxed space-y-3">
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-gray-200 font-semibold">Pedir reseña (momento exacto)</p>
+              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
+¿Llegó todo bien? Si el servicio estuvo bien y quieres dejarnos una reseña en Google nos ayudas un montón. [enlace]
+              </pre>
+            </div>
+
+            <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+              <p className="text-gray-200 font-semibold">Guardar el número / lista de difusión</p>
+              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
+Guarda este número para futuras cotizaciones. Cuando llegue stock nuevo de referencias de alta rotación te avisamos.
+              </pre>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="fase5">
+          <AccordionTrigger className="text-gray-200">Fase 5 — Crecimiento (hitos)</AccordionTrigger>
+          <AccordionContent className="text-xs text-gray-400 leading-relaxed space-y-2">
+            <ul className="space-y-1">
+              <li>- Primeras 5 reseñas reales en Google</li>
+              <li>- Lista de difusión con 20 contactos activos</li>
+              <li>- Agente IA (Mes 2): sugerencia con disclaimer + handoff a WhatsApp</li>
+            </ul>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </section>
   );
 }
