@@ -415,17 +415,21 @@ export default function ApexLandingPage() {
 
       <section id="pagos" className="px-4 py-12 md:py-16 bg-[oklch(0.16_0.04_248)] scroll-mt-20">
         <div className="max-w-3xl mx-auto rounded-2xl border border-white/10 bg-black/20 px-6 py-6">
-          <p className="text-sm font-semibold text-white">Pagos y modalidades</p>
+          <p className="text-sm font-semibold text-white">Pagos y garantía</p>
           <ul className="mt-3 text-sm text-gray-400 space-y-2 leading-relaxed">
             <li>
               - Los precios son por unidad.
             </li>
-            <li>- Particular: para confirmar tu pedido necesitamos el 50% de anticipo.</li>
-            <li>- Taller validado: tu pedido se despacha contra entrega.</li>
+            <li>- Para confirmar tu pedido: necesitamos el 50% de anticipo.</li>
+            <li>- Si eres taller validado: tu pedido se despacha contra entrega.</li>
             <li>- Métodos: Nequi, Daviplata, transferencia o efectivo contra entrega.</li>
             <li>
               - El anticipo se pide solo cuando el despacho está confirmado por nosotros. Si no
               podemos cumplir, te avisamos y se devuelve sin rodeos.
+            </li>
+            <li>
+              - Garantía: cubre defectos de fabricación. Si algo falla, lo revisamos contigo y lo
+              resolvemos por WhatsApp (con evidencia/fotos) lo más rápido posible.
             </li>
           </ul>
         </div>
