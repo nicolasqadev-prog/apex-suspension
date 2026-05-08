@@ -60,9 +60,8 @@ function LegalPage() {
         <section id="terminos">
           <h2 className="text-base font-bold text-white mb-3">Términos de uso del sitio</h2>
           <p>
-            El catálogo y los precios mostrados son referenciales; la disponibilidad, el precio
-            final y las condiciones de pago y entrega se confirman siempre con el equipo Apex por
-            WhatsApp antes de generar compromiso.
+            Los precios del catálogo son los precios de lista vigentes. El equipo confirma
+            disponibilidad y condiciones de entrega por WhatsApp antes de que el pedido quede firme.
           </p>
           <p className="mt-3">
             Las marcas y referencias mencionadas pertenecen a sus titulares. Apex Suspensión es un
@@ -89,7 +88,7 @@ function LegalPage() {
         </section>
 
         <p className="text-xs text-gray-500 pt-4 border-t border-white/10">
-          Para cotizaciones: usá el formulario en el inicio o escribinos por WhatsApp desde el
+          Para cotizaciones: usa el formulario en el inicio o escríbenos por WhatsApp desde el
           catálogo.
         </p>
       </main>

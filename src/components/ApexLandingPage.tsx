@@ -76,13 +76,14 @@ export default function ApexLandingPage() {
             El impulso exacto <br className="hidden sm:block" /> para no detenerte.
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
-            Cotiza repuestos de suspensión y dirección para tu taller: respuesta en minutos y
-            entrega donde trabajas en la Sabana de Bogotá. En Chía y alrededores, con pieza en
-            stock, coordinamos salida el mismo día.
+            Tu carro no puede esperar. Cotiza el repuesto que necesitas en minutos — con entrega el
+            mismo día en la Sabana de Bogotá.
           </p>
 
           <a
-            href="#despacho"
+            href={enlaceWhatsApp("Hola, quiero cotizar un repuesto. ¿Me pueden ayudar?")}
+            target="_blank"
+            rel="noreferrer"
             className="mt-10 inline-flex items-center gap-3 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-bold text-lg px-8 py-5 rounded-lg shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400"
           >
             <Search className="w-6 h-6" />
@@ -90,7 +91,16 @@ export default function ApexLandingPage() {
             <ArrowRight className="w-5 h-5 ml-1" />
           </a>
 
-          <div className="mt-4" />
+          <a
+            href={enlaceWhatsApp(
+              "Hola, mi carro tiene un problema y no sé qué pieza necesita. ¿Me pueden ayudar?",
+            )}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
+          >
+            ¿No sabes qué pieza es? Cuéntanos qué le pasa a tu carro →
+          </a>
 
           <div className="mt-8 mx-auto max-w-2xl rounded-xl border border-white/10 bg-black/20 px-5 py-5 text-left">
             <p className="text-sm font-semibold text-white">Trabajamos con talleres</p>
@@ -109,6 +119,43 @@ export default function ApexLandingPage() {
               Quiero condiciones de taller →
             </a>
           </div>
+
+          <section className="mt-8 mx-auto max-w-2xl text-left">
+            <p className="text-xs uppercase tracking-[0.3em] text-gray-500 font-semibold">
+              ¿CÓMO TE PODEMOS AYUDAR?
+            </p>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-xl border border-white/10 bg-black/10 px-5 py-5">
+                <p className="text-sm font-semibold text-white">Sé exactamente qué necesito</p>
+                <p className="mt-2 text-sm text-gray-400 leading-relaxed">
+                  Busca por nombre de pieza, vehículo o referencia. Stock y precios en tiempo real.
+                </p>
+                <Link
+                  to="/catalogo"
+                  className="mt-3 inline-flex text-sm font-semibold text-white hover:text-gray-100"
+                >
+                  Ver catálogo →
+                </Link>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/10 px-5 py-5">
+                <p className="text-sm font-semibold text-white">Mi carro falla pero no sé qué es</p>
+                <p className="mt-2 text-sm text-gray-400 leading-relaxed">
+                  Cuéntanos qué pasa — un ruido, una vibración, el volante que jala — y te
+                  orientamos sobre qué pieza revisar.
+                </p>
+                <a
+                  href={enlaceWhatsApp(
+                    "Hola, mi carro tiene un problema con la suspensión. No sé qué pieza necesita, ¿me pueden orientar?",
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
+                >
+                  Describir el problema →
+                </a>
+              </div>
+            </div>
+          </section>
         </div>
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-1 bg-[oklch(0.7_0.2_40)]/30 rounded-full mt-12 hidden md:block">
           {" "}
@@ -153,8 +200,8 @@ export default function ApexLandingPage() {
             {[
               {
                 Icon: MessageCircle,
-                title: "Respuesta en minutos",
-                text: "Cotización y confirmación por WhatsApp. Sin formularios eternos: vas directo a quien coordina la pieza y la ruta.",
+                title: "En minutos, no en horas",
+                text: "Un mensaje en WhatsApp y listo. Vas directo a quien coordina la pieza y la ruta — sin apps, sin registros, sin esperas en línea.",
               },
               {
                 Icon: MapPin,
@@ -202,7 +249,7 @@ export default function ApexLandingPage() {
               {
                 Icon: Package,
                 title: "Falta de Stock",
-                text: "Nuestro enfoque especializado garantiza hiper‑rotación en piezas clave. Deja de rechazar trabajos por falta de componentes.",
+                text: "Nos especializamos en las piezas que más salen. La que necesitas hoy, la tenemos hoy. Deja de rechazar trabajos por falta de repuesto.",
               },
             ].map(({ Icon, title, text }) => (
               <div
@@ -235,12 +282,12 @@ export default function ApexLandingPage() {
               {
                 Icon: CheckCircle2,
                 title: "Confirma tu pedido y taller",
-                text: "Sin registros engorrosos. Solo tu nombre y WhatsApp para coordinar la entrega.",
+                text: "Solo la pieza que necesitas y tu WhatsApp. En segundos abres el hilo.",
               },
               {
                 Icon: Clock,
-                title: "Recibe en tu taller en franja corta",
-                text: "Cuando hay stock y cupo en ruta, coordinamos salida rápida; el ETA exacto te lo confirma despachos antes de salir.",
+                title: "Recibe en tu dirección el mismo día",
+                text: "Cuando hay stock y cupo en ruta, coordinamos salida el mismo día. El ETA exacto te lo confirma el equipo antes de salir.",
               },
             ].map(({ Icon, title, text }, i, arr) => (
               <div key={title} className="contents">
@@ -310,6 +357,9 @@ export default function ApexLandingPage() {
             <p className="text-xs text-gray-500 text-center">
               El equipo de despachos confirma stock y ruta por WhatsApp.
             </p>
+            <p className="text-xs text-gray-500 text-center">
+              Cada pieza tiene garantía por defecto de fabricación. Si algo falla, lo resolvemos.
+            </p>
           </form>
         </div>
       </section>
@@ -319,7 +369,8 @@ export default function ApexLandingPage() {
           <p className="text-sm font-semibold text-white">Pagos y modalidades</p>
           <ul className="mt-3 text-sm text-gray-400 space-y-2 leading-relaxed">
             <li>
-              - Los precios son por unidad. Para confirmar tu pedido necesitamos el 50% de anticipo.
+              - Los precios son por unidad. El anticipo y las condiciones de pago se coordinan por
+              WhatsApp según tu modalidad de entrega.
             </li>
             <li>- Métodos: Nequi, Daviplata, transferencia o efectivo contra entrega.</li>
             <li>
@@ -327,6 +378,23 @@ export default function ApexLandingPage() {
               podemos cumplir, te avisamos y se devuelve sin rodeos.
             </li>
           </ul>
+        </div>
+      </section>
+
+      <section className="px-4 pb-4 md:pb-6 bg-[oklch(0.16_0.04_248)]">
+        <div className="max-w-3xl mx-auto rounded-2xl border border-white/10 bg-black/20 px-6 py-6 text-center">
+          <p className="text-base font-bold text-white">¿Ya sabes lo que necesitas?</p>
+          <a
+            href={enlaceWhatsApp("Hola, quiero cotizar un repuesto. ¿Me pueden ayudar?")}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex items-center justify-center gap-3 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-bold text-lg px-8 py-5 rounded-lg shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400"
+          >
+            Cotizar ahora por WhatsApp →
+          </a>
+          <p className="mt-3 text-xs text-gray-500">
+            Respuesta en minutos. Sin llamadas, sin esperas.
+          </p>
         </div>
       </section>
 

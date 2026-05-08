@@ -101,30 +101,12 @@ function CatalogoPage() {
               <Package className="h-6 w-6 text-[oklch(0.7_0.2_40)]" />
               Catálogo
             </h1>
-            <p className="text-xs text-gray-500 mt-0.5">Stock y precio de referencia · {moneda}</p>
+            <p className="text-xs text-gray-500 mt-0.5">Stock y precios actualizados · {moneda}</p>
           </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-6 rounded-xl border border-white/10 bg-black/20 px-5 py-5">
-          <p className="text-sm font-semibold text-white">Trabajamos con talleres</p>
-          <p className="mt-2 text-sm text-gray-400 leading-relaxed">
-            Si tienes taller, tienes condiciones diferentes: precio de distribuidor, despacho contra
-            entrega y atención directa por WhatsApp. Sin trámites, sin intermediarios.
-          </p>
-          <a
-            href={enlaceWhatsApp(
-              "Hola, tengo un taller y quiero conocer las condiciones especiales de Apex.",
-            )}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-3 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
-          >
-            Quiero condiciones de taller →
-          </a>
-        </div>
-
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           <Input
@@ -134,6 +116,19 @@ function CatalogoPage() {
             className="pl-10 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
           />
         </div>
+        <a
+          href={enlaceWhatsApp(
+            "Hola, estoy en el catálogo y no encuentro la pieza que necesito. ¿Me pueden ayudar?",
+          )}
+          target="_blank"
+          rel="noreferrer"
+          className="mb-6 inline-flex text-xs text-gray-500"
+        >
+          ¿No encuentras lo que buscas o no sabes qué pieza es?
+          <span className="ml-1 font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300">
+            → Escríbenos y te orientamos
+          </span>
+        </a>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 text-xs">
           <label className="flex flex-col gap-1 text-gray-500">
