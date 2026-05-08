@@ -169,9 +169,9 @@ export default function ApexLandingPage() {
             QUIÉNES SOMOS
           </p>
           <p className="mt-4 text-base sm:text-lg text-white leading-relaxed max-w-3xl mx-auto">
-            No somos taller: vendemos repuestos y los llevamos a tu dirección. Armamos Apex para
-            resolver lo que más frena el día a día: conseguir la pieza correcta y que llegue a
-            tiempo, sin llamadas perdidas y sin excusas.
+            Vendemos repuestos y los entregamos en tu dirección. Armamos Apex para resolver lo que
+            más frena el día a día: conseguir la pieza correcta y que llegue a tiempo, sin llamadas
+            perdidas y sin excusas.
           </p>
 
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
