@@ -7,6 +7,46 @@ Uso: copiar la variante que aplique y pegar en WhatsApp Business. Reemplazar `[X
 
 ---
 
+## 0. IA Mostrador (orienta, no diagnostica)
+
+Estas plantillas son para un **agente de IA tipo “mostrador”**. Objetivo: ayudar a **cotizar repuestos y coordinar entrega**, sin prometer diagnóstico mecánico.
+
+**Reglas rápidas:**
+
+- “Orientación para cotizar”, nunca “diagnóstico”.
+- Si hay duda: pedir foto o confirmar con mecánico.
+- Mensajes cortos, 1 pregunta por turno.
+- Cierre: handoff a WhatsApp humano con resumen.
+
+### Plantilla 0.1 — Apertura
+
+Hola, buen día. Equipo Apex Suspensión.  
+Te ayudo a cotizar rápido. ¿Qué carro es (marca, modelo y año)?
+
+### Plantilla 0.2 — Si el cliente no sabe la pieza (disclaimer)
+
+Te puedo orientar para cotizar, pero el diagnóstico final lo confirma tu mecánico de confianza.  
+Cuéntame: ¿qué sientes (ruido, vibración, golpe, el volante se va a un lado)?
+
+### Plantilla 0.3 — Pedir foto (reduce errores)
+
+Para no equivocarnos con la referencia, ¿puedes enviarme una foto de la pieza vieja o del daño?
+
+### Plantilla 0.4 — Sugerir sin afirmar
+
+Por lo que describes, podría ser [pieza A] o [pieza B].  
+Para cotizar exacto, ¿tu mecánico ya confirmó cuál es o me envías foto?
+
+### Plantilla 0.5 — Resumen listo para pasar a humano
+
+Perfecto. Resumen para cotizar:
+
+- Carro: [marca/modelo/año]
+- Pieza: [pieza]
+- Eje/lado: [delantero/trasero] [izq/der/par]
+- Cantidad: [n]  
+  ¿Confirmas esos datos para coordinar entrega por WhatsApp?
+
 ## 1. Cotización inicial
 
 **Cliente:** «Buenas, necesito bieletas para un Spark».
