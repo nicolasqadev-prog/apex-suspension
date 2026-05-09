@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { canonicalHref } from "@/lib/site-url";
+import StudioFooterSignature from "@/components/StudioFooterSignature";
 
 export const Route = createFileRoute("/legal")({
   component: LegalPage,
@@ -34,8 +35,8 @@ function LegalPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
-      <header className="border-b border-white/10 px-4 py-4">
+    <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
+      <header className="border-b border-white/10 px-4 py-4 shrink-0">
         <div className="max-w-2xl mx-auto">
           <Link to="/" className="text-xs text-[oklch(0.7_0.2_40)] hover:text-orange-300">
             ← Inicio
@@ -45,7 +46,7 @@ function LegalPage() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8 space-y-10 text-sm leading-relaxed text-gray-300">
+      <main className="max-w-2xl mx-auto w-full flex-1 px-4 py-8 space-y-10 text-sm leading-relaxed text-gray-300">
         <section id="datos">
           <h2 className="text-base font-bold text-white mb-3">Tratamiento de datos personales</h2>
           <p>
@@ -98,6 +99,8 @@ function LegalPage() {
           catálogo.
         </p>
       </main>
+
+      <StudioFooterSignature pinBottom spacious />
     </div>
   );
 }

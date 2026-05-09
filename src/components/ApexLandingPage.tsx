@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import ApexHeaderBrand from "@/components/ApexHeaderBrand";
 import MarcasSection from "@/components/MarcasSection";
+import StudioFooterSignature from "@/components/StudioFooterSignature";
 import { enlaceWhatsApp, mensajeConfirmacionCotizacion } from "@/lib/whatsapp";
 import { usePersistentState } from "@/lib/usePersistentState";
 
@@ -458,16 +459,7 @@ export default function ApexLandingPage() {
           </nav>
         </div>
 
-        <div className="max-w-md mx-auto mt-8 pt-6 border-t border-white/10 flex items-center justify-center gap-3">
-          <span className="text-[11px] text-gray-600">Plataforma</span>
-          <img
-            src="/ockham-systems-marca.png"
-            alt="Ockham Systems"
-            className="h-5 w-auto object-contain opacity-40 brightness-0 invert"
-            loading="lazy"
-            decoding="async"
-          />
-        </div>
+        <StudioFooterSignature nested />
       </footer>
     </div>
   );

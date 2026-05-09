@@ -10,6 +10,7 @@ import type { PiezaInventario } from "@/lib/inventario";
 import { marcaInfo } from "@/lib/marcas";
 import { enlaceWhatsApp, mensajeConfirmacionCotizacion } from "@/lib/whatsapp";
 import { usePersistentState } from "@/lib/usePersistentState";
+import StudioFooterSignature from "@/components/StudioFooterSignature";
 
 export const Route = createFileRoute("/catalogo")({
   loader: () => loadCatalogo(),
@@ -100,8 +101,8 @@ function CatalogoPage() {
   }, [piezasBase, q, marca, categoria, stockFiltro, orden]);
 
   return (
-    <div className="min-h-screen bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
-      <header className="border-b border-white/10 px-4 py-4">
+    <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
+      <header className="border-b border-white/10 px-4 py-4 shrink-0">
         <div className="max-w-4xl mx-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="mt-1 text-xl font-bold text-white tracking-tight flex items-center gap-2">
@@ -113,7 +114,7 @@ function CatalogoPage() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto w-full flex-1 px-4 py-8">
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           <Input
@@ -256,6 +257,8 @@ function CatalogoPage() {
           </Button>
         </div>
       </main>
+
+      <StudioFooterSignature pinBottom spacious />
     </div>
   );
 }

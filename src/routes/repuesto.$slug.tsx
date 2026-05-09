@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { loadPiezaBySlug } from "@/lib/inventario.server";
 import { canonicalHref } from "@/lib/site-url";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
+import StudioFooterSignature from "@/components/StudioFooterSignature";
 
 export const Route = createFileRoute("/repuesto/$slug")({
   loader: ({ params }) => loadPiezaBySlug(params.slug),
@@ -37,11 +38,14 @@ function RepuestoDetallePage() {
 
   if (!pieza) {
     return (
-      <div className="min-h-screen bg-[oklch(0.18_0.04_250)] text-gray-200 flex flex-col items-center justify-center px-4">
-        <p className="text-white font-semibold">No encontramos esa referencia.</p>
-        <Button asChild className="mt-6 bg-[oklch(0.7_0.2_40)]">
-          <Link to="/catalogo">Ir al catálogo</Link>
-        </Button>
+      <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200">
+        <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
+          <p className="text-white font-semibold">No encontramos esa referencia.</p>
+          <Button asChild className="mt-6 bg-[oklch(0.7_0.2_40)]">
+            <Link to="/catalogo">Ir al catálogo</Link>
+          </Button>
+        </div>
+        <StudioFooterSignature pinBottom />
       </div>
     );
   }
@@ -59,8 +63,8 @@ function RepuestoDetallePage() {
   ].join("\n");
 
   return (
-    <div className="min-h-screen bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
-      <header className="border-b border-white/10 px-4 py-4">
+    <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
+      <header className="border-b border-white/10 px-4 py-4 shrink-0">
         <div className="max-w-lg mx-auto">
           <Link to="/catalogo" className="text-xs text-gray-500 hover:text-[oklch(0.7_0.2_40)]">
             ← Catálogo
@@ -68,7 +72,7 @@ function RepuestoDetallePage() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-8">
+      <main className="max-w-lg mx-auto w-full flex-1 px-4 py-8">
         <p className="text-xs font-mono text-[oklch(0.7_0.2_40)]">{pieza.referencia}</p>
         <h1 className="text-2xl font-bold text-white mt-1">{pieza.nombre}</h1>
         <p className="text-gray-400 mt-2">{pieza.aplicacion}</p>
@@ -158,6 +162,8 @@ function RepuestoDetallePage() {
           WhatsApp.
         </p>
       </main>
+
+      <StudioFooterSignature pinBottom spacious />
     </div>
   );
 }
