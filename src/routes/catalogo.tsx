@@ -5,6 +5,7 @@ import { Package, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { loadCatalogo } from "@/lib/inventario.server";
+import { canonicalHref } from "@/lib/site-url";
 import type { PiezaInventario } from "@/lib/inventario";
 import { marcaInfo } from "@/lib/marcas";
 import { enlaceWhatsApp, mensajeConfirmacionCotizacion } from "@/lib/whatsapp";
@@ -13,16 +14,20 @@ import { usePersistentState } from "@/lib/usePersistentState";
 export const Route = createFileRoute("/catalogo")({
   loader: () => loadCatalogo(),
   component: CatalogoPage,
-  head: () => ({
-    meta: [
-      { title: "Catálogo de repuestos | Apex Suspensión" },
-      {
-        name: "description",
-        content:
-          "Consulta referencias, marcas, stock y precio de lista. KTC, Corven, Nakata, MOOG, SABO y más. Apex Suspensión.",
-      },
-    ],
-  }),
+  head: () => {
+    const href = canonicalHref("/catalogo");
+    return {
+      meta: [
+        { title: "Catálogo de repuestos | Apex Suspensión" },
+        {
+          name: "description",
+          content:
+            "Consulta referencias, marcas, stock y precio de lista. KTC, Corven, Nakata, MOOG, SABO y más. Apex Suspensión.",
+        },
+      ],
+      links: href ? [{ rel: "canonical", href }] : [],
+    };
+  },
 });
 
 function formatoPrecio(cop: number): string {
@@ -45,7 +50,7 @@ function mensajeConsultaStock(p: PiezaInventario, moneda: string): string {
     `Aplicación: ${p.aplicacion}`,
     `Precio lista (referencia web): ${formatoPrecio(p.precioLista)} ${moneda}`,
     "",
-    "Nombre del taller:",
+    "Nombre:",
   ].join("\n");
 }
 

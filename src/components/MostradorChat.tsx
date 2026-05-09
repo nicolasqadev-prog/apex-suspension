@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { usePersistentState } from "@/lib/usePersistentState";
 import { responderMostrador } from "@/lib/mostrador.functions";
 import { buildWhatsappHandoffLink, normalizeShortText, type MostradorDraft } from "@/lib/mostrador";
+import { consultarTallerFidelizado } from "@/lib/talleres.functions";
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
@@ -38,6 +39,9 @@ export default function MostradorChat() {
   const [handoffTag, setHandoffTag] = useState<"normal" | "bajo_encargo">("normal");
   const [primarySuggestion, setPrimarySuggestion] = useState("");
   const [handoffReady, setHandoffReady] = useState(false);
+  const [tallerCuenta, setTallerCuenta] = useState<
+    MostradorDraft["tallerCuenta"] | undefined
+  >(undefined);
 
   const draft: MostradorDraft = useMemo(
     () => ({
@@ -49,15 +53,15 @@ export default function MostradorChat() {
       municipio,
       handoffTag,
       primarySuggestion: primarySuggestion.trim() || undefined,
+      tallerCuenta,
     }),
-    [piezaOSintoma, whatsapp, carro, ano, version, municipio, handoffTag, primarySuggestion],
+    [piezaOSintoma, whatsapp, carro, ano, version, municipio, handoffTag, primarySuggestion, tallerCuenta],
   );
 
   const whatsappLink = useMemo(() => buildWhatsappHandoffLink(draft), [draft]);
 
   const canAskMore = turns < 2; // máximo 2 turnos
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const handoffRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     function onOpen() {
@@ -70,24 +74,14 @@ export default function MostradorChat() {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    // Keep latest messages visible.
     el.scrollTop = el.scrollHeight;
-  }, [msgs.length, loading, open]);
-
-  useEffect(() => {
-    if (!handoffReady || !open) return;
-    handoffRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [handoffReady, open]);
+  }, [msgs.length, loading, open, handoffReady, lastQuestions.length]);
 
   function enrichAssistantReply(raw: string, suggestion?: string) {
     let out = raw.trim();
     const sug = suggestion?.trim();
     if (sug && !out.toLowerCase().includes("para cotizar primero")) {
       out += `\n\nPara cotizar primero (orientación, no diagnóstico): ${sug}. Confirma el diagnóstico con tu mecánico de confianza.`;
-    }
-    if (!out.toLowerCase().includes("whatsapp")) {
-      out +=
-        "\n\nSiguiente paso: toca el botón naranja **Confirmar por WhatsApp** abajo para enviar esto al equipo y cotizar.";
     }
     return out;
   }
@@ -112,6 +106,23 @@ export default function MostradorChat() {
 
     try {
       if (brakeLike) {
+        if (whatsapp.replace(/\D/g, "").length >= 10) {
+          try {
+            const t = await consultarTallerFidelizado({ data: { whatsapp: whatsapp.trim() } });
+            if (t.validado) {
+              setTallerCuenta({
+                validado: true,
+                contraEntregaHabilitada: t.contraEntregaHabilitada,
+              });
+            } else {
+              setTallerCuenta({ validado: false });
+            }
+          } catch {
+            setTallerCuenta(undefined);
+          }
+        } else {
+          setTallerCuenta(undefined);
+        }
         setHandoffTag("bajo_encargo");
         setPrimarySuggestion("Pastillas y discos de freno (lado delantero/trasero a confirmar con el mecánico)");
         setHandoffReady(true);
@@ -153,6 +164,11 @@ export default function MostradorChat() {
 
       const sug = typeof res?.primarySuggestion === "string" ? res.primarySuggestion.trim() : "";
       setPrimarySuggestion(sug);
+      if (res?.tallerCuenta) {
+        setTallerCuenta(res.tallerCuenta);
+      } else {
+        setTallerCuenta(undefined);
+      }
       let reply =
         res?.reply?.trim() || "Listo. Escríbenos por WhatsApp para confirmar la referencia.";
       reply = enrichAssistantReply(reply, sug || undefined);
@@ -173,6 +189,7 @@ export default function MostradorChat() {
         nextTurn >= 2 || res?.action === "handoff_whatsapp" || res?.handoffTag === "bajo_encargo";
       setHandoffReady(ready);
     } catch {
+      setTallerCuenta(undefined);
       setMsgs((m) => [
         ...m,
         {
@@ -196,6 +213,7 @@ export default function MostradorChat() {
     setHandoffTag("normal");
     setPrimarySuggestion("");
     setHandoffReady(false);
+    setTallerCuenta(undefined);
   }
 
   return (
@@ -211,9 +229,9 @@ export default function MostradorChat() {
       </button>
 
       <Dialog open={open} onOpenChange={(v) => (setOpen(v), v ? null : null)}>
-        <DialogContent className="bg-[oklch(0.18_0.04_250)] border border-white/10 text-gray-200 p-0 overflow-hidden max-w-[680px] w-[min(680px,calc(100vw-24px))] max-h-[85vh] h-[85vh] flex flex-col">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
-            <DialogHeader className="space-y-0 text-left">
+        <DialogContent className="bg-[oklch(0.18_0.04_250)] border border-white/10 text-gray-200 p-0 overflow-hidden max-w-[680px] w-[min(680px,calc(100vw-24px))] max-h-[min(90dvh,720px)] h-[min(90dvh,720px)] flex flex-col gap-0 sm:rounded-lg [&>button]:hidden">
+          <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-white/10 shrink-0">
+            <DialogHeader className="space-y-0 text-left pr-2">
               <DialogTitle className="text-white text-base font-bold">Mostrador Apex</DialogTitle>
               <p className="text-xs text-gray-400 mt-1">
                 Orientación para cotizar. Sin diagnóstico. Confirmación final por WhatsApp.
@@ -222,25 +240,25 @@ export default function MostradorChat() {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/10 text-gray-300 hover:text-white hover:border-white/20"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-white/10 text-gray-300 hover:text-white hover:border-white/20"
               aria-label="Cerrar"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="px-5 py-4 flex-1 min-h-0 flex flex-col">
-            <div
-              ref={scrollRef}
-              className="space-y-3 flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 py-2 pr-3"
-            >
+          <div
+            ref={scrollRef}
+            className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 py-4"
+          >
+            <div className="space-y-3">
               {msgs.map((m, idx) => (
                 <div
                   key={idx}
                   className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] min-w-0 rounded-2xl px-4 py-3 text-[13px] sm:text-sm leading-snug ${
+                    className={`max-w-[min(100%,520px)] min-w-0 rounded-2xl px-4 py-3 text-[13px] sm:text-sm leading-snug ${
                       m.role === "user"
                         ? "bg-[oklch(0.7_0.2_40)] text-white"
                         : "bg-black/25 border border-white/10 text-gray-200"
@@ -250,13 +268,11 @@ export default function MostradorChat() {
                   </div>
                 </div>
               ))}
-              {loading && (
-                <div className="text-xs text-gray-500">Escribiendo…</div>
-              )}
+              {loading && <div className="text-xs text-gray-500">Escribiendo…</div>}
             </div>
 
             {lastQuestions.length > 0 && canAskMore && (
-              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3 shrink-0">
+              <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
                 <p className="text-xs font-semibold text-white">Para afinar la cotización</p>
                 <ul className="mt-2 space-y-1 text-xs text-gray-400">
                   {lastQuestions.slice(0, 3).map((q) => (
@@ -266,7 +282,7 @@ export default function MostradorChat() {
               </div>
             )}
 
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="text-[11px] text-gray-500">Tu WhatsApp</label>
                 <Input
@@ -316,7 +332,7 @@ export default function MostradorChat() {
               </div>
             </div>
 
-            <div className="mt-4 shrink-0">
+            <div>
               <label className="text-[11px] text-gray-500">Pieza o síntoma (requerido)</label>
               <div className="mt-1 flex gap-2">
                 <Input
@@ -346,14 +362,11 @@ export default function MostradorChat() {
             </div>
 
             {handoffReady && (
-              <div
-                ref={handoffRef}
-                className="mt-4 rounded-xl border border-[oklch(0.7_0.2_40)]/40 bg-black/30 px-4 py-3 shrink-0"
-              >
+              <div className="rounded-xl border border-[oklch(0.7_0.2_40)]/40 bg-black/30 px-4 py-3">
                 <p className="text-xs font-semibold text-white">Siguiente paso — cotizar por WhatsApp</p>
                 <p className="mt-2 text-xs text-gray-300 leading-relaxed">
-                  Aquí cerramos la orientación automática. Toca el botón naranja para enviar tu
-                  síntoma, carro y datos al equipo Apex y que te confirmen referencia y precio.
+                  Cerramos la orientación automática. Usá el botón naranja para enviar síntoma,
+                  carro y datos al equipo Apex y que confirmen referencia y precio.
                 </p>
                 {primarySuggestion.trim() ? (
                   <p className="mt-2 text-xs text-gray-200">
@@ -366,8 +379,11 @@ export default function MostradorChat() {
               </div>
             )}
 
-            <div className="mt-5 flex flex-col sm:flex-row gap-3 shrink-0">
-              <Button asChild className="bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-semibold">
+            <div className="flex flex-col gap-3 pb-1 sm:flex-row">
+              <Button
+                asChild
+                className="bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-semibold"
+              >
                 <a href={whatsappLink} target="_blank" rel="noreferrer">
                   Confirmar por WhatsApp →
                 </a>
@@ -383,7 +399,7 @@ export default function MostradorChat() {
             </div>
 
             {!canAskMore && !handoffReady && (
-              <div className="mt-4 text-[11px] text-gray-500 shrink-0">
+              <div className="text-[11px] text-gray-500">
                 Para evitar vueltas, aquí cerramos la orientación y confirmamos por WhatsApp con el
                 equipo.
               </div>

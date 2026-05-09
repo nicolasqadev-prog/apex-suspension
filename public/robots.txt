@@ -3,5 +3,5 @@ Allow: /
 
 Disallow: /admin
 
-# Cuando tengas dominio público, agregá una línea (URL absoluta), por ejemplo:
-# Sitemap: https://tudominio.com/sitemap.xml
+# Sitemap con URL absoluta: el worker sirve /robots.txt dinámico en producción.
+# En desarrollo, abrí https://localhost:8080/robots.txt (mismo host que la app).

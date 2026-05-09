@@ -104,24 +104,6 @@ export default function ApexLandingPage() {
             ¿No sabes qué pieza es? Te orientamos para cotizar →
           </button>
 
-          <div className="mt-8 mx-auto max-w-2xl rounded-xl border border-white/10 bg-black/20 px-5 py-5 text-left">
-            <p className="text-sm font-semibold text-white">Trabajamos con talleres</p>
-            <p className="mt-2 text-sm text-gray-400 leading-relaxed">
-              Si tienes taller, tienes condiciones diferentes: precio de distribuidor, despacho
-              contra entrega y atención directa por WhatsApp. Sin trámites, sin intermediarios.
-            </p>
-            <a
-              href={enlaceWhatsApp(
-                "Hola, tengo un taller y quiero conocer las condiciones especiales de Apex.",
-              )}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
-            >
-              Quiero condiciones de taller →
-            </a>
-          </div>
-
           <section className="mt-8 mx-auto max-w-2xl text-left">
             <p className="text-xs uppercase tracking-[0.3em] text-gray-500 font-semibold">
               ¿CÓMO TE PODEMOS AYUDAR?
@@ -187,7 +169,7 @@ export default function ApexLandingPage() {
           </div>
 
           <div className="mt-8 inline-flex items-center justify-center rounded-full border border-[oklch(0.7_0.2_40)]/30 bg-black/20 px-4 py-2 text-xs text-gray-200">
-            Atención para talleres · respuesta en minutos por WhatsApp
+            Respuesta en minutos · suspensión y dirección en la Sabana
           </div>
         </div>
       </section>
@@ -195,7 +177,7 @@ export default function ApexLandingPage() {
       <section className="px-4 py-12 md:py-16 bg-[oklch(0.16_0.04_248)] border-y border-white/5">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-center text-xl sm:text-2xl font-extrabold uppercase text-white mb-8 tracking-wide">
-            Por qué los talleres nos escriben primero
+            Por qué nos escriben primero
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -233,14 +215,14 @@ export default function ApexLandingPage() {
       <section className="px-4 py-16 md:py-24 bg-[oklch(0.14_0.04_250)]">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-center text-2xl sm:text-3xl font-extrabold uppercase text-white mb-12 tracking-wide">
-            Lo que frena tu taller no es la pericia, es la espera
+            Lo que frena tu día no es la pericia, es la espera
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
                 Icon: AlertTriangle,
                 title: "Elevador Ocupado",
-                text: "Un vehículo esperando repuestos es dinero perdido para tu taller. Cada minuto sin rotación reduce tu facturación diaria.",
+                text: "Un vehículo esperando repuestos es tiempo y dinero perdido. Cada minuto sin avanzar es un trabajo que se retrasa.",
               },
               {
                 Icon: Truck,

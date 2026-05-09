@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { getTallerFidelizadoByWhatsapp } from "./talleres.server";
+
 const InputSchema = z.object({
   history: z
     .array(
@@ -17,12 +19,47 @@ const InputSchema = z.object({
       ano: z.string().optional(),
       version: z.string().optional(),
       municipio: z.string().optional(),
-      tallerTipo: z.enum(["particular", "taller_validado"]).optional(),
-      contraEntregaHabilitada: z.boolean().optional(),
       inventarioSnippet: z.string().max(8000).optional(),
     })
     .optional(),
 });
+
+const RATE_WINDOW_MS = 10 * 60_000;
+const RATE_MAX_MOSTRADOR_CALLS = 35;
+const mostradorCallsByIp = new Map<string, { count: number; firstAt: number }>();
+
+function getIpFromHeaders(headers: Headers): string {
+  const cf = headers.get("CF-Connecting-IP");
+  if (cf) return cf.trim();
+  const xff = headers.get("X-Forwarded-For");
+  if (xff) return xff.split(",")[0]?.trim() || "unknown";
+  return "unknown";
+}
+
+type TallerCuenta = { validado: boolean; contraEntregaHabilitada?: boolean };
+
+async function tallerCuentaFromWhatsapp(raw?: string): Promise<TallerCuenta> {
+  const w = raw?.trim();
+  if (!w) return { validado: false };
+  const taller = await getTallerFidelizadoByWhatsapp(w);
+  if (!taller) return { validado: false };
+  return { validado: true, contraEntregaHabilitada: taller.contraEntregaHabilitada };
+}
+
+function segmentoClienteLines(taller: TallerCuenta): string[] {
+  if (!taller.validado) {
+    return ["Segmento: cliente general (anticipo / política según web de Apex)."];
+  }
+  const ce =
+    taller.contraEntregaHabilitada === true
+      ? "Contra entrega habilitada en esta cuenta: sí."
+      : "Contra entrega habilitada en esta cuenta: no (confirmar condiciones con el equipo).";
+  return [
+    "Segmento: taller validado en Apex.",
+    ce,
+    "No mencionar porcentajes de descuento ni precios concretos; solo orientación y handoff a WhatsApp.",
+  ];
+}
 
 type MostradorResponse = {
   ok: true;
@@ -33,6 +70,8 @@ type MostradorResponse = {
   /** Una pieza concreta para priorizar la cotización (orientación, no diagnóstico). */
   primarySuggestion?: string;
   internalSummary: string[];
+  /** Resuelto en servidor según WhatsApp en contexto (no enviar desde el cliente). */
+  tallerCuenta?: TallerCuenta;
 };
 
 function buildSystemPrompt() {
@@ -115,17 +154,38 @@ async function callAnthropic(args: {
 
 export const responderMostrador = createServerFn({ method: "POST" })
   .inputValidator(InputSchema)
-  .handler(async ({ data }) => {
+  .handler(async (ctx) => {
+    const data = (ctx as { data: z.infer<typeof InputSchema> }).data;
+    const request = (ctx as { request?: Request }).request;
+    const ip = request ? getIpFromHeaders(request.headers) : "unknown";
+    const now = Date.now();
+    const slot = mostradorCallsByIp.get(ip);
+    if (slot && now - slot.firstAt <= RATE_WINDOW_MS && slot.count >= RATE_MAX_MOSTRADOR_CALLS) {
+      const tallerCuenta = await tallerCuentaFromWhatsapp(data.context?.whatsapp);
+      const fallback: MostradorResponse = {
+        ok: true,
+        reply:
+          "Ahora mismo no puedo seguir con el asistente automático desde esta red. Confirma el diagnóstico con tu mecánico de confianza y escríbenos por WhatsApp para cotizar.",
+        questions: [],
+        action: "handoff_whatsapp",
+        handoffTag: "normal",
+        internalSummary: ["Rate limit por IP; derivar a WhatsApp."],
+        tallerCuenta,
+      };
+      return fallback;
+    }
+    if (!slot || now - slot.firstAt > RATE_WINDOW_MS) {
+      mostradorCallsByIp.set(ip, { count: 1, firstAt: now });
+    } else {
+      mostradorCallsByIp.set(ip, { count: slot.count + 1, firstAt: slot.firstAt });
+    }
+
     const apiKey = process.env.GROQ_API_KEY?.trim();
+    const tallerCuenta = await tallerCuentaFromWhatsapp(data.context?.whatsapp);
 
     const contextLines = [
-      data.context?.tallerTipo
-        ? `Tipo de cliente: ${data.context.tallerTipo}${
-            data.context.tallerTipo === "taller_validado" ? " (no mencionar descuentos)" : ""
-          }`
-        : null,
-      data.context?.contraEntregaHabilitada === true ? "Contra entrega habilitada: sí" : null,
-      data.context?.whatsapp ? `WhatsApp: ${data.context.whatsapp}` : null,
+      ...segmentoClienteLines(tallerCuenta),
+      data.context?.whatsapp ? `WhatsApp (formulario): ${data.context.whatsapp}` : null,
       data.context?.carro ? `Carro: ${data.context.carro}` : null,
       data.context?.ano ? `Año: ${data.context.ano}` : null,
       data.context?.version ? `Versión: ${data.context.version}` : null,
@@ -156,6 +216,7 @@ export const responderMostrador = createServerFn({ method: "POST" })
         action: "handoff_whatsapp",
         handoffTag: "normal",
         internalSummary: ["Sin GROQ_API_KEY en servidor; usar WhatsApp humano."],
+        tallerCuenta,
       };
       return fallback;
     }
@@ -172,6 +233,7 @@ export const responderMostrador = createServerFn({ method: "POST" })
         action: "handoff_whatsapp",
         handoffTag: "normal",
         internalSummary: ["Respuesta IA no parseable; usando fallback seguro."],
+        tallerCuenta,
       } satisfies MostradorResponse;
     }
 
@@ -188,6 +250,7 @@ export const responderMostrador = createServerFn({ method: "POST" })
       handoffTag: parsed.handoffTag === "bajo_encargo" ? "bajo_encargo" : "normal",
       primarySuggestion: primarySuggestion || undefined,
       internalSummary: (parsed.internalSummary ?? []).map((s) => String(s).slice(0, 180)).slice(0, 6),
+      tallerCuenta,
     };
     return safe;
   });

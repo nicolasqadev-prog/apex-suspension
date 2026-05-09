@@ -1,0 +1,3 @@
+# Reporte de seguridad — reemplazá el correo antes de producción.
+Contact: mailto:seguridad@TU-DOMINIO.com
+Preferred-Languages: es

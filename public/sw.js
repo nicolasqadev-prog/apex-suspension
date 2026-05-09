@@ -1,5 +1,5 @@
 // Increment this when shipping a new release to force cache refresh.
-const CACHE_NAME = "apex-suspension-pwa-v17";
+const CACHE_NAME = "apex-suspension-pwa-v22";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -42,6 +42,16 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+
+  // Panel interno y archivos para buscadores: siempre red (sin cache del SW).
+  if (
+    url.pathname.startsWith("/admin") ||
+    url.pathname === "/sitemap.xml" ||
+    url.pathname === "/robots.txt"
+  ) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   // Never cache Vite dev server internals or source modules.
   if (

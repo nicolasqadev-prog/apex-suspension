@@ -7,7 +7,7 @@ export type MarcaInfo = {
 export const MARCAS: Record<string, MarcaInfo> = {
   KTC: {
     nombre: "KTC",
-    descripcionCorta: "Suspensión y dirección para alta rotación en taller.",
+    descripcionCorta: "Suspensión y dirección para alta rotación.",
     foco: ["Suspensión", "Dirección"],
   },
   Corven: {

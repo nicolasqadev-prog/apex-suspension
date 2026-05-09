@@ -9,12 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RepuestoSlugRouteImport } from './routes/repuesto.$slug'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalRoute = LegalRouteImport.update({
   id: '/legal',
   path: '/legal',
@@ -46,6 +58,8 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/catalogo': typeof CatalogoRoute
   '/legal': typeof LegalRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +67,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/catalogo': typeof CatalogoRoute
   '/legal': typeof LegalRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
 }
 export interface FileRoutesById {
@@ -61,14 +77,38 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/catalogo': typeof CatalogoRoute
   '/legal': typeof LegalRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/catalogo' | '/legal' | '/repuesto/$slug'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/catalogo'
+    | '/legal'
+    | '/robots.txt'
+    | '/sitemap.xml'
+    | '/repuesto/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/catalogo' | '/legal' | '/repuesto/$slug'
-  id: '__root__' | '/' | '/admin' | '/catalogo' | '/legal' | '/repuesto/$slug'
+  to:
+    | '/'
+    | '/admin'
+    | '/catalogo'
+    | '/legal'
+    | '/robots.txt'
+    | '/sitemap.xml'
+    | '/repuesto/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/catalogo'
+    | '/legal'
+    | '/robots.txt'
+    | '/sitemap.xml'
+    | '/repuesto/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,11 +116,27 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   CatalogoRoute: typeof CatalogoRoute
   LegalRoute: typeof LegalRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   RepuestoSlugRoute: typeof RepuestoSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/legal': {
       id: '/legal'
       path: '/legal'
@@ -124,6 +180,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   CatalogoRoute: CatalogoRoute,
   LegalRoute: LegalRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   RepuestoSlugRoute: RepuestoSlugRoute,
 }
 export const routeTree = rootRouteImport

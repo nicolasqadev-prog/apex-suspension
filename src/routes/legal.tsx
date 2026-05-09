@@ -1,18 +1,24 @@
 import { useEffect } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
+import { canonicalHref } from "@/lib/site-url";
+
 export const Route = createFileRoute("/legal")({
   component: LegalPage,
-  head: () => ({
-    meta: [
-      { title: "Información legal | Apex Suspensión" },
-      {
-        name: "description",
-        content:
-          "Tratamiento de datos, términos de uso y cobertura. Apex Suspensión — repuestos y logística en la Sabana.",
-      },
-    ],
-  }),
+  head: () => {
+    const href = canonicalHref("/legal");
+    return {
+      meta: [
+        { title: "Información legal | Apex Suspensión" },
+        {
+          name: "description",
+          content:
+            "Tratamiento de datos, términos de uso y cobertura. Apex Suspensión — repuestos y logística en la Sabana.",
+        },
+      ],
+      links: href ? [{ rel: "canonical", href }] : [],
+    };
+  },
 });
 
 function LegalPage() {

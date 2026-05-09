@@ -10,6 +10,8 @@ export type MostradorDraft = {
   handoffTag?: "normal" | "bajo_encargo";
   /** Pieza prioritaria para cotizar (orientación). */
   primarySuggestion?: string;
+  /** Solo para texto de WhatsApp; debe venir del servidor (Mostrador / consulta taller). */
+  tallerCuenta?: { validado: boolean; contraEntregaHabilitada?: boolean };
 };
 
 export function buildWhatsappHandoffLink(d: MostradorDraft): string {
@@ -31,7 +33,13 @@ export function buildWhatsappHandoffLink(d: MostradorDraft): string {
   });
 
   const municipio = d.municipio?.trim();
-  const finalMsg = municipio ? `${msg}\nMunicipio: ${municipio}` : msg;
+  const tallerNote =
+    d.tallerCuenta?.validado === true
+      ? d.tallerCuenta.contraEntregaHabilitada === true
+        ? "\nNota: somos taller validado en Apex; en nuestra cuenta aplica contra entrega (confirmar con el equipo)."
+        : "\nNota: somos taller validado en Apex (confirmar condiciones de pago/entrega con el equipo)."
+      : "";
+  const finalMsg = [municipio ? `${msg}\nMunicipio: ${municipio}` : msg, tallerNote].filter(Boolean).join("");
   return enlaceWhatsApp(finalMsg);
 }
 

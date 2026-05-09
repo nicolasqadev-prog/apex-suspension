@@ -6,6 +6,10 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(({ command }) => ({
+  build: {
+    // En producción no publicamos sourcemaps: reduce superficie de análisis del bundle (secretos deben estar solo en servidor).
+    sourcemap: false,
+  },
   server: {
     host: "::",
     port: 8080,

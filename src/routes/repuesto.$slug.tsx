@@ -2,12 +2,13 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import { loadPiezaBySlug } from "@/lib/inventario.server";
+import { canonicalHref } from "@/lib/site-url";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/repuesto/$slug")({
   loader: ({ params }) => loadPiezaBySlug(params.slug),
   component: RepuestoDetallePage,
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const pieza = loaderData?.pieza;
     const title = pieza
       ? `${pieza.referencia} · ${pieza.nombre} | Apex`
@@ -15,8 +16,10 @@ export const Route = createFileRoute("/repuesto/$slug")({
     const desc = pieza
       ? `${pieza.aplicacion}. Stock y cotización vía WhatsApp. Apex Suspensión.`
       : "La referencia solicitada no está en el catálogo.";
+    const href = pieza ? canonicalHref(`/repuesto/${params.slug}`) : null;
     return {
       meta: [{ title }, { name: "description", content: desc }],
+      links: href ? [{ rel: "canonical", href }] : [],
     };
   },
 });
@@ -52,7 +55,7 @@ function RepuestoDetallePage() {
     `Precio lista (referencia web): ${formatoPrecio(pieza.precioLista)} ${moneda}`,
     `Stock según web: ${pieza.stock}`,
     ``,
-    `Nombre del taller: `,
+    `Nombre: `,
   ].join("\n");
 
   return (

@@ -3,6 +3,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 
 import appCss from "../styles.css?url";
 import MostradorChat from "@/components/MostradorChat";
+import { siteOriginForHead } from "@/lib/site-url";
 
 class RootErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -60,9 +61,8 @@ function NotFoundComponent() {
 export const Route = createRootRoute({
   head: () => ({
     meta: (() => {
-      const siteUrl =
-        (import.meta.env.VITE_SITE_URL as string | undefined) ??
-        "https://apex-suspension.nicolas-qa-dev.workers.dev";
+      const base = siteOriginForHead();
+      const ogImage = base ? `${base}/og-image.png` : "/og-image.png";
       return [
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -70,27 +70,26 @@ export const Route = createRootRoute({
         {
           name: "description",
           content:
-            "Repuestos de suspensión y dirección para taller en la Sabana. Catálogo, stock referencial y entregas coordinadas. Chía, Cajicá, Zipaquirá y más.",
+            "Repuestos de suspensión y dirección en la Sabana. Catálogo, stock referencial y entregas coordinadas. Chía, Cajicá, Zipaquirá y más.",
         },
         { name: "author", content: "Apex Suspensión" },
         { property: "og:title", content: "Apex Suspensión" },
         {
           property: "og:description",
           content:
-            "Repuestos de suspensión y dirección para taller en la Sabana. Entregas coordinadas en Chía y alrededores.",
+            "Repuestos de suspensión y dirección en la Sabana. Entregas coordinadas en Chía y alrededores.",
         },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: `${siteUrl}/` },
-        { property: "og:image", content: "/og-image.png" },
+        ...(base ? ([{ property: "og:url", content: `${base}/` }] as const) : []),
+        { property: "og:image", content: ogImage },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
-        { name: "twitter:image", content: "/og-image.png" },
+        { name: "twitter:image", content: ogImage },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: "Apex Suspensión" },
         {
           name: "twitter:description",
-          content:
-            "Repuestos de suspensión y dirección para taller en la Sabana. Entregas coordinadas.",
+          content: "Repuestos de suspensión y dirección en la Sabana. Entregas coordinadas.",
         },
       ];
     })(),
@@ -98,12 +97,6 @@ export const Route = createRootRoute({
       {
         rel: "stylesheet",
         href: appCss,
-      },
-      {
-        rel: "canonical",
-        href:
-          ((import.meta.env.VITE_SITE_URL as string | undefined) ??
-            "https://apex-suspension.nicolas-qa-dev.workers.dev") + "/",
       },
       {
         rel: "manifest",
