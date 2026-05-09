@@ -28,24 +28,24 @@ export default function StudioFooterSignature({
 
   return (
     <div className={shell}>
-      <div className="max-w-xl mx-auto text-center space-y-2">
-        <p className="text-[11px] text-gray-500 leading-relaxed max-w-md mx-auto">
-          Copyright {new Date().getFullYear()} · presencia técnica y plataforma por
+      <div className="max-w-xl mx-auto text-center space-y-3">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-gray-500 font-medium">
+          Powered by
         </p>
-        <div className="flex flex-col items-center gap-1.5 pt-1">
+        <div className="flex justify-center pt-0.5">
           <img
             src="/ockham-systems-marca.png"
-            alt="Ockham Systems"
-            width={200}
-            height={48}
-            className="h-7 sm:h-8 w-auto max-w-[min(220px,85vw)] object-contain opacity-[0.72] [filter:brightness(0)_invert(1)] hover:opacity-90 transition-opacity"
+            alt="Ockham Systems — presencia técnica, claridad estratégica"
+            width={280}
+            height={120}
+            className="h-auto w-full max-w-[min(260px,88vw)] object-contain rounded-lg shadow-lg shadow-black/30 ring-1 ring-white/10"
             loading="lazy"
             decoding="async"
           />
-          <p className="text-[9px] uppercase tracking-[0.2em] text-gray-600 font-medium">
-            Presencia técnica, claridad estratégica
-          </p>
         </div>
+        <p className="text-[10px] text-gray-600">
+          Ockham Systems · plataforma y operación técnica
+        </p>
       </div>
     </div>
   );
