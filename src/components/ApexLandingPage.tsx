@@ -79,15 +79,17 @@ export default function ApexLandingPage() {
             Apex Suspensión · suspensión y dirección
           </p>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold uppercase tracking-tight text-white leading-tight">
-            El impulso exacto <br className="hidden sm:block" /> para no detenerte.
+            El impulso exacto <br className="hidden sm:block" /> para seguir en marcha.
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
-            Tu carro no puede esperar. Busca en el catálogo y confirma por WhatsApp en minutos — con
-            entrega el mismo día en la Sabana de Bogotá.
+            Si su vehículo no puede esperar: consulte el catálogo y confirme por WhatsApp en minutos,
+            con entrega el mismo día en la Sabana de Bogotá.
           </p>
 
           <a
-            href={enlaceWhatsApp("Hola, quiero cotizar un repuesto. ¿Me pueden ayudar?")}
+            href={enlaceWhatsApp(
+              "Buen día, deseo cotizar un repuesto. ¿Podrían orientarme?",
+            )}
             target="_blank"
             rel="noreferrer"
             className="mt-10 inline-flex items-center gap-3 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-bold text-lg px-8 py-5 rounded-lg shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400"
@@ -102,16 +104,16 @@ export default function ApexLandingPage() {
             onClick={() => window.dispatchEvent(new Event("apex:mostrador:open"))}
             className="mt-4 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
           >
-            ¿No sabes qué pieza es? Te orientamos para cotizar →
+            ¿No sabe qué pieza es? Asesor para cotizar →
           </button>
 
           <section className="mt-8 mx-auto max-w-2xl text-left">
             <p className="text-xs uppercase tracking-[0.3em] text-gray-500 font-semibold">
-              ¿CÓMO TE PODEMOS AYUDAR?
+              ¿CÓMO LE PODEMOS AYUDAR?
             </p>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="rounded-xl border border-white/10 bg-black/10 px-5 py-5">
-                <p className="text-sm font-semibold text-white">Sé exactamente qué necesito</p>
+                <p className="text-sm font-semibold text-white">Ya sé qué repuesto necesito</p>
                 <p className="mt-2 text-sm text-gray-400 leading-relaxed">
                   Busca por nombre de pieza, vehículo o referencia. Stock y precios en tiempo real.
                 </p>
@@ -123,11 +125,10 @@ export default function ApexLandingPage() {
                 </Link>
               </div>
               <div className="rounded-xl border border-white/10 bg-black/10 px-5 py-5">
-                <p className="text-sm font-semibold text-white">Mi carro falla pero no sé qué es</p>
+                <p className="text-sm font-semibold text-white">El vehículo presenta una falla</p>
                 <p className="mt-2 text-sm text-gray-400 leading-relaxed">
-                  Cuéntanos qué pasa — un ruido, una vibración, el volante que jala — y te
-                  orientamos para cotizar. Siempre confirma el diagnóstico con tu mecánico de
-                  confianza.
+                  Describa el síntoma (ruido, vibración, comportamiento al girar, etc.); le orientamos
+                  para cotizar. Confirme el diagnóstico con su taller de confianza.
                 </p>
                 <button
                   type="button"
@@ -422,7 +423,9 @@ export default function ApexLandingPage() {
         <div className="max-w-3xl mx-auto rounded-2xl border border-white/10 bg-black/20 px-6 py-6 text-center">
           <p className="text-base font-bold text-white">¿Ya sabes lo que necesitas?</p>
           <a
-            href={enlaceWhatsApp("Hola, quiero cotizar un repuesto. ¿Me pueden ayudar?")}
+            href={enlaceWhatsApp(
+              "Buen día, deseo cotizar un repuesto. ¿Podrían orientarme?",
+            )}
             target="_blank"
             rel="noreferrer"
             className="mt-4 inline-flex items-center justify-center gap-3 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-bold text-lg px-8 py-5 rounded-lg shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400"

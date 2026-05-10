@@ -13,10 +13,24 @@ type ChatMsg = { role: "user" | "assistant"; content: string };
 
 function initialAssistantMessage() {
   return [
-    "Te orientamos para cotizar (sin diagnosticar).",
-    "Confirma el diagnóstico con tu mecánico de confianza.",
-    "Cuéntame la pieza o el síntoma y, si lo sabes, el carro y el año.",
+    "Le orientamos para una cotización (no es diagnóstico mecánico).",
+    "Confirme el diagnóstico con su taller de confianza.",
+    "Indique la pieza o el síntoma y, si lo sabe, el vehículo y el año.",
   ].join(" ");
+}
+
+function scrollMessagesToEnd(el: HTMLDivElement | null) {
+  if (!el) return;
+  const run = () => {
+    el.scrollTop = el.scrollHeight;
+  };
+  run();
+  requestAnimationFrame(() => {
+    run();
+    requestAnimationFrame(run);
+  });
+  window.setTimeout(run, 80);
+  window.setTimeout(run, 240);
 }
 
 export default function MostradorChat() {
@@ -26,14 +40,14 @@ export default function MostradorChat() {
   const [ano, setAno] = usePersistentState("apex.ano", "");
   const [version, setVersion] = usePersistentState("apex.version", "");
 
-  const [piezaOSintoma, setPiezaOSintoma] = useState(""); // guardado para el resumen/handoff
-  const [composer, setComposer] = useState(""); // texto que el cliente escribe (se limpia al enviar)
+  const [piezaOSintoma, setPiezaOSintoma] = useState("");
+  const [composer, setComposer] = useState("");
   const [municipio, setMunicipio] = useState("");
 
   const [msgs, setMsgs] = useState<ChatMsg[]>([
     { role: "assistant", content: initialAssistantMessage() },
   ]);
-  const [turns, setTurns] = useState(0); // user turns
+  const [turns, setTurns] = useState(0);
   const [loading, setLoading] = useState(false);
   const [lastQuestions, setLastQuestions] = useState<string[]>([]);
   const [handoffTag, setHandoffTag] = useState<"normal" | "bajo_encargo">("normal");
@@ -60,8 +74,8 @@ export default function MostradorChat() {
 
   const whatsappLink = useMemo(() => buildWhatsappHandoffLink(draft), [draft]);
 
-  const canAskMore = turns < 2; // máximo 2 turnos
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const canAskMore = turns < 2;
+  const messagesScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     function onOpen() {
@@ -72,16 +86,15 @@ export default function MostradorChat() {
   }, []);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  }, [msgs.length, loading, open, handoffReady, lastQuestions.length]);
+    if (!open) return;
+    scrollMessagesToEnd(messagesScrollRef.current);
+  }, [open, msgs.length, loading, lastQuestions.length]);
 
   function enrichAssistantReply(raw: string, suggestion?: string) {
     let out = raw.trim();
     const sug = suggestion?.trim();
     if (sug && !out.toLowerCase().includes("para cotizar primero")) {
-      out += `\n\nPara cotizar primero (orientación, no diagnóstico): ${sug}. Confirma el diagnóstico con tu mecánico de confianza.`;
+      out += `\n\nPara cotizar primero (orientación, no diagnóstico): ${sug}. Confirme el diagnóstico con su taller de confianza.`;
     }
     return out;
   }
@@ -92,7 +105,6 @@ export default function MostradorChat() {
 
     const nextTurn = turns + 1;
 
-    // Heurística rápida para evitar respuestas tontas en casos obvios (frenos = bajo encargo).
     const brakeLike = /\b(freno|frenos|frena|pastilla|pastillas|disco|discos|caliper|balata)\b/i.test(
       text,
     );
@@ -124,24 +136,23 @@ export default function MostradorChat() {
           setTallerCuenta(undefined);
         }
         setHandoffTag("bajo_encargo");
-        setPrimarySuggestion("Pastillas y discos de freno (lado delantero/trasero a confirmar con el mecánico)");
-        setHandoffReady(true);
+        setPrimarySuggestion("Pastillas y discos de freno (lado delantero o trasero, a confirmar con el taller)");
         setMsgs((m) => [
           ...m,
           {
             role: "assistant",
             content: enrichAssistantReply(
-              "Por lo que describes, podría estar relacionado con frenos (pastillas/discos) o con un caliper agarrado. Posibles piezas a revisar: pastillas, discos, caliper, sensor ABS. Si quieres, te lo cotizamos bajo encargo con proveedor.",
-              "Pastillas y discos de freno (lado delantero/trasero a confirmar con el mecánico)",
+              "Por lo que indica, podría estar relacionado con frenos (pastillas o discos) o con un caliper. Posibles piezas a revisar: pastillas, discos, caliper, sensor ABS. Podemos cotizarlo bajo encargo con proveedor.",
+              "Pastillas y discos de freno (lado delantero o trasero, a confirmar con el taller)",
             ),
           },
         ]);
         const qs =
           nextTurn < 2
             ? [
-                "¿El ruido es solo al frenar o también rodando?",
+                "¿El ruido ocurre solo al frenar o también al circular?",
                 "¿Delantera o trasera?",
-                "¿Tienes referencia/marca de pastillas o discos?",
+                "¿Dispone de referencia o marca de pastillas o discos actuales?",
               ]
             : [];
         setLastQuestions(qs);
@@ -170,7 +181,8 @@ export default function MostradorChat() {
         setTallerCuenta(undefined);
       }
       let reply =
-        res?.reply?.trim() || "Listo. Escríbenos por WhatsApp para confirmar la referencia.";
+        res?.reply?.trim() ||
+        "Puede escribirnos por WhatsApp para confirmar la referencia y la disponibilidad.";
       reply = enrichAssistantReply(reply, sug || undefined);
 
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
@@ -195,7 +207,7 @@ export default function MostradorChat() {
         {
           role: "assistant",
           content:
-            "Listo, te orientamos para cotizar. Confirma el diagnóstico con tu mecánico. Para confirmar compatibilidad, lo mejor es que nos escribas por WhatsApp con carro/año y foto o video.",
+            "Puede continuar por WhatsApp: indique vehículo, año y síntoma, y si puede envíe foto o video. Confirme el diagnóstico con su taller de confianza.",
         },
       ]);
     } finally {
@@ -222,10 +234,10 @@ export default function MostradorChat() {
         type="button"
         onClick={() => setOpen(true)}
         className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[oklch(0.7_0.2_40)] px-4 py-3 text-sm font-bold text-white shadow-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400"
-        aria-label="Abrir Mostrador Apex"
+        aria-label="Abrir asesor para cotización"
       >
         <MessageCircle className="h-5 w-5" />
-        Te orientamos
+        Asesor para cotizar
       </button>
 
       <Dialog open={open} onOpenChange={(v) => (setOpen(v), v ? null : null)}>
@@ -234,7 +246,8 @@ export default function MostradorChat() {
             <DialogHeader className="space-y-0 text-left pr-2">
               <DialogTitle className="text-white text-base font-bold">Mostrador Apex</DialogTitle>
               <p className="text-xs text-gray-400 mt-1">
-                Orientación para cotizar. Sin diagnóstico. Confirmación final por WhatsApp.
+                Orientación para cotizar. No constituye diagnóstico. La confirmación final es por
+                WhatsApp.
               </p>
             </DialogHeader>
             <button
@@ -247,167 +260,177 @@ export default function MostradorChat() {
             </button>
           </div>
 
-          <div
-            ref={scrollRef}
-            className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-5 py-4"
-          >
-            <div className="space-y-3">
-              {msgs.map((m, idx) => (
-                <div
-                  key={idx}
-                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-                >
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div
+              ref={messagesScrollRef}
+              className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-5 pt-3 pb-2 scroll-smooth"
+              aria-live="polite"
+              aria-relevant="additions text"
+            >
+              <div className="space-y-3">
+                {msgs.map((m, idx) => (
                   <div
-                    className={`max-w-[min(100%,520px)] min-w-0 rounded-2xl px-4 py-3 text-[13px] sm:text-sm leading-snug ${
-                      m.role === "user"
-                        ? "bg-[oklch(0.7_0.2_40)] text-white"
-                        : "bg-black/25 border border-white/10 text-gray-200"
-                    }`}
+                    key={idx}
+                    className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                   >
-                    <span className="whitespace-pre-wrap break-words">{m.content}</span>
+                    <div
+                      className={`max-w-[min(100%,520px)] min-w-0 rounded-2xl px-4 py-3 text-[13px] sm:text-sm leading-snug ${
+                        m.role === "user"
+                          ? "bg-[oklch(0.7_0.2_40)] text-white"
+                          : "bg-black/25 border border-white/10 text-gray-200"
+                      }`}
+                    >
+                      <span className="whitespace-pre-wrap break-words">{m.content}</span>
+                    </div>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="text-xs text-gray-500" aria-busy="true">
+                    Generando respuesta…
+                  </div>
+                )}
+              </div>
+
+              {lastQuestions.length > 0 && canAskMore && (
+                <div className="mt-4 rounded-xl border border-white/10 bg-black/20 px-4 py-3">
+                  <p className="text-xs font-semibold text-white">Para afinar la cotización</p>
+                  <ul className="mt-2 space-y-1 text-xs text-gray-400">
+                    {lastQuestions.slice(0, 3).map((q) => (
+                      <li key={q}>- {q}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <div className="shrink-0 border-t border-white/10 bg-[oklch(0.14_0.04_250)] px-5 py-3 space-y-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="text-[11px] text-gray-500">WhatsApp de contacto</label>
+                  <Input
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    placeholder="3001234567"
+                    className="mt-1 bg-[oklch(0.12_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-gray-500">Municipio (opcional)</label>
+                  <Input
+                    value={municipio}
+                    onChange={(e) => setMunicipio(e.target.value)}
+                    placeholder="Ej.: Chía"
+                    className="mt-1 bg-[oklch(0.12_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-gray-500">Vehículo (opcional)</label>
+                  <Input
+                    value={carro}
+                    onChange={(e) => setCarro(e.target.value)}
+                    placeholder="Ej.: Chevrolet Sail"
+                    className="mt-1 bg-[oklch(0.12_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] text-gray-500">Año (opcional)</label>
+                    <Input
+                      value={ano}
+                      onChange={(e) => setAno(e.target.value)}
+                      placeholder="2018"
+                      className="mt-1 bg-[oklch(0.12_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-gray-500">Versión (opcional)</label>
+                    <Input
+                      value={version}
+                      onChange={(e) => setVersion(e.target.value)}
+                      placeholder="LS / LT"
+                      className="mt-1 bg-[oklch(0.12_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
+                    />
                   </div>
                 </div>
-              ))}
-              {loading && <div className="text-xs text-gray-500">Escribiendo…</div>}
-            </div>
+              </div>
 
-            {lastQuestions.length > 0 && canAskMore && (
-              <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
-                <p className="text-xs font-semibold text-white">Para afinar la cotización</p>
-                <ul className="mt-2 space-y-1 text-xs text-gray-400">
-                  {lastQuestions.slice(0, 3).map((q) => (
-                    <li key={q}>- {q}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label className="text-[11px] text-gray-500">Tu WhatsApp</label>
-                <Input
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  placeholder="3001234567"
-                  className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] text-gray-500">Municipio (opcional)</label>
-                <Input
-                  value={municipio}
-                  onChange={(e) => setMunicipio(e.target.value)}
-                  placeholder="Ej: Chía"
-                  className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] text-gray-500">Carro (opcional)</label>
-                <Input
-                  value={carro}
-                  onChange={(e) => setCarro(e.target.value)}
-                  placeholder="Ej: Chevrolet Sail"
-                  className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] text-gray-500">Año (opcional)</label>
+                <label className="text-[11px] text-gray-500">Pieza o síntoma (obligatorio)</label>
+                <div className="mt-1 flex gap-2">
                   <Input
-                    value={ano}
-                    onChange={(e) => setAno(e.target.value)}
-                    placeholder="2018"
-                    className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
+                    value={composer}
+                    onChange={(e) => setComposer(e.target.value)}
+                    placeholder="Ej.: ruido al girar, rótula delantera, referencia…"
+                    className="bg-[oklch(0.12_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void onSend();
+                      }
+                    }}
                   />
+                  <Button
+                    onClick={() => void onSend()}
+                    disabled={!composer.trim() || loading}
+                    className="shrink-0 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-semibold"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
                 </div>
-                <div>
-                  <label className="text-[11px] text-gray-500">Versión (opcional)</label>
-                  <Input
-                    value={version}
-                    onChange={(e) => setVersion(e.target.value)}
-                    placeholder="LS / LT"
-                    className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
-                  />
-                </div>
+                <p className="mt-2 text-[11px] text-gray-500">
+                  Para compatibilidad, conviene enviar por WhatsApp foto de la pieza usada o video
+                  del síntoma (placa opcional).
+                </p>
               </div>
-            </div>
 
-            <div>
-              <label className="text-[11px] text-gray-500">Pieza o síntoma (requerido)</label>
-              <div className="mt-1 flex gap-2">
-                <Input
-                  value={composer}
-                  onChange={(e) => setComposer(e.target.value)}
-                  placeholder="Ej: ruido al girar / rótula delantera Sail 2018"
-                  className="bg-[oklch(0.14_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      void onSend();
-                    }
-                  }}
-                />
+              {handoffReady && (
+                <div className="rounded-xl border border-[oklch(0.7_0.2_40)]/40 bg-black/30 px-4 py-3">
+                  <p className="text-xs font-semibold text-white">Siguiente paso: cotizar por WhatsApp</p>
+                  <p className="mt-2 text-xs text-gray-300 leading-relaxed">
+                    Con esto concluye la orientación automática. Use el botón naranja para enviar
+                    síntoma, datos del vehículo y contacto al equipo Apex; allí confirman referencia
+                    y precio.
+                  </p>
+                  {primarySuggestion.trim() ? (
+                    <p className="mt-2 text-xs text-gray-200">
+                      <span className="font-semibold text-[oklch(0.7_0.2_40)]">
+                        Pieza prioritaria para cotizar
+                      </span>{" "}
+                      (orientación, no diagnóstico): {primarySuggestion.trim()}
+                    </p>
+                  ) : null}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
-                  onClick={() => void onSend()}
-                  disabled={!composer.trim() || loading}
+                  asChild
                   className="bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-semibold"
                 >
-                  <Send className="h-4 w-4" />
+                  <a href={whatsappLink} target="_blank" rel="noreferrer">
+                    Confirmar por WhatsApp →
+                  </a>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-gray-700 text-gray-300"
+                  onClick={reset}
+                  type="button"
+                >
+                  Reiniciar
                 </Button>
               </div>
-              <p className="mt-2 text-[11px] text-gray-500">
-                Para confirmar compatibilidad, lo más seguro es enviar foto de la pieza vieja o video
-                del ruido por WhatsApp (placa opcional).
-              </p>
+
+              {!canAskMore && !handoffReady && (
+                <div className="text-[11px] text-gray-500">
+                  Para seguir de forma ordenada, la cotización se confirma con el equipo por
+                  WhatsApp.
+                </div>
+              )}
             </div>
-
-            {handoffReady && (
-              <div className="rounded-xl border border-[oklch(0.7_0.2_40)]/40 bg-black/30 px-4 py-3">
-                <p className="text-xs font-semibold text-white">Siguiente paso — cotizar por WhatsApp</p>
-                <p className="mt-2 text-xs text-gray-300 leading-relaxed">
-                  Cerramos la orientación automática. Usá el botón naranja para enviar síntoma,
-                  carro y datos al equipo Apex y que confirmen referencia y precio.
-                </p>
-                {primarySuggestion.trim() ? (
-                  <p className="mt-2 text-xs text-gray-200">
-                    <span className="font-semibold text-[oklch(0.7_0.2_40)]">
-                      Pieza prioritaria para cotizar
-                    </span>{" "}
-                    (orientación, no diagnóstico): {primarySuggestion.trim()}
-                  </p>
-                ) : null}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-3 pb-1 sm:flex-row">
-              <Button
-                asChild
-                className="bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-semibold"
-              >
-                <a href={whatsappLink} target="_blank" rel="noreferrer">
-                  Confirmar por WhatsApp →
-                </a>
-              </Button>
-              <Button
-                variant="outline"
-                className="border-gray-700 text-gray-300"
-                onClick={reset}
-                type="button"
-              >
-                Reiniciar
-              </Button>
-            </div>
-
-            {!canAskMore && !handoffReady && (
-              <div className="text-[11px] text-gray-500">
-                Para evitar vueltas, aquí cerramos la orientación y confirmamos por WhatsApp con el
-                equipo.
-              </div>
-            )}
           </div>
         </DialogContent>
       </Dialog>
     </>
   );
 }
-
