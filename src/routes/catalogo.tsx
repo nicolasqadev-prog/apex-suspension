@@ -128,7 +128,7 @@ function CatalogoPage() {
           href={enlaceWhatsApp(
             mensajeConfirmacionCotizacion({
               pieza:
-                "Me encuentro en el catálogo y no encuentro la pieza. ¿Podrían orientarme para cotizar? Confirmo el diagnóstico con mi taller.",
+                "Estoy en el catálogo y no encuentro la pieza. ¿Me pueden orientar para cotizar? Yo confirmo el diagnóstico con mi mecánico.",
               whatsapp: whatsappGuardado,
             }),
           )}
@@ -136,9 +136,9 @@ function CatalogoPage() {
           rel="noreferrer"
           className="mb-6 inline-flex text-xs text-gray-500"
         >
-          ¿No encuentra lo que busca o no sabe qué pieza es?
+          ¿No encuentras lo que buscas o no sabes qué pieza es?
           <span className="ml-1 font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300">
-            → Contáctenos por WhatsApp
+            → Escríbenos y te orientamos
           </span>
         </a>
 

@@ -1,7 +1,7 @@
 {
   "name": "Apex Suspensión",
   "short_name": "Apex",
-  "description": "Catálogo y cotización de repuestos de suspensión y dirección.",
+  "description": "PWA comercial para catálogo y logística de repuestos de suspensión.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -67,7 +67,7 @@ export default function ApexLandingPage() {
               href="#despacho"
               className="text-xs sm:text-sm font-semibold text-gray-300 hover:text-[oklch(0.7_0.2_40)] transition-colors"
             >
-              Despacho el mismo día →
+              Despacho urgente →
             </a>
           </div>
         </div>
@@ -79,23 +79,21 @@ export default function ApexLandingPage() {
             Apex Suspensión · suspensión y dirección
           </p>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold uppercase tracking-tight text-white leading-tight">
-            Suspensión y dirección <br className="hidden sm:block" /> con respuesta en minutos.
+            El impulso exacto <br className="hidden sm:block" /> para no detenerte.
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
-            Consulte catálogo, precios y disponibilidad; confirme su pedido por WhatsApp. Entrega el
-            mismo día en municipios de la Sabana de Bogotá, sujeta a stock y cupo de ruta.
+            Tu carro no puede esperar. Busca en el catálogo y confirma por WhatsApp en minutos — con
+            entrega el mismo día en la Sabana de Bogotá.
           </p>
 
           <a
-            href={enlaceWhatsApp(
-              "Buen día, deseo cotizar un repuesto. ¿Podrían orientarme?",
-            )}
+            href={enlaceWhatsApp("Hola, quiero cotizar un repuesto. ¿Me pueden ayudar?")}
             target="_blank"
             rel="noreferrer"
             className="mt-10 inline-flex items-center gap-3 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-bold text-lg px-8 py-5 rounded-lg shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400"
           >
             <Search className="w-6 h-6" />
-            Cotizar por WhatsApp
+            Cotizar ahora — respuesta en minutos
             <ArrowRight className="w-5 h-5 ml-1" />
           </a>
 
@@ -104,39 +102,39 @@ export default function ApexLandingPage() {
             onClick={() => window.dispatchEvent(new Event("apex:mostrador:open"))}
             className="mt-4 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
           >
-            ¿No identifica la pieza? Asistente para orientar su cotización →
+            ¿No sabes qué pieza es? Te orientamos para cotizar →
           </button>
 
           <section className="mt-8 mx-auto max-w-2xl text-left">
             <p className="text-xs uppercase tracking-[0.3em] text-gray-500 font-semibold">
-              ¿EN QUÉ PODEMOS AYUDARLE?
+              ¿CÓMO TE PODEMOS AYUDAR?
             </p>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="rounded-xl border border-white/10 bg-black/10 px-5 py-5">
-                <p className="text-sm font-semibold text-white">Dispongo de referencia o descripción</p>
+                <p className="text-sm font-semibold text-white">Sé exactamente qué necesito</p>
                 <p className="mt-2 text-sm text-gray-400 leading-relaxed">
-                  Busque por nombre de pieza, vehículo o código. El catálogo muestra disponibilidad y
-                  precio actualizados.
+                  Busca por nombre de pieza, vehículo o referencia. Stock y precios en tiempo real.
                 </p>
                 <Link
                   to="/catalogo"
                   className="mt-3 inline-flex text-sm font-semibold text-white hover:text-gray-100"
                 >
-                  Ir al catálogo →
+                  Ver catálogo →
                 </Link>
               </div>
               <div className="rounded-xl border border-white/10 bg-black/10 px-5 py-5">
-                <p className="text-sm font-semibold text-white">Síntoma o pieza sin identificar</p>
+                <p className="text-sm font-semibold text-white">Mi carro falla pero no sé qué es</p>
                 <p className="mt-2 text-sm text-gray-400 leading-relaxed">
-                  Describa el síntoma (ruido, vibración, comportamiento al girar, etc.). Recibirá
-                  orientación para cotizar; no sustituye el diagnóstico de su taller.
+                  Cuéntanos qué pasa — un ruido, una vibración, el volante que jala — y te
+                  orientamos para cotizar. Siempre confirma el diagnóstico con tu mecánico de
+                  confianza.
                 </p>
                 <button
                   type="button"
                   onClick={() => window.dispatchEvent(new Event("apex:mostrador:open"))}
                   className="mt-3 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
                 >
-                  Iniciar orientación →
+                  Describir el problema →
                 </button>
               </div>
             </div>
@@ -153,9 +151,9 @@ export default function ApexLandingPage() {
             QUIÉNES SOMOS
           </p>
           <p className="mt-4 text-base sm:text-lg text-white leading-relaxed max-w-3xl mx-auto">
-            Comercializamos repuestos de suspensión y dirección con entrega a domicilio en la Sabana.
-            Priorizamos la referencia correcta, tiempos de respuesta claros y coordinación por
-            WhatsApp.
+            Vendemos repuestos y los entregamos en tu dirección. Armamos Apex para resolver lo que
+            más frena el día a día: conseguir la pieza correcta y que llegue a tiempo, sin llamadas
+            perdidas y sin excusas.
           </p>
 
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
@@ -180,24 +178,24 @@ export default function ApexLandingPage() {
       <section className="px-4 py-12 md:py-16 bg-[oklch(0.16_0.04_248)] border-y border-white/5">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-center text-xl sm:text-2xl font-extrabold uppercase text-white mb-8 tracking-wide">
-            Por qué nos eligen
+            Por qué nos escriben primero
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
                 Icon: MessageCircle,
-                title: "Respuesta en minutos",
-                text: "Coordine pieza y entrega por WhatsApp, sin aplicaciones ni registros. Su consulta la atiende quien gestiona stock y ruta.",
+                title: "En minutos, no en horas",
+                text: "Un mensaje en WhatsApp y listo. Vas directo a quien coordina la pieza y la ruta — sin apps, sin registros, sin esperas en línea.",
               },
               {
                 Icon: MapPin,
-                title: "Cobertura en la Sabana",
-                text: "Chía, Cajicá, Zipaquirá, Tocancipá y zonas aledañas. Le confirmamos costo de domicilio (sin costo en Chía) y tiempo estimado antes de despachar.",
+                title: "Sabana, sin vueltas",
+                text: "Chía, Cajicá, Zipaquirá, Tocancipá y alrededores. Te confirmamos el costo de domicilio (gratis en Chía) y el tiempo estimado de llegada antes de salir.",
               },
               {
                 Icon: ShieldCheck,
-                title: "Anticipo acordado",
-                text: "El anticipo se solicita cuando el despacho está confirmado. Si no podemos cumplir, le informamos y gestionamos la devolución según política.",
+                title: "Tu plata, protegida",
+                text: "El anticipo se pide solo cuando el despacho está confirmado por nosotros. Si no podemos cumplir, te avisamos y se devuelve sin rodeos.",
               },
             ].map(({ Icon, title, text }) => (
               <div
@@ -218,24 +216,24 @@ export default function ApexLandingPage() {
       <section className="px-4 py-16 md:py-24 bg-[oklch(0.14_0.04_250)]">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-center text-2xl sm:text-3xl font-extrabold uppercase text-white mb-12 tracking-wide">
-            La demora en repuestos afecta su operación
+            Lo que frena tu día no es la pericia, es la espera
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
                 Icon: AlertTriangle,
-                title: "Vehículo detenido en elevador",
-                text: "Cada minuto sin la pieza correcta es tiempo de bahía y costo de oportunidad. Un suministro ágil reduce el retrabajo.",
+                title: "Elevador Ocupado",
+                text: "Un vehículo esperando repuestos es tiempo y dinero perdido. Cada minuto sin avanzar es un trabajo que se retrasa.",
               },
               {
                 Icon: Truck,
-                title: "Logística impredecible",
-                text: "Plazos y ventanas de entrega claras permiten planificar el taller. Coordinamos antes de salir a ruta.",
+                title: "Proveedores Lentos",
+                text: "Olvida las horas perdidas esperando a que llegue el mensajero. La improductividad no es un costo que puedas seguir cargando.",
               },
               {
                 Icon: Package,
-                title: "Rotación de stock",
-                text: "Catálogo orientado a piezas de alta rotación en suspensión y dirección. Objetivo: reducir la falta de referencia al cerrar un servicio.",
+                title: "Falta de Stock",
+                text: "Nos especializamos en las piezas que más salen. La que necesitas hoy, la tenemos hoy. Deja de rechazar trabajos por falta de repuesto.",
               },
             ].map(({ Icon, title, text }) => (
               <div
@@ -256,24 +254,24 @@ export default function ApexLandingPage() {
       <section className="px-4 py-16 md:py-24 bg-[oklch(0.18_0.04_250)]">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-extrabold uppercase text-white mb-12 tracking-wide">
-            Tres pasos para su pedido
+            Tan simple como un repuesto, tan rápido como tú
           </h2>
           <div className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
             {[
               {
                 Icon: Search,
-                title: "Consulte el catálogo",
-                text: "Ejemplo: rótula delantera Chevrolet Sail 2018. Filtre por referencia, vehículo o descripción.",
+                title: "Busca en el catálogo",
+                text: "Ej: rótula delantera Chevrolet Sail 2018. Busca por referencia o descripción.",
               },
               {
                 Icon: CheckCircle2,
-                title: "Confirme por WhatsApp",
-                text: "Indique pieza y número de contacto. El equipo valida referencia, stock y condiciones de entrega.",
+                title: "Confirma tu pedido",
+                text: "Solo la pieza que necesitas y tu WhatsApp. En segundos inicias el chat para confirmar referencia y disponibilidad.",
               },
               {
                 Icon: Clock,
-                title: "Entrega coordinada",
-                text: "Con stock y cupo en ruta, se agenda salida el mismo día. Recibirá ventana estimada antes del despacho.",
+                title: "Recibe en tu dirección el mismo día",
+                text: "Cuando hay stock y cupo en ruta, coordinamos salida el mismo día. La hora de llegada estimada te la confirma el equipo antes de salir.",
               },
             ].map(({ Icon, title, text }, i, arr) => (
               <div key={title} className="contents">
@@ -301,11 +299,11 @@ export default function ApexLandingPage() {
         <div className="max-w-2xl mx-auto bg-[oklch(0.18_0.04_250)] border border-gray-800 rounded-2xl p-8 shadow-2xl">
           <h2 className="text-xl sm:text-2xl font-extrabold uppercase text-white mb-2 flex items-center gap-2">
             <Wrench className="w-6 h-6 text-[oklch(0.7_0.2_40)]" />
-            Solicitud de cotización
+            ¿Qué pieza necesitas?
           </h2>
           <p className="mt-2 text-sm text-gray-400 leading-relaxed">
-            Para agilizar compatibilidad: vehículo, año y versión. Si es posible, adjunte fotografía de
-            la pieza retirada (placa opcional).
+            Para confirmar compatibilidad más rápido: vehículo, año y versión. Si puedes, envía foto
+            de la pieza vieja (y placa opcional).
           </p>
 
           <form className="mt-6 space-y-6" onSubmit={onSubmitDespacho}>
@@ -368,7 +366,7 @@ export default function ApexLandingPage() {
             </div>
             <div>
               <label htmlFor="whatsapp" className="block text-sm font-semibold text-gray-300 mb-1">
-                WhatsApp de contacto
+                Tu WhatsApp
               </label>
               <input
                 type="tel"
@@ -386,7 +384,7 @@ export default function ApexLandingPage() {
               className="w-full flex items-center justify-center gap-3 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-bold text-lg px-6 py-4 rounded-lg shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:opacity-60"
             >
               <Send className="w-5 h-5" />
-              {enviando ? "Abriendo WhatsApp…" : "Enviar solicitud por WhatsApp →"}
+              {enviando ? "Abriendo…" : "Solicitar por WhatsApp →"}
             </button>
             <p className="text-xs text-gray-500 text-center">
               El equipo de despachos confirma stock y ruta por WhatsApp.
@@ -405,16 +403,16 @@ export default function ApexLandingPage() {
             <li>
               - Los precios son por unidad.
             </li>
-            <li>- Para confirmar el pedido se requiere anticipo del 50%.</li>
-            <li>- Talleres validados: despacho disponible contra entrega, según acuerdo.</li>
+            <li>- Para confirmar tu pedido: necesitamos el 50% de anticipo.</li>
+            <li>- Si eres taller validado: tu pedido se despacha contra entrega.</li>
             <li>- Métodos: Nequi, Daviplata, transferencia o efectivo contra entrega.</li>
             <li>
               - El anticipo se pide solo cuando el despacho está confirmado por nosotros. Si no
-              podemos cumplir, se informa y se gestiona la devolución del anticipo.
+              podemos cumplir, te avisamos y se devuelve sin rodeos.
             </li>
             <li>
-              - Garantía: defectos de fabricación. Si aplica, comuníquelo por WhatsApp con evidencia
-              (fotos, vídeo) para agilizar la gestión.
+              - Garantía: cubre defectos de fabricación. Si algo falla, lo revisamos contigo y lo
+              resolvemos por WhatsApp (con evidencia/fotos) lo más rápido posible.
             </li>
           </ul>
         </div>
@@ -422,11 +420,9 @@ export default function ApexLandingPage() {
 
       <section className="px-4 pb-4 md:pb-6 bg-[oklch(0.16_0.04_248)]">
         <div className="max-w-3xl mx-auto rounded-2xl border border-white/10 bg-black/20 px-6 py-6 text-center">
-          <p className="text-base font-bold text-white">¿Ya tiene claro lo que necesita?</p>
+          <p className="text-base font-bold text-white">¿Ya sabes lo que necesitas?</p>
           <a
-            href={enlaceWhatsApp(
-              "Buen día, deseo cotizar un repuesto. ¿Podrían orientarme?",
-            )}
+            href={enlaceWhatsApp("Hola, quiero cotizar un repuesto. ¿Me pueden ayudar?")}
             target="_blank"
             rel="noreferrer"
             className="mt-4 inline-flex items-center justify-center gap-3 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-bold text-lg px-8 py-5 rounded-lg shadow-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400"
@@ -434,7 +430,7 @@ export default function ApexLandingPage() {
             Cotizar ahora por WhatsApp →
           </a>
           <p className="mt-3 text-xs text-gray-500">
-            Respuesta en minutos por mensaje. Sin filas telefónicas.
+            Respuesta en minutos. Sin llamadas, sin esperas.
           </p>
         </div>
       </section>
@@ -446,7 +442,7 @@ export default function ApexLandingPage() {
           </p>
           <p className="text-xs text-gray-400 leading-relaxed">
             Repuestos de suspensión y dirección (KTC, Corven, Nakata, MOOG, SABO y otras marcas de
-            trayectoria) con entrega a domicilio en la Sabana.
+            trayectoria) con entrega en tu dirección en la Sabana.
           </p>
           <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pt-2 text-[11px] text-gray-500">
             <Link to="/legal" hash="datos" className="hover:text-[oklch(0.7_0.2_40)]">

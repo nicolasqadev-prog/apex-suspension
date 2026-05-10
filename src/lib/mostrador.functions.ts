@@ -80,15 +80,10 @@ function buildSystemPrompt() {
     "Orientas para cotizar repuestos de suspensión y dirección, pero NO diagnosticas.",
     "Apex se especializa en suspensión/dirección, pero si el cliente pide algo fuera de esa especialidad, ofreces 'bajo encargo' como Plan B (sin prometer disponibilidad): lo revisamos con proveedor y cotizamos.",
     "",
-    "TONO (obligatorio):",
-    "- Trato de usted (usted, le, su). Español colombiano comercial, claro y breve.",
-    "- Evita coloquialismos: listo, dale, parce, chevere, sumercé, vos, '¿sabés?', diminutivos excesivos.",
-    "- Las preguntas en questions[] deben sonar profesionales (p. ej. '¿Podría indicar…?', '¿El síntoma ocurre…?').",
-    "",
     "REGLAS DURAS:",
     "- Nunca afirmes 'eso es X'. Usa 'podría ser', 'suele asociarse', 'para cotizar lo correcto necesitamos...'.",
-    "- Incluye siempre: 'Confirme el diagnóstico con su taller de confianza.'",
-    "- Da 1–3 hipótesis útiles (posibles piezas/zonas) en tono de 'podría ser' para que el cliente sepa qué confirmar con su taller.",
+    "- Incluye siempre: 'Confirma el diagnóstico con tu mecánico de confianza.'",
+    "- Da 1–3 hipótesis útiles (posibles piezas/zonas) en tono de 'podría ser' para que el cliente sepa qué confirmar con su mecánico.",
     "- En la respuesta SIEMPRE incluye una línea explícita: 'Posibles piezas a revisar: ...' con 2–4 ítems (sin afirmar diagnóstico).",
     "- Incluye SIEMPRE al final una línea: 'Para cotizar primero (orientación, no diagnóstico): ...' con UNA pieza concreta (la más probable para pedir referencia).",
     "- Devuelve también JSON.primarySuggestion con esa misma pieza (texto corto, 6–18 palabras).",
@@ -109,7 +104,7 @@ function buildSystemPrompt() {
     "}",
     "",
     "EJEMPLO DE SALIDA (solo como referencia de formato, no lo copies literal):",
-    '{ "reply": "Podría estar relacionado con pastillas o discos, o con un caliper. Confirme el diagnóstico con su taller de confianza.", "questions": ["¿El ruido ocurre al frenar o también al circular?", "¿Delantera o trasera?", "¿Dispone de marca o referencia de pastillas o discos actuales?"], "action": "handoff_whatsapp", "handoffTag": "bajo_encargo", "internalSummary": ["Tema: frenos", "Ofrecer bajo encargo"] }',
+    '{ "reply": "Podría estar relacionado con pastillas/discos o un caliper agarrado. Confirma el diagnóstico con tu mecánico de confianza.", "questions": ["¿El ruido es al frenar o también rodando?", "¿Delantera o trasera?", "¿Tienes marca de pastillas o discos actuales?"], "action": "handoff_whatsapp", "handoffTag": "bajo_encargo", "internalSummary": ["Tema: frenos", "Ofrecer bajo encargo"] }',
   ].join("\n");
 }
 
@@ -170,7 +165,7 @@ export const responderMostrador = createServerFn({ method: "POST" })
       const fallback: MostradorResponse = {
         ok: true,
         reply:
-          "En este momento no puede usarse el asistente automático desde esta red. Confirme el diagnóstico con su taller de confianza y escríbanos por WhatsApp para cotizar.",
+          "Ahora mismo no puedo seguir con el asistente automático desde esta red. Confirma el diagnóstico con tu mecánico de confianza y escríbenos por WhatsApp para cotizar.",
         questions: [],
         action: "handoff_whatsapp",
         handoffTag: "normal",
@@ -191,7 +186,7 @@ export const responderMostrador = createServerFn({ method: "POST" })
     const contextLines = [
       ...segmentoClienteLines(tallerCuenta),
       data.context?.whatsapp ? `WhatsApp (formulario): ${data.context.whatsapp}` : null,
-      data.context?.carro ? `Vehículo: ${data.context.carro}` : null,
+      data.context?.carro ? `Carro: ${data.context.carro}` : null,
       data.context?.ano ? `Año: ${data.context.ano}` : null,
       data.context?.version ? `Versión: ${data.context.version}` : null,
       data.context?.municipio ? `Municipio: ${data.context.municipio}` : null,
@@ -216,11 +211,8 @@ export const responderMostrador = createServerFn({ method: "POST" })
       const fallback: MostradorResponse = {
         ok: true,
         reply:
-          "Puede orientarse para cotizar, pero el asistente automático no está activo en el servidor. Confirme el diagnóstico con su taller de confianza y escríbanos por WhatsApp para confirmar la referencia.",
-        questions: [
-          "¿Qué vehículo es (marca y línea) y de qué año?",
-          "¿Qué síntoma presenta o qué pieza requiere?",
-        ],
+          "Te puedo orientar para cotizar, pero ahora mismo no tengo el asistente automático activo. Confirma el diagnóstico con tu mecánico de confianza y escríbenos por WhatsApp para confirmar la referencia.",
+        questions: ["¿Qué carro es (marca/línea) y de qué año?", "¿Qué síntoma presenta o qué pieza necesitas?"],
         action: "handoff_whatsapp",
         handoffTag: "normal",
         internalSummary: ["Sin GROQ_API_KEY en servidor; usar WhatsApp humano."],
@@ -236,11 +228,8 @@ export const responderMostrador = createServerFn({ method: "POST" })
       return {
         ok: true,
         reply:
-          "Le orientamos para cotizar. No es diagnóstico: confirme con su taller de confianza. Indique vehículo (marca y línea), año y síntoma; si puede, envíe foto o video por WhatsApp.",
-        questions: [
-          "¿Qué vehículo es (marca y línea) y de qué año?",
-          "¿Qué síntoma presenta o qué pieza requiere?",
-        ],
+          "Listo, te oriento para cotizar. No hago diagnóstico: confirma con tu mecánico de confianza. Para avanzar rápido: ¿qué carro es (marca/línea), año y qué síntoma presenta? Si puedes, envía foto o video por WhatsApp.",
+        questions: ["¿Qué carro es (marca/línea) y de qué año?", "¿Qué síntoma presenta o qué pieza necesitas?"],
         action: "handoff_whatsapp",
         handoffTag: "normal",
         internalSummary: ["Respuesta IA no parseable; usando fallback seguro."],

@@ -13,9 +13,9 @@ type ChatMsg = { role: "user" | "assistant"; content: string };
 
 function initialAssistantMessage() {
   return [
-    "Le orientamos para una cotización (no es diagnóstico mecánico).",
-    "Confirme el diagnóstico con su taller de confianza.",
-    "Indique la pieza o el síntoma y, si lo sabe, el vehículo y el año.",
+    "Te orientamos para cotizar (sin diagnosticar).",
+    "Confirma el diagnóstico con tu mecánico de confianza.",
+    "Cuéntame la pieza o el síntoma y, si lo sabes, el carro y el año.",
   ].join(" ");
 }
 
@@ -94,7 +94,7 @@ export default function MostradorChat() {
     let out = raw.trim();
     const sug = suggestion?.trim();
     if (sug && !out.toLowerCase().includes("para cotizar primero")) {
-      out += `\n\nPara cotizar primero (orientación, no diagnóstico): ${sug}. Confirme el diagnóstico con su taller de confianza.`;
+      out += `\n\nPara cotizar primero (orientación, no diagnóstico): ${sug}. Confirma el diagnóstico con tu mecánico de confianza.`;
     }
     return out;
   }
@@ -136,23 +136,24 @@ export default function MostradorChat() {
           setTallerCuenta(undefined);
         }
         setHandoffTag("bajo_encargo");
-        setPrimarySuggestion("Pastillas y discos de freno (lado delantero o trasero, a confirmar con el taller)");
+        setPrimarySuggestion("Pastillas y discos de freno (lado delantero/trasero a confirmar con el mecánico)");
+        setHandoffReady(true);
         setMsgs((m) => [
           ...m,
           {
             role: "assistant",
             content: enrichAssistantReply(
-              "Por lo que indica, podría estar relacionado con frenos (pastillas o discos) o con un caliper. Posibles piezas a revisar: pastillas, discos, caliper, sensor ABS. Podemos cotizarlo bajo encargo con proveedor.",
-              "Pastillas y discos de freno (lado delantero o trasero, a confirmar con el taller)",
+              "Por lo que describes, podría estar relacionado con frenos (pastillas/discos) o con un caliper agarrado. Posibles piezas a revisar: pastillas, discos, caliper, sensor ABS. Si quieres, te lo cotizamos bajo encargo con proveedor.",
+              "Pastillas y discos de freno (lado delantero/trasero a confirmar con el mecánico)",
             ),
           },
         ]);
         const qs =
           nextTurn < 2
             ? [
-                "¿El ruido ocurre solo al frenar o también al circular?",
+                "¿El ruido es solo al frenar o también rodando?",
                 "¿Delantera o trasera?",
-                "¿Dispone de referencia o marca de pastillas o discos actuales?",
+                "¿Tienes referencia/marca de pastillas o discos?",
               ]
             : [];
         setLastQuestions(qs);
@@ -180,9 +181,7 @@ export default function MostradorChat() {
       } else {
         setTallerCuenta(undefined);
       }
-      let reply =
-        res?.reply?.trim() ||
-        "Puede escribirnos por WhatsApp para confirmar la referencia y la disponibilidad.";
+      let reply = res?.reply?.trim() || "Listo. Escríbenos por WhatsApp para confirmar la referencia.";
       reply = enrichAssistantReply(reply, sug || undefined);
 
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
@@ -207,7 +206,7 @@ export default function MostradorChat() {
         {
           role: "assistant",
           content:
-            "Puede continuar por WhatsApp: indique vehículo, año y síntoma, y si puede envíe foto o video. Confirme el diagnóstico con su taller de confianza.",
+            "Listo, te orientamos para cotizar. Confirma el diagnóstico con tu mecánico. Para confirmar compatibilidad, lo mejor es que nos escribas por WhatsApp con carro/año y foto o video.",
         },
       ]);
     } finally {
@@ -234,10 +233,10 @@ export default function MostradorChat() {
         type="button"
         onClick={() => setOpen(true)}
         className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[oklch(0.7_0.2_40)] px-4 py-3 text-sm font-bold text-white shadow-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400"
-        aria-label="Abrir orientación para cotización"
+        aria-label="Abrir Mostrador Apex"
       >
         <MessageCircle className="h-5 w-5" />
-        Orientación al cotizar
+        Te orientamos
       </button>
 
       <Dialog open={open} onOpenChange={(v) => (setOpen(v), v ? null : null)}>
@@ -246,8 +245,7 @@ export default function MostradorChat() {
             <DialogHeader className="space-y-0 text-left pr-2">
               <DialogTitle className="text-white text-base font-bold">Mostrador Apex</DialogTitle>
               <p className="text-xs text-gray-400 mt-1">
-                Orientación para cotizar. No constituye diagnóstico. La confirmación final es por
-                WhatsApp.
+                Orientación para cotizar. Sin diagnóstico. Confirmación final por WhatsApp.
               </p>
             </DialogHeader>
             <button
@@ -286,7 +284,7 @@ export default function MostradorChat() {
                 ))}
                 {loading && (
                   <div className="text-xs text-gray-500" aria-busy="true">
-                    Generando respuesta…
+                    Escribiendo…
                   </div>
                 )}
               </div>
@@ -306,7 +304,7 @@ export default function MostradorChat() {
             <div className="shrink-0 border-t border-white/10 bg-[oklch(0.14_0.04_250)] px-5 py-3 space-y-3">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="text-[11px] text-gray-500">WhatsApp de contacto</label>
+                  <label className="text-[11px] text-gray-500">Tu WhatsApp</label>
                   <Input
                     value={whatsapp}
                     onChange={(e) => setWhatsapp(e.target.value)}
@@ -319,16 +317,16 @@ export default function MostradorChat() {
                   <Input
                     value={municipio}
                     onChange={(e) => setMunicipio(e.target.value)}
-                    placeholder="Ej.: Chía"
+                    placeholder="Ej: Chía"
                     className="mt-1 bg-[oklch(0.12_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-gray-500">Vehículo (opcional)</label>
+                  <label className="text-[11px] text-gray-500">Carro (opcional)</label>
                   <Input
                     value={carro}
                     onChange={(e) => setCarro(e.target.value)}
-                    placeholder="Ej.: Chevrolet Sail"
+                    placeholder="Ej: Chevrolet Sail"
                     className="mt-1 bg-[oklch(0.12_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
                   />
                 </div>
@@ -355,12 +353,12 @@ export default function MostradorChat() {
               </div>
 
               <div>
-                <label className="text-[11px] text-gray-500">Pieza o síntoma (obligatorio)</label>
+                <label className="text-[11px] text-gray-500">Pieza o síntoma (requerido)</label>
                 <div className="mt-1 flex gap-2">
                   <Input
                     value={composer}
                     onChange={(e) => setComposer(e.target.value)}
-                    placeholder="Ej.: ruido al girar, rótula delantera, referencia…"
+                    placeholder="Ej: ruido al girar / rótula delantera Sail 2018"
                     className="bg-[oklch(0.12_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -378,18 +376,17 @@ export default function MostradorChat() {
                   </Button>
                 </div>
                 <p className="mt-2 text-[11px] text-gray-500">
-                  Para compatibilidad, conviene enviar por WhatsApp foto de la pieza usada o video
-                  del síntoma (placa opcional).
+                  Para confirmar compatibilidad, lo más seguro es enviar foto de la pieza vieja o video
+                  del ruido por WhatsApp (placa opcional).
                 </p>
               </div>
 
               {handoffReady && (
                 <div className="rounded-xl border border-[oklch(0.7_0.2_40)]/40 bg-black/30 px-4 py-3">
-                  <p className="text-xs font-semibold text-white">Siguiente paso: cotizar por WhatsApp</p>
+                  <p className="text-xs font-semibold text-white">Siguiente paso — cotizar por WhatsApp</p>
                   <p className="mt-2 text-xs text-gray-300 leading-relaxed">
-                    Con esto concluye la orientación automática. Use el botón naranja para enviar
-                    síntoma, datos del vehículo y contacto al equipo Apex; allí confirman referencia
-                    y precio.
+                    Cerramos la orientación automática. Usá el botón naranja para enviar síntoma,
+                    carro y datos al equipo Apex y que confirmen referencia y precio.
                   </p>
                   {primarySuggestion.trim() ? (
                     <p className="mt-2 text-xs text-gray-200">
@@ -423,8 +420,8 @@ export default function MostradorChat() {
 
               {!canAskMore && !handoffReady && (
                 <div className="text-[11px] text-gray-500">
-                  Para seguir de forma ordenada, la cotización se confirma con el equipo por
-                  WhatsApp.
+                  Para evitar vueltas, aquí cerramos la orientación y confirmamos por WhatsApp con el
+                  equipo.
                 </div>
               )}
             </div>
