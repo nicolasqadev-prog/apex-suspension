@@ -258,13 +258,17 @@ export default function MostradorChat() {
             </button>
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <div
               ref={messagesScrollRef}
-              className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-5 pt-3 pb-2 scroll-smooth"
+              className="flex-1 min-h-0 max-sm:min-h-[210px] overflow-y-auto overscroll-y-contain px-5 pt-2 pb-3 scroll-smooth"
               aria-live="polite"
               aria-relevant="additions text"
+              aria-label="Conversación con el asistente"
             >
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                Consulta
+              </p>
               <div className="space-y-3">
                 {msgs.map((m, idx) => (
                   <div
@@ -301,7 +305,10 @@ export default function MostradorChat() {
               )}
             </div>
 
-            <div className="shrink-0 border-t border-white/10 bg-[oklch(0.14_0.04_250)] px-5 py-3 space-y-3">
+            <div className="shrink-0 border-t border-white/10 bg-[oklch(0.14_0.04_250)] px-5 py-3 space-y-3 max-sm:max-h-[min(52svh,420px)] max-sm:overflow-y-auto max-sm:overscroll-y-contain">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 sm:hidden">
+                Datos para cotizar
+              </p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <label className="text-[11px] text-gray-500">Tu WhatsApp</label>
