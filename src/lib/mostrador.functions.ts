@@ -61,7 +61,8 @@ function segmentoClienteLines(taller: TallerCuenta): string[] {
   ];
 }
 
-type MostradorResponse = {
+/** Respuesta expuesta al cliente (sin notas internas del modelo). */
+type MostradorResponsePublic = {
   ok: true;
   reply: string;
   questions: string[];
@@ -69,9 +70,18 @@ type MostradorResponse = {
   handoffTag?: "normal" | "bajo_encargo";
   /** Una pieza concreta para priorizar la cotización (orientación, no diagnóstico). */
   primarySuggestion?: string;
-  internalSummary: string[];
   /** Resuelto en servidor según WhatsApp en contexto (no enviar desde el cliente). */
   tallerCuenta?: TallerCuenta;
+};
+
+/** Formato JSON del modelo (puede incluir internalSummary; no se reexpone al navegador). */
+type MostradorGroqPayload = {
+  reply?: unknown;
+  questions?: unknown;
+  action?: unknown;
+  handoffTag?: unknown;
+  primarySuggestion?: unknown;
+  internalSummary?: unknown;
 };
 
 function buildSystemPrompt() {
@@ -162,14 +172,13 @@ export const responderMostrador = createServerFn({ method: "POST" })
     const slot = mostradorCallsByIp.get(ip);
     if (slot && now - slot.firstAt <= RATE_WINDOW_MS && slot.count >= RATE_MAX_MOSTRADOR_CALLS) {
       const tallerCuenta = await tallerCuentaFromWhatsapp(data.context?.whatsapp);
-      const fallback: MostradorResponse = {
+      const fallback: MostradorResponsePublic = {
         ok: true,
         reply:
           "Ahora mismo no puedo seguir con el asistente automático desde esta red. Confirma el diagnóstico con tu mecánico de confianza y escríbenos por WhatsApp para cotizar.",
         questions: [],
         action: "handoff_whatsapp",
         handoffTag: "normal",
-        internalSummary: ["Rate limit por IP; derivar a WhatsApp."],
         tallerCuenta,
       };
       return fallback;
@@ -208,21 +217,20 @@ export const responderMostrador = createServerFn({ method: "POST" })
       .join("\n");
 
     if (!apiKey) {
-      const fallback: MostradorResponse = {
+      const fallback: MostradorResponsePublic = {
         ok: true,
         reply:
           "Te puedo orientar para cotizar, pero ahora mismo no tengo el asistente automático activo. Confirma el diagnóstico con tu mecánico de confianza y escríbenos por WhatsApp para confirmar la referencia.",
         questions: ["¿Qué carro es (marca/línea) y de qué año?", "¿Qué síntoma presenta o qué pieza necesitas?"],
         action: "handoff_whatsapp",
         handoffTag: "normal",
-        internalSummary: ["Sin GROQ_API_KEY en servidor; usar WhatsApp humano."],
         tallerCuenta,
       };
       return fallback;
     }
 
     const raw = await callAnthropic({ system: buildSystemPrompt(), user: userPrompt, apiKey });
-    const parsed = safeJsonParse<Omit<MostradorResponse, "ok">>(raw);
+    const parsed = safeJsonParse<MostradorGroqPayload>(raw);
 
     if (!parsed || typeof parsed.reply !== "string" || !Array.isArray(parsed.questions)) {
       return {
@@ -232,9 +240,8 @@ export const responderMostrador = createServerFn({ method: "POST" })
         questions: ["¿Qué carro es (marca/línea) y de qué año?", "¿Qué síntoma presenta o qué pieza necesitas?"],
         action: "handoff_whatsapp",
         handoffTag: "normal",
-        internalSummary: ["Respuesta IA no parseable; usando fallback seguro."],
         tallerCuenta,
-      } satisfies MostradorResponse;
+      } satisfies MostradorResponsePublic;
     }
 
     const primarySuggestion =
@@ -242,14 +249,13 @@ export const responderMostrador = createServerFn({ method: "POST" })
         ? parsed.primarySuggestion.slice(0, 180).trim()
         : "";
 
-    const safe: MostradorResponse = {
+    const safe: MostradorResponsePublic = {
       ok: true,
       reply: parsed.reply.slice(0, 700),
       questions: parsed.questions.map((q) => String(q).slice(0, 140)).slice(0, 3),
       action: parsed.action === "ask_more" ? "ask_more" : "handoff_whatsapp",
       handoffTag: parsed.handoffTag === "bajo_encargo" ? "bajo_encargo" : "normal",
       primarySuggestion: primarySuggestion || undefined,
-      internalSummary: (parsed.internalSummary ?? []).map((s) => String(s).slice(0, 180)).slice(0, 6),
       tallerCuenta,
     };
     return safe;
