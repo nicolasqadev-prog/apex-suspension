@@ -234,10 +234,10 @@ export default function MostradorChat() {
         type="button"
         onClick={() => setOpen(true)}
         className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[oklch(0.7_0.2_40)] px-4 py-3 text-sm font-bold text-white shadow-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400"
-        aria-label="Abrir asesor para cotización"
+        aria-label="Abrir orientación para cotización"
       >
         <MessageCircle className="h-5 w-5" />
-        Asesor para cotizar
+        Orientación al cotizar
       </button>
 
       <Dialog open={open} onOpenChange={(v) => (setOpen(v), v ? null : null)}>
