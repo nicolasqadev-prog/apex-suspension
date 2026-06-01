@@ -1,13 +1,19 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Package, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Package, Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import TallerBanner from "@/components/TallerBanner";
+import { useTallerSession } from "@/components/TallerSessionProvider";
 import { loadCatalogo } from "@/lib/inventario.server";
 import { canonicalHref } from "@/lib/site-url";
 import type { PiezaInventario } from "@/lib/inventario";
 import { marcaInfo } from "@/lib/marcas";
+import { formatoPrecioCop } from "@/lib/formato-cop";
+import { agregarAlCarritoTaller } from "@/lib/taller-carrito";
+import { obtenerCatalogoTaller } from "@/lib/taller.portal.functions";
+import type { PiezaCatalogoTaller } from "@/lib/taller.types";
 import { enlaceWhatsApp, mensajeConfirmacionCotizacion } from "@/lib/whatsapp";
 import { usePersistentState } from "@/lib/usePersistentState";
 import StudioFooterSignature from "@/components/StudioFooterSignature";
@@ -31,15 +37,13 @@ export const Route = createFileRoute("/catalogo")({
   },
 });
 
-function formatoPrecio(cop: number): string {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
-  }).format(cop);
-}
-
 type OrdenCatalogo = "relevancia" | "precio-asc" | "precio-desc" | "stock-desc";
+
+type PiezaVista = PiezaInventario & { precioTaller?: number };
+
+function precioMostrar(p: PiezaVista): number {
+  return p.precioTaller ?? p.precioLista;
+}
 
 function mensajeConsultaStock(p: PiezaInventario, moneda: string): string {
   return [
@@ -49,20 +53,49 @@ function mensajeConsultaStock(p: PiezaInventario, moneda: string): string {
     `Pieza: ${p.nombre}`,
     `Marca: ${p.marca}`,
     `Aplicación: ${p.aplicacion}`,
-    `Precio lista (referencia web): ${formatoPrecio(p.precioLista)} ${moneda}`,
+    `Precio lista (referencia web): ${formatoPrecioCop(p.precioLista)} ${moneda}`,
     "",
     "Nombre:",
   ].join("\n");
 }
 
 function CatalogoPage() {
-  const { piezas: piezasBase, moneda, fuente } = Route.useLoaderData();
+  const { piezas: piezasPublicas, moneda } = Route.useLoaderData();
+  const { taller, whatsappGuardado: whatsappTaller } = useTallerSession();
+  const [piezasTaller, setPiezasTaller] = useState<PiezaCatalogoTaller[] | null>(null);
+  const [cargandoTaller, setCargandoTaller] = useState(false);
   const [q, setQ] = useState("");
   const [whatsappGuardado] = usePersistentState("apex.whatsapp", "");
   const [marca, setMarca] = useState("");
   const [categoria, setCategoria] = useState("");
   const [stockFiltro, setStockFiltro] = useState<"todos" | "con-stock">("todos");
   const [orden, setOrden] = useState<OrdenCatalogo>("relevancia");
+
+  useEffect(() => {
+    if (!taller || !whatsappTaller) {
+      setPiezasTaller(null);
+      return;
+    }
+    let cancelled = false;
+    setCargandoTaller(true);
+    obtenerCatalogoTaller({ data: { whatsapp: whatsappTaller } })
+      .then((res) => {
+        if (cancelled) return;
+        if (res.ok) setPiezasTaller(res.piezas);
+        else setPiezasTaller(null);
+      })
+      .finally(() => {
+        if (!cancelled) setCargandoTaller(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [taller, whatsappTaller]);
+
+  const piezasBase: PiezaVista[] = useMemo(() => {
+    if (piezasTaller) return piezasTaller;
+    return piezasPublicas;
+  }, [piezasPublicas, piezasTaller]);
 
   const marcasOpts = useMemo(() => {
     const set = new Set(piezasBase.map((p) => p.marca));
@@ -90,9 +123,9 @@ function CatalogoPage() {
     if (orden === "relevancia" && qn) {
       list = [...list].sort((a, b) => scoreRelevancia(a, qn) - scoreRelevancia(b, qn));
     } else if (orden === "precio-asc") {
-      list = [...list].sort((a, b) => a.precioLista - b.precioLista);
+      list = [...list].sort((a, b) => precioMostrar(a) - precioMostrar(b));
     } else if (orden === "precio-desc") {
-      list = [...list].sort((a, b) => b.precioLista - a.precioLista);
+      list = [...list].sort((a, b) => precioMostrar(b) - precioMostrar(a));
     } else if (orden === "stock-desc") {
       list = [...list].sort((a, b) => b.stock - a.stock);
     }
@@ -109,12 +142,24 @@ function CatalogoPage() {
               <Package className="h-6 w-6 text-[oklch(0.7_0.2_40)]" />
               Catálogo
             </h1>
-            <p className="text-xs text-gray-500 mt-0.5">Stock y precios actualizados · {moneda}</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Stock y precios actualizados · {moneda}
+              {cargandoTaller ? " · actualizando precio taller…" : ""}
+            </p>
           </div>
+          {!taller && (
+            <Link
+              to="/taller/acceso"
+              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 shrink-0"
+            >
+              Acceso taller →
+            </Link>
+          )}
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto w-full flex-1 px-4 py-8">
+        <TallerBanner />
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           <Input
@@ -218,7 +263,23 @@ function CatalogoPage() {
                       <p className="text-xs text-gray-500 mt-1">{p.categoria}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-white">{formatoPrecio(p.precioLista)}</p>
+                      {p.precioTaller != null ? (
+                        <>
+                          <p className="text-[10px] uppercase tracking-wide text-emerald-400/80">
+                            Precio taller
+                          </p>
+                          <p className="text-sm font-bold text-emerald-200">
+                            {formatoPrecioCop(p.precioTaller)}
+                          </p>
+                          <p className="text-[10px] text-gray-500 line-through">
+                            Lista {formatoPrecioCop(p.precioLista)}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-sm font-bold text-white">
+                          {formatoPrecioCop(p.precioLista)}
+                        </p>
+                      )}
                       <p
                         className={`text-xs mt-1 ${p.stock > 0 ? "text-emerald-400" : "text-red-400"}`}
                       >
@@ -227,7 +288,29 @@ function CatalogoPage() {
                     </div>
                   </div>
                 </Link>
-                {p.stock <= 0 && (
+                {taller && p.precioTaller != null && (
+                  <div className="px-4 pb-4 pt-0 border-t border-white/5">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="border-emerald-600/50 text-emerald-200 hover:bg-emerald-950/50"
+                      onClick={() => {
+                        agregarAlCarritoTaller({
+                          slug: p.slug,
+                          referencia: p.referencia,
+                          nombre: p.nombre,
+                          precioUnitarioCop: p.precioTaller!,
+                          stock: p.stock,
+                        });
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Agregar al pedido
+                    </Button>
+                  </div>
+                )}
+                {p.stock <= 0 && !taller && (
                   <div className="px-4 pb-4 pt-0 border-t border-white/5">
                     <a
                       href={enlaceWhatsApp(mensajeConsultaStock(p, moneda))}

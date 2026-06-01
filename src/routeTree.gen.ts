@@ -15,6 +15,8 @@ import { Route as LegalRouteImport } from './routes/legal'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TallerPedidoRouteImport } from './routes/taller.pedido'
+import { Route as TallerAccesoRouteImport } from './routes/taller.acceso'
 import { Route as RepuestoSlugRouteImport } from './routes/repuesto.$slug'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -47,6 +49,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TallerPedidoRoute = TallerPedidoRouteImport.update({
+  id: '/taller/pedido',
+  path: '/taller/pedido',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TallerAccesoRoute = TallerAccesoRouteImport.update({
+  id: '/taller/acceso',
+  path: '/taller/acceso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RepuestoSlugRoute = RepuestoSlugRouteImport.update({
   id: '/repuesto/$slug',
   path: '/repuesto/$slug',
@@ -61,6 +73,8 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
+  '/taller/acceso': typeof TallerAccesoRoute
+  '/taller/pedido': typeof TallerPedidoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +84,8 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
+  '/taller/acceso': typeof TallerAccesoRoute
+  '/taller/pedido': typeof TallerPedidoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +96,8 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
+  '/taller/acceso': typeof TallerAccesoRoute
+  '/taller/pedido': typeof TallerPedidoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +109,8 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/repuesto/$slug'
+    | '/taller/acceso'
+    | '/taller/pedido'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +120,8 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/repuesto/$slug'
+    | '/taller/acceso'
+    | '/taller/pedido'
   id:
     | '__root__'
     | '/'
@@ -109,6 +131,8 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/repuesto/$slug'
+    | '/taller/acceso'
+    | '/taller/pedido'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +143,8 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   RepuestoSlugRoute: typeof RepuestoSlugRoute
+  TallerAccesoRoute: typeof TallerAccesoRoute
+  TallerPedidoRoute: typeof TallerPedidoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -165,6 +191,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/taller/pedido': {
+      id: '/taller/pedido'
+      path: '/taller/pedido'
+      fullPath: '/taller/pedido'
+      preLoaderRoute: typeof TallerPedidoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taller/acceso': {
+      id: '/taller/acceso'
+      path: '/taller/acceso'
+      fullPath: '/taller/acceso'
+      preLoaderRoute: typeof TallerAccesoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/repuesto/$slug': {
       id: '/repuesto/$slug'
       path: '/repuesto/$slug'
@@ -183,6 +223,8 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   RepuestoSlugRoute: RepuestoSlugRoute,
+  TallerAccesoRoute: TallerAccesoRoute,
+  TallerPedidoRoute: TallerPedidoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

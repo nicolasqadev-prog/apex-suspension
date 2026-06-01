@@ -1,8 +1,16 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import TallerBanner from "@/components/TallerBanner";
+import { useTallerSession } from "@/components/TallerSessionProvider";
 import { loadPiezaBySlug } from "@/lib/inventario.server";
 import { canonicalHref } from "@/lib/site-url";
+import { formatoPrecioCop } from "@/lib/formato-cop";
+import { agregarAlCarritoTaller } from "@/lib/taller-carrito";
+import { obtenerPiezaTaller } from "@/lib/taller.portal.functions";
+import type { PiezaCatalogoTaller } from "@/lib/taller.types";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 import StudioFooterSignature from "@/components/StudioFooterSignature";
 
@@ -25,16 +33,30 @@ export const Route = createFileRoute("/repuesto/$slug")({
   },
 });
 
-function formatoPrecio(cop: number): string {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    maximumFractionDigits: 0,
-  }).format(cop);
-}
-
 function RepuestoDetallePage() {
-  const { pieza, moneda, fuente } = Route.useLoaderData();
+  const { pieza: piezaPublica, moneda } = Route.useLoaderData();
+  const { taller, whatsappGuardado } = useTallerSession();
+  const slug = Route.useParams().slug;
+  const [piezaTaller, setPiezaTaller] = useState<PiezaCatalogoTaller | null>(null);
+
+  useEffect(() => {
+    if (!taller || !whatsappGuardado || !slug) {
+      setPiezaTaller(null);
+      return;
+    }
+    let cancelled = false;
+    obtenerPiezaTaller({ data: { whatsapp: whatsappGuardado, slug } }).then((res) => {
+      if (cancelled) return;
+      if (res.ok) setPiezaTaller(res.pieza);
+      else setPiezaTaller(null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [taller, whatsappGuardado, slug]);
+
+  const pieza = piezaTaller ?? piezaPublica;
+  const precioTaller = piezaTaller?.precioTaller;
 
   if (!pieza) {
     return (
@@ -56,7 +78,9 @@ function RepuestoDetallePage() {
     `Referencia: ${pieza.referencia}`,
     `Pieza: ${pieza.nombre}`,
     `Aplicación: ${pieza.aplicacion}`,
-    `Precio lista (referencia web): ${formatoPrecio(pieza.precioLista)} ${moneda}`,
+    precioTaller != null
+      ? `Precio taller (referencia web): ${formatoPrecioCop(precioTaller)} ${moneda}`
+      : `Precio lista (referencia web): ${formatoPrecioCop(pieza.precioLista)} ${moneda}`,
     `Stock según web: ${pieza.stock}`,
     ``,
     `Nombre: `,
@@ -73,16 +97,34 @@ function RepuestoDetallePage() {
       </header>
 
       <main className="max-w-lg mx-auto w-full flex-1 px-4 py-8">
+        <TallerBanner />
         <p className="text-xs font-mono text-[oklch(0.7_0.2_40)]">{pieza.referencia}</p>
         <h1 className="text-2xl font-bold text-white mt-1">{pieza.nombre}</h1>
         <p className="text-gray-400 mt-2">{pieza.aplicacion}</p>
         <p className="text-xs text-gray-500 mt-2">{pieza.categoria}</p>
 
         <div className="mt-8 rounded-lg border border-gray-800 bg-[oklch(0.14_0.04_250)] p-4 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Precio lista</span>
-            <span className="font-semibold text-white">{formatoPrecio(pieza.precioLista)}</span>
-          </div>
+          {precioTaller != null ? (
+            <>
+              <div className="flex justify-between text-sm">
+                <span className="text-emerald-400/90">Precio taller</span>
+                <span className="font-semibold text-emerald-200">
+                  {formatoPrecioCop(precioTaller)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Precio lista</span>
+                <span className="text-gray-500 line-through">
+                  {formatoPrecioCop(pieza.precioLista)}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Precio lista</span>
+              <span className="font-semibold text-white">{formatoPrecioCop(pieza.precioLista)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Stock</span>
             <span
@@ -96,6 +138,24 @@ function RepuestoDetallePage() {
         </div>
 
         <div className="mt-8 flex flex-col gap-3">
+          {taller && precioTaller != null && (
+            <Button
+              type="button"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+              onClick={() => {
+                agregarAlCarritoTaller({
+                  slug: pieza.slug,
+                  referencia: pieza.referencia,
+                  nombre: pieza.nombre,
+                  precioUnitarioCop: precioTaller,
+                  stock: pieza.stock,
+                });
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar al pedido taller
+            </Button>
+          )}
           <Button
             asChild
             className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold"
@@ -104,6 +164,11 @@ function RepuestoDetallePage() {
               Pedir por WhatsApp
             </a>
           </Button>
+          {taller && (
+            <Button asChild variant="outline" className="border-emerald-600/50 text-emerald-200">
+              <Link to="/taller/pedido">Ver carrito y enviar pedido</Link>
+            </Button>
+          )}
           {pieza.stock <= 0 && (
             <p className="text-xs text-amber-200/90 text-center leading-relaxed">
               Sin stock en catálogo: escribinos por WhatsApp para confirmar llegada, equivalente u

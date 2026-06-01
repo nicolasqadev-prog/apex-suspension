@@ -16,6 +16,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import ApexHeaderBrand from "@/components/ApexHeaderBrand";
+import { PwaEngagementActions } from "@/components/PwaEngagementActions";
 import MarcasSection from "@/components/MarcasSection";
 import StudioFooterSignature from "@/components/StudioFooterSignature";
 import { enlaceWhatsApp, mensajeConfirmacionCotizacion } from "@/lib/whatsapp";
@@ -56,6 +57,12 @@ export default function ApexLandingPage() {
               className="text-xs sm:text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300 transition-colors"
             >
               Catálogo
+            </Link>
+            <Link
+              to="/taller/acceso"
+              className="hidden sm:inline text-xs sm:text-sm font-semibold text-emerald-400/90 hover:text-emerald-300 transition-colors"
+            >
+              Talleres
             </Link>
             <a
               href="#pagos"
@@ -104,6 +111,8 @@ export default function ApexLandingPage() {
           >
             ¿No sabes qué pieza es? Te orientamos para cotizar →
           </button>
+
+          <PwaEngagementActions />
 
           <section className="mt-8 mx-auto max-w-2xl text-left">
             <p className="text-xs uppercase tracking-[0.3em] text-gray-500 font-semibold">

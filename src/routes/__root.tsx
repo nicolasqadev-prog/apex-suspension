@@ -3,6 +3,9 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 
 import appCss from "../styles.css?url";
 import MostradorChat from "@/components/MostradorChat";
+import PwaEngagementPrompt from "@/components/PwaEngagementPrompt";
+import PwaWelcomeSplash from "@/components/PwaWelcomeSplash";
+import { TallerSessionProvider } from "@/components/TallerSessionProvider";
 import { siteOriginForHead } from "@/lib/site-url";
 
 class RootErrorBoundary extends React.Component<
@@ -141,8 +144,12 @@ function RootComponent() {
   return (
     <>
       <ServiceWorkerRegistration />
+      <PwaWelcomeSplash />
+      <PwaEngagementPrompt />
       <RootErrorBoundary>
-        <Outlet />
+        <TallerSessionProvider>
+          <Outlet />
+        </TallerSessionProvider>
       </RootErrorBoundary>
       <MostradorChat />
     </>

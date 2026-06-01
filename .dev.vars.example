@@ -4,3 +4,8 @@
 # PIN del panel /admin (no usar VITE_*)
 # Pruebas locales: Panel1234 (cámbialo en .dev.vars y en producción en Cloudflare)
 ADMIN_PIN=Panel1234
+
+# Push (npm run vapid:keys) — la pública también en .env.local como VITE_VAPID_PUBLIC_KEY
+# VAPID_PUBLIC_KEY=
+# VAPID_PRIVATE_KEY=
+# VAPID_SUBJECT=mailto:contacto@apex-suspension.com.co

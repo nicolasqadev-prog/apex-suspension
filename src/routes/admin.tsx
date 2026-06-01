@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
 import AdminDispatchPanel, { ActiveRouteBanner } from "@/components/AdminDispatchPanel";
+import AdminPushPanel from "@/components/AdminPushPanel";
 import {
   Accordion,
   AccordionContent,
@@ -78,6 +79,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 const STORAGE_KEY = "apex_admin_session";
+const PIN_STORAGE_KEY = "apex_admin_pin";
 
 function AdminPage() {
   const [pin, setPin] = useState("");
@@ -100,6 +102,7 @@ function AdminPage() {
       const res = await verifyAdminPin({ data: { pin } });
       if (res.ok) {
         window.sessionStorage.setItem(STORAGE_KEY, "1");
+        window.sessionStorage.setItem(PIN_STORAGE_KEY, pin);
         setStatus("allowed");
         return;
       }
@@ -113,6 +116,7 @@ function AdminPage() {
 
   function onLogout() {
     window.sessionStorage.removeItem(STORAGE_KEY);
+    window.sessionStorage.removeItem(PIN_STORAGE_KEY);
     setStatus("idle");
     setPin("");
     setMessage(null);
@@ -176,7 +180,9 @@ function googleMapsRouteUrl(addresses: string[]) {
 }
 
 function AdminAuthed({ onLogout }: { onLogout: () => void }) {
-  const [minutes] = useState(30);
+  const adminPin =
+    typeof window !== "undefined" ? (window.sessionStorage.getItem(PIN_STORAGE_KEY) ?? "") : "";
+  const [minutes] = useState(120);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
@@ -240,6 +246,8 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
+        <AdminPushPanel adminPin={adminPin} pedidos={pedidos} onPedidosChange={refresh} />
+
         <div className="rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-5 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
