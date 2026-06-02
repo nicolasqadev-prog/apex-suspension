@@ -29,9 +29,10 @@ async function trimmedLogoSource() {
     .toBuffer();
 }
 
-/** Ícono cuadrado para instalación PWA (fondo blanco, logo grande y centrado). */
+/** Ícono cuadrado para instalación PWA (fondo blanco, logo centrado con aire). */
 async function renderAppIconFromSource(size, outPath, { maskable = false } = {}) {
-  const fillRatio = maskable ? 0.8 : 0.94;
+  // ~82% en ícono normal (estilo apps como Telegram); ~68% en maskable (recorte circular Android).
+  const fillRatio = maskable ? 0.68 : 0.82;
   const logoSide = Math.round(size * fillRatio);
   const trimmed = await trimmedLogoSource();
 
@@ -69,7 +70,7 @@ if (await fileExists(pwaIconSource)) {
   const welcomeH = 1920;
   const trimmed = await trimmedLogoSource();
   const welcomeLogo = await sharp(trimmed)
-    .resize(Math.round(welcomeW * 0.72), Math.round(welcomeW * 0.72), {
+    .resize(Math.round(welcomeW * 0.62), Math.round(welcomeW * 0.62), {
       fit: "contain",
       background: WHITE,
     })
