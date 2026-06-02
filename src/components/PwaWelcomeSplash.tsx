@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { isAdminPreviewMode } from "@/lib/admin-preview";
 import { isPwaStandalone, shouldShowPwaWelcomePreview } from "@/lib/pwa-standalone";
 
 /** Imagen de bienvenida (reemplaza el archivo en `public/` sin tocar código). */
@@ -25,6 +26,7 @@ export default function PwaWelcomeSplash() {
   }, []);
 
   useEffect(() => {
+    if (isAdminPreviewMode()) return;
     const esPwa = isPwaStandalone() || shouldShowPwaWelcomePreview();
     if (!esPwa) return;
 

@@ -19,6 +19,7 @@ import {
   snoozeEngagementPrompt,
   subscribeAndRegisterPush,
 } from "@/lib/pwa-engagement";
+import { isAdminPreviewMode } from "@/lib/admin-preview";
 import { isPwaStandalone } from "@/lib/pwa-standalone";
 
 type BeforeInstallPromptEvent = Event & {
@@ -37,6 +38,7 @@ export default function PwaEngagementPrompt() {
 
   const refresh = useCallback(() => {
     const show =
+      !isAdminPreviewMode() &&
       shouldShowEngagementPrompt() &&
       (canSuggestPwaInstall() || canSuggestNotifications()) &&
       !pathname.startsWith("/admin");

@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import AdminDispatchPanel, { ActiveRouteBanner } from "@/components/AdminDispatchPanel";
 import AdminPushPanel from "@/components/AdminPushPanel";
+import AdminSoportePwaPanel from "@/components/AdminSoportePwaPanel";
+import AdminTalleresPanel from "@/components/AdminTalleresPanel";
 import {
   Accordion,
   AccordionContent,
@@ -179,9 +181,12 @@ function googleMapsRouteUrl(addresses: string[]) {
   return url.toString();
 }
 
+type AdminTab = "talleres" | "operacion" | "soporte";
+
 function AdminAuthed({ onLogout }: { onLogout: () => void }) {
   const adminPin =
     typeof window !== "undefined" ? (window.sessionStorage.getItem(PIN_STORAGE_KEY) ?? "") : "";
+  const [tab, setTab] = useState<AdminTab>("talleres");
   const [minutes] = useState(120);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -246,7 +251,36 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <AdminPushPanel adminPin={adminPin} pedidos={pedidos} onPedidosChange={refresh} />
+        <nav className="flex flex-wrap gap-2 mb-6 border-b border-white/10 pb-3">
+          {(
+            [
+              ["talleres", "Talleres"],
+              ["operacion", "Operación y pedidos"],
+              ["soporte", "Soporte PWA"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTab(id)}
+              className={`text-xs sm:text-sm font-semibold px-3 py-2 rounded-md transition-colors ${
+                tab === id
+                  ? "bg-[oklch(0.7_0.2_40)] text-white"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        {tab === "talleres" && <AdminTalleresPanel adminPin={adminPin} />}
+
+        {tab === "soporte" && <AdminSoportePwaPanel />}
+
+        {tab === "operacion" && (
+          <>
+            <AdminPushPanel adminPin={adminPin} pedidos={pedidos} onPedidosChange={refresh} />
 
         <div className="rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-5 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -315,6 +349,8 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
 
         <OperacionConversionPlaybook />
         <AdminDispatchPanel />
+          </>
+        )}
       </main>
     </div>
   );

@@ -3,6 +3,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 
 import appCss from "../styles.css?url";
 import MostradorChat from "@/components/MostradorChat";
+import AdminPreviewBanner from "@/components/AdminPreviewBanner";
 import PwaEngagementPrompt from "@/components/PwaEngagementPrompt";
 import PwaWelcomeSplash from "@/components/PwaWelcomeSplash";
 import { TallerSessionProvider } from "@/components/TallerSessionProvider";
@@ -147,6 +148,7 @@ function RootComponent() {
   return (
     <>
       <ServiceWorkerRegistration />
+      <AdminPreviewBanner />
       <PwaWelcomeSplash />
       <PwaEngagementPrompt />
       <RootErrorBoundary>
