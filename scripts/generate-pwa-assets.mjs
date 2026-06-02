@@ -21,12 +21,21 @@ async function fileExists(path) {
   }
 }
 
-/** Ícono cuadrado para instalación PWA (fondo blanco, logo centrado). */
-async function renderAppIconFromSource(size, outPath, { maskable = false } = {}) {
-  const inset = maskable ? 0.18 : 0.1;
-  const logoSide = Math.round(size * (1 - inset * 2));
+/** Recorta márgenes blancos del PNG fuente para que el ícono PWA no quede miniatura. */
+async function trimmedLogoSource() {
+  return sharp(pwaIconSource)
+    .trim({ threshold: 12 })
+    .png()
+    .toBuffer();
+}
 
-  const logo = await sharp(pwaIconSource)
+/** Ícono cuadrado para instalación PWA (fondo blanco, logo grande y centrado). */
+async function renderAppIconFromSource(size, outPath, { maskable = false } = {}) {
+  const fillRatio = maskable ? 0.8 : 0.94;
+  const logoSide = Math.round(size * fillRatio);
+  const trimmed = await trimmedLogoSource();
+
+  const logo = await sharp(trimmed)
     .resize(logoSide, logoSide, { fit: "contain", background: WHITE })
     .png()
     .toBuffer();
@@ -58,8 +67,9 @@ if (await fileExists(pwaIconSource)) {
 
   const welcomeW = 1080;
   const welcomeH = 1920;
-  const welcomeLogo = await sharp(pwaIconSource)
-    .resize(Math.round(welcomeW * 0.55), Math.round(welcomeW * 0.55), {
+  const trimmed = await trimmedLogoSource();
+  const welcomeLogo = await sharp(trimmed)
+    .resize(Math.round(welcomeW * 0.72), Math.round(welcomeW * 0.72), {
       fit: "contain",
       background: WHITE,
     })
