@@ -51,7 +51,7 @@ export default function ApexLandingPage() {
       <header className="border-b border-white/5 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <ApexHeaderBrand />
-          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+          <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 sm:gap-4 shrink-0 max-w-[58%] sm:max-w-none">
             <Link
               to="/catalogo"
               className="text-xs sm:text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300 transition-colors"
@@ -60,7 +60,7 @@ export default function ApexLandingPage() {
             </Link>
             <Link
               to="/taller/acceso"
-              className="hidden sm:inline text-xs sm:text-sm font-semibold text-emerald-400/90 hover:text-emerald-300 transition-colors"
+              className="text-xs sm:text-sm font-semibold text-emerald-400/90 hover:text-emerald-300 transition-colors"
             >
               Talleres
             </Link>
