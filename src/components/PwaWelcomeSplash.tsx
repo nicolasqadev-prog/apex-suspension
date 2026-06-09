@@ -115,9 +115,7 @@ export default function PwaWelcomeSplash() {
         <p className="text-xs uppercase tracking-[0.35em] text-[oklch(0.7_0.2_40)] font-bold">
           Apex Suspensión
         </p>
-        <h1 className="mt-3 text-2xl font-extrabold text-white tracking-tight">
-          Bienvenido
-        </h1>
+        <h1 className="mt-3 text-2xl font-extrabold text-white tracking-tight">Bienvenido</h1>
         <p className="mt-2 text-sm text-gray-300 leading-relaxed">
           Catálogo, stock y pedidos para tu taller — en un solo toque.
         </p>

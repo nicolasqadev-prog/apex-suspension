@@ -108,16 +108,13 @@ export async function upsertTallerFidelizado(
     publicado: input.publicado ?? true,
   };
 
-  const res = await fetch(
-    `${env.url}/rest/v1/talleres_fidelizados?on_conflict=whatsapp`,
-    {
-      method: "POST",
-      headers: headers(env, {
-        Prefer: "resolution=merge-duplicates,return=representation",
-      }),
-      body: JSON.stringify(payload),
-    },
-  );
+  const res = await fetch(`${env.url}/rest/v1/talleres_fidelizados?on_conflict=whatsapp`, {
+    method: "POST",
+    headers: headers(env, {
+      Prefer: "resolution=merge-duplicates,return=representation",
+    }),
+    body: JSON.stringify(payload),
+  });
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");

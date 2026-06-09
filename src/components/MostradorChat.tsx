@@ -53,9 +53,9 @@ export default function MostradorChat() {
   const [handoffTag, setHandoffTag] = useState<"normal" | "bajo_encargo">("normal");
   const [primarySuggestion, setPrimarySuggestion] = useState("");
   const [handoffReady, setHandoffReady] = useState(false);
-  const [tallerCuenta, setTallerCuenta] = useState<
-    MostradorDraft["tallerCuenta"] | undefined
-  >(undefined);
+  const [tallerCuenta, setTallerCuenta] = useState<MostradorDraft["tallerCuenta"] | undefined>(
+    undefined,
+  );
 
   const draft: MostradorDraft = useMemo(
     () => ({
@@ -69,7 +69,17 @@ export default function MostradorChat() {
       primarySuggestion: primarySuggestion.trim() || undefined,
       tallerCuenta,
     }),
-    [piezaOSintoma, whatsapp, carro, ano, version, municipio, handoffTag, primarySuggestion, tallerCuenta],
+    [
+      piezaOSintoma,
+      whatsapp,
+      carro,
+      ano,
+      version,
+      municipio,
+      handoffTag,
+      primarySuggestion,
+      tallerCuenta,
+    ],
   );
 
   const whatsappLink = useMemo(() => buildWhatsappHandoffLink(draft), [draft]);
@@ -105,9 +115,8 @@ export default function MostradorChat() {
 
     const nextTurn = turns + 1;
 
-    const brakeLike = /\b(freno|frenos|frena|pastilla|pastillas|disco|discos|caliper|balata)\b/i.test(
-      text,
-    );
+    const brakeLike =
+      /\b(freno|frenos|frena|pastilla|pastillas|disco|discos|caliper|balata)\b/i.test(text);
 
     setMsgs((m) => [...m, { role: "user", content: text }]);
     setTurns(nextTurn);
@@ -136,7 +145,9 @@ export default function MostradorChat() {
           setTallerCuenta(undefined);
         }
         setHandoffTag("bajo_encargo");
-        setPrimarySuggestion("Pastillas y discos de freno (lado delantero/trasero a confirmar con el mecánico)");
+        setPrimarySuggestion(
+          "Pastillas y discos de freno (lado delantero/trasero a confirmar con el mecánico)",
+        );
         setHandoffReady(true);
         setMsgs((m) => [
           ...m,
@@ -181,7 +192,8 @@ export default function MostradorChat() {
       } else {
         setTallerCuenta(undefined);
       }
-      let reply = res?.reply?.trim() || "Listo. Escríbenos por WhatsApp para confirmar la referencia.";
+      let reply =
+        res?.reply?.trim() || "Listo. Escríbenos por WhatsApp para confirmar la referencia.";
       reply = enrichAssistantReply(reply, sug || undefined);
 
       setMsgs((m) => [...m, { role: "assistant", content: reply }]);
@@ -383,14 +395,16 @@ export default function MostradorChat() {
                   </Button>
                 </div>
                 <p className="mt-2 text-[11px] text-gray-500">
-                  Para confirmar compatibilidad, lo más seguro es enviar foto de la pieza vieja o video
-                  del ruido por WhatsApp (placa opcional).
+                  Para confirmar compatibilidad, lo más seguro es enviar foto de la pieza vieja o
+                  video del ruido por WhatsApp (placa opcional).
                 </p>
               </div>
 
               {handoffReady && (
                 <div className="rounded-xl border border-[oklch(0.7_0.2_40)]/40 bg-black/30 px-4 py-3">
-                  <p className="text-xs font-semibold text-white">Siguiente paso — cotizar por WhatsApp</p>
+                  <p className="text-xs font-semibold text-white">
+                    Siguiente paso — cotizar por WhatsApp
+                  </p>
                   <p className="mt-2 text-xs text-gray-300 leading-relaxed">
                     Cerramos la orientación automática. Usá el botón naranja para enviar síntoma,
                     carro y datos al equipo Apex y que confirmen referencia y precio.
@@ -427,8 +441,8 @@ export default function MostradorChat() {
 
               {!canAskMore && !handoffReady && (
                 <div className="text-[11px] text-gray-500">
-                  Para evitar vueltas, aquí cerramos la orientación y confirmamos por WhatsApp con el
-                  equipo.
+                  Para evitar vueltas, aquí cerramos la orientación y confirmamos por WhatsApp con
+                  el equipo.
                 </div>
               )}
             </div>

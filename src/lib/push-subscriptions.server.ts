@@ -50,16 +50,13 @@ export async function upsertPushSubscription(input: {
     updated_at: new Date().toISOString(),
   };
 
-  const res = await fetch(
-    `${env.url}/rest/v1/push_subscriptions?on_conflict=endpoint`,
-    {
-      method: "POST",
-      headers: headers(env, {
-        Prefer: "resolution=merge-duplicates,return=minimal",
-      }),
-      body: JSON.stringify(payload),
-    },
-  );
+  const res = await fetch(`${env.url}/rest/v1/push_subscriptions?on_conflict=endpoint`, {
+    method: "POST",
+    headers: headers(env, {
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    }),
+    body: JSON.stringify(payload),
+  });
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -86,7 +83,10 @@ export async function listPushSubscriptions(): Promise<
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    return { ok: false, reason: `Listar suscripciones falló (${res.status}) ${text}`.slice(0, 200) };
+    return {
+      ok: false,
+      reason: `Listar suscripciones falló (${res.status}) ${text}`.slice(0, 200),
+    };
   }
 
   const rows = (await res.json()) as PushSubscriptionRow[];
@@ -116,9 +116,7 @@ export async function listPushSubscriptionsByTelefono(
   return { ok: true, rows };
 }
 
-export async function deletePushSubscriptionByEndpoint(
-  endpoint: string,
-): Promise<void> {
+export async function deletePushSubscriptionByEndpoint(endpoint: string): Promise<void> {
   const env = getSupabaseEnv();
   if (!env) return;
 

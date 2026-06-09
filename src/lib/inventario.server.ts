@@ -1,4 +1,10 @@
-import { listarPiezas, monedaInventario, piezaPorSlug, type LineaVehiculo, type PiezaInventario } from "./inventario";
+import {
+  listarPiezas,
+  monedaInventario,
+  piezaPorSlug,
+  type LineaVehiculo,
+  type PiezaInventario,
+} from "./inventario";
 import { completarPieza } from "./inventario-normalizar";
 import { normalizeSupabaseUrl } from "./supabase-env";
 
@@ -20,8 +26,7 @@ type ProductoRow = {
 
 const SELECT_LEGACY =
   "slug,referencia,nombre,aplicacion,categoria,marca,precio_lista,stock_actual,activo";
-const SELECT_DATOS_MAESTROS =
-  "categoria_grupo,marca_producto,linea_vehiculo,precio_taller";
+const SELECT_DATOS_MAESTROS = "categoria_grupo,marca_producto,linea_vehiculo,precio_taller";
 const SELECT_CAMPOS = `${SELECT_LEGACY},${SELECT_DATOS_MAESTROS}`;
 
 let selectCamposCache: string | null = null;

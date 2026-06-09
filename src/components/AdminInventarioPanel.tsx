@@ -85,9 +85,7 @@ export default function AdminInventarioPanel({ adminPin }: Props) {
         setMensaje(res.reason);
         return;
       }
-      setMensaje(
-        `Stock actualizado: ${seleccionado.referencia} → ${res.stockActual} unidad(es).`,
-      );
+      setMensaje(`Stock actualizado: ${seleccionado.referencia} → ${res.stockActual} unidad(es).`);
       setDelta("");
       setMotivo("");
       setSeleccionado(null);
@@ -124,8 +122,9 @@ export default function AdminInventarioPanel({ adminPin }: Props) {
       {fuente === "json" && (
         <p className="text-xs text-amber-300/90 mb-4 rounded-lg border border-amber-500/30 bg-amber-950/25 px-3 py-2">
           Sin Supabase en servidor: ves datos del JSON de ejemplo. Para ajustar stock en vivo,
-          configura secretos y ejecuta <code className="text-amber-100">npm run sync:inventory</code>
-          . {aviso && <span className="block mt-1 text-gray-400">{aviso}</span>}
+          configura secretos y ejecuta{" "}
+          <code className="text-amber-100">npm run sync:inventory</code>.{" "}
+          {aviso && <span className="block mt-1 text-gray-400">{aviso}</span>}
         </p>
       )}
 
@@ -176,9 +175,7 @@ export default function AdminInventarioPanel({ adminPin }: Props) {
         {!loading && productos.length === 0 && (
           <p className="text-xs text-gray-500 text-center py-6">Sin resultados.</p>
         )}
-        {loading && (
-          <p className="text-xs text-gray-500 text-center py-6">Buscando…</p>
-        )}
+        {loading && <p className="text-xs text-gray-500 text-center py-6">Buscando…</p>}
       </ul>
 
       {seleccionado && (

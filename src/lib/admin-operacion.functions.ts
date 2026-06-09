@@ -2,10 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { verifyAdminPinValue } from "./admin-auth.server";
-import {
-  eliminarPedidosPrueba,
-  publicarTalleresBorrador,
-} from "./talleres-admin.server";
+import { eliminarPedidosPrueba, publicarTalleresBorrador } from "./talleres-admin.server";
 
 const PublicarSchema = z.object({
   adminPin: z.string().min(4).max(64),

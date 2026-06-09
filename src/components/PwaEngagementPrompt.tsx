@@ -121,9 +121,7 @@ export default function PwaEngagementPrompt() {
       }
 
       const reg = await subscribeAndRegisterPush();
-      setNotifPermission(
-        typeof Notification !== "undefined" ? Notification.permission : "denied",
-      );
+      setNotifPermission(typeof Notification !== "undefined" ? Notification.permission : "denied");
 
       if (reg.ok) {
         setFeedback("Listo. Te avisaremos de stock, pedidos y novedades de Apex.");
@@ -248,12 +246,17 @@ export default function PwaEngagementPrompt() {
               Instalar en iPhone
             </SheetTitle>
             <SheetDescription className="text-gray-400 text-left space-y-3 pt-2">
-              <p>1. Toca el botón <strong className="text-gray-200">Compartir</strong> (cuadrado con flecha).</p>
+              <p>
+                1. Toca el botón <strong className="text-gray-200">Compartir</strong> (cuadrado con
+                flecha).
+              </p>
               <p>
                 2. Elige <strong className="text-gray-200">Agregar a inicio</strong> o{" "}
                 <strong className="text-gray-200">Añadir a pantalla de inicio</strong>.
               </p>
-              <p>3. Confirma con <strong className="text-gray-200">Agregar</strong>.</p>
+              <p>
+                3. Confirma con <strong className="text-gray-200">Agregar</strong>.
+              </p>
               <p className="text-xs text-gray-500">
                 Desde la app instalada podrás activar notificaciones con el botón de arriba.
               </p>

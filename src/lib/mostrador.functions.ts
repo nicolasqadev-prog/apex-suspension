@@ -199,7 +199,9 @@ export const responderMostrador = createServerFn({ method: "POST" })
       data.context?.ano ? `Año: ${data.context.ano}` : null,
       data.context?.version ? `Versión: ${data.context.version}` : null,
       data.context?.municipio ? `Municipio: ${data.context.municipio}` : null,
-      data.context?.inventarioSnippet ? `Inventario (snippet):\n${data.context.inventarioSnippet}` : null,
+      data.context?.inventarioSnippet
+        ? `Inventario (snippet):\n${data.context.inventarioSnippet}`
+        : null,
     ].filter(Boolean);
 
     const transcript = data.history
@@ -221,7 +223,10 @@ export const responderMostrador = createServerFn({ method: "POST" })
         ok: true,
         reply:
           "Te puedo orientar para cotizar, pero ahora mismo no tengo el asistente automático activo. Confirma el diagnóstico con tu mecánico de confianza y escríbenos por WhatsApp para confirmar la referencia.",
-        questions: ["¿Qué carro es (marca/línea) y de qué año?", "¿Qué síntoma presenta o qué pieza necesitas?"],
+        questions: [
+          "¿Qué carro es (marca/línea) y de qué año?",
+          "¿Qué síntoma presenta o qué pieza necesitas?",
+        ],
         action: "handoff_whatsapp",
         handoffTag: "normal",
         tallerCuenta,
@@ -237,7 +242,10 @@ export const responderMostrador = createServerFn({ method: "POST" })
         ok: true,
         reply:
           "Listo, te oriento para cotizar. No hago diagnóstico: confirma con tu mecánico de confianza. Para avanzar rápido: ¿qué carro es (marca/línea), año y qué síntoma presenta? Si puedes, envía foto o video por WhatsApp.",
-        questions: ["¿Qué carro es (marca/línea) y de qué año?", "¿Qué síntoma presenta o qué pieza necesitas?"],
+        questions: [
+          "¿Qué carro es (marca/línea) y de qué año?",
+          "¿Qué síntoma presenta o qué pieza necesitas?",
+        ],
         action: "handoff_whatsapp",
         handoffTag: "normal",
         tallerCuenta,
@@ -260,4 +268,3 @@ export const responderMostrador = createServerFn({ method: "POST" })
     };
     return safe;
   });
-

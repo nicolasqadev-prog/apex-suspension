@@ -74,9 +74,7 @@ const talleres = await rest(
 
 const catKtr = catByRef.get("KTR-4015");
 const ktrDb = ktr.ok && Array.isArray(ktr.json) ? ktr.json[0] : null;
-const precioTallerEsperado = catKtr
-  ? Math.round(catKtr.precioLista * (1 - DESCUENTO / 100))
-  : null;
+const precioTallerEsperado = catKtr ? Math.round(catKtr.precioLista * (1 - DESCUENTO / 100)) : null;
 
 const talleresList = talleres.ok && Array.isArray(talleres.json) ? talleres.json : [];
 const talleresOk = talleresList.every(
@@ -95,8 +93,8 @@ const checks = {
   productosTotales: parseCount(totalTodos.range),
   stockActivoBodega: parseCount(stockActivo.range),
   stockEsperadoVivo: vivo.piezas.filter((p) => p.stock > 0).length,
-  demoVisiblesEnCatalogo: demosActivos.ok ? demosActivos.json?.length ?? 0 : -1,
-  demoDesactivados: demosInactivos.ok ? demosInactivos.json?.length ?? 0 : -1,
+  demoVisiblesEnCatalogo: demosActivos.ok ? (demosActivos.json?.length ?? 0) : -1,
+  demoDesactivados: demosInactivos.ok ? (demosInactivos.json?.length ?? 0) : -1,
   ktrPrecioCoincide: ktrDb?.precio_lista === catKtr?.precioLista,
   ktrStockCoincide: ktrDb?.stock_actual === catKtr?.stock,
   precioTaller16_67: precioTallerEsperado,

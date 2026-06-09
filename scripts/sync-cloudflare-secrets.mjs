@@ -47,16 +47,12 @@ const SECRETS = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "VITE_SITE_URL"];
 if (env.ADMIN_PIN?.trim()) SECRETS.push("ADMIN_PIN");
 
 for (const name of SECRETS) {
-  const r = spawnSync(
-    "npx",
-    ["wrangler", "secret", "put", name, "--config", wranglerConfig],
-    {
-      input: env[name],
-      stdio: ["pipe", "inherit", "inherit"],
-      shell: true,
-      cwd: root,
-    },
-  );
+  const r = spawnSync("npx", ["wrangler", "secret", "put", name, "--config", wranglerConfig], {
+    input: env[name],
+    stdio: ["pipe", "inherit", "inherit"],
+    shell: true,
+    cwd: root,
+  });
   if (r.status !== 0) {
     console.error(`Falló secret put: ${name}`);
     process.exit(1);

@@ -13,14 +13,11 @@ export type PushPayload = {
   url?: string;
 };
 
-function getVapidConfig():
-  | { publicKey: string; privateKey: string; subject: string }
-  | null {
+function getVapidConfig(): { publicKey: string; privateKey: string; subject: string } | null {
   const publicKey =
     process.env.VAPID_PUBLIC_KEY?.trim() || process.env.VITE_VAPID_PUBLIC_KEY?.trim();
   const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();
-  const subject =
-    process.env.VAPID_SUBJECT?.trim() || "mailto:contacto@apex-suspension.com.co";
+  const subject = process.env.VAPID_SUBJECT?.trim() || "mailto:contacto@apex-suspension.com.co";
   if (!publicKey || !privateKey) return null;
   return { publicKey, privateKey, subject };
 }
@@ -79,8 +76,7 @@ export async function sendPushToRow(
 export async function sendPushBroadcast(
   payload: PushPayload,
 ): Promise<
-  | { ok: true; sent: number; failed: number; expired: number }
-  | { ok: false; reason: string }
+  { ok: true; sent: number; failed: number; expired: number } | { ok: false; reason: string }
 > {
   if (!isWebPushConfigured()) {
     return { ok: false, reason: "VAPID no configurado (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY)" };
@@ -137,10 +133,7 @@ export async function sendPushToTelefono(
   return { ok: true, sent, failed, expired, matched: list.rows.length };
 }
 
-export function mensajePushPorEstadoPedido(
-  estado: string,
-  tallerNombre: string,
-): PushPayload {
+export function mensajePushPorEstadoPedido(estado: string, tallerNombre: string): PushPayload {
   const base = { url: "/catalogo" as const };
   switch (estado) {
     case "cotizado":

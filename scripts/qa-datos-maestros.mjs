@@ -212,8 +212,13 @@ else:
 function compararPrecioTaller(precioLista) {
   const desc = Math.round(precioLista * (1 - DESCUENTO_TALLER / 100));
   const cr = precioLista * 0.65;
-  const formulaTaller = Math.round((cr / 0.78));
-  return { precioLista, tallerDescuentoPwa: desc, tallerFormulaCr078: formulaTaller, difieren: desc !== formulaTaller };
+  const formulaTaller = Math.round(cr / 0.78);
+  return {
+    precioLista,
+    tallerDescuentoPwa: desc,
+    tallerFormulaCr078: formulaTaller,
+    difieren: desc !== formulaTaller,
+  };
 }
 
 // --- datos locales ---
@@ -244,7 +249,9 @@ const paso41 = {
     marcasUnicas: Object.keys(contarPor(bd, (p) => p.marca)).length,
     distribucion: contarPor(bd, (p) => p.marca),
     varios: bd.filter((p) => p.marca === "Varios").length,
-    variosPct: bd.length ? ((bd.filter((p) => p.marca === "Varios").length / bd.length) * 100).toFixed(1) + "%" : "0%",
+    variosPct: bd.length
+      ? ((bd.filter((p) => p.marca === "Varios").length / bd.length) * 100).toFixed(1) + "%"
+      : "0%",
   },
   enBodega124: {
     total: bd.filter((p) => p.stock_actual > 0).length,
@@ -282,7 +289,10 @@ const paso42 = {
   },
   enSupabase: {
     columnaExiste: columnasDatosMaestros,
-    columnasTablaProductos: [...CAMPOS_BD_LEGACY, ...(columnasDatosMaestros ? CAMPOS_BD_DATOS_MAESTROS : [])],
+    columnasTablaProductos: [
+      ...CAMPOS_BD_LEGACY,
+      ...(columnasDatosMaestros ? CAMPOS_BD_DATOS_MAESTROS : []),
+    ],
     piezasConMarcaProducto: bdConMarcaProducto,
   },
   enPwa: {
@@ -333,13 +343,16 @@ const paso43 = {
         : null,
     muestrasBodega: muestrasPrecio,
   },
-  veredicto: "PARCIAL — precio taller funciona en sesión taller (descuento); no guardado por SKU en BD",
+  veredicto:
+    "PARCIAL — precio taller funciona en sesión taller (descuento); no guardado por SKU en BD",
   comoValidarVos:
     "Entrá como taller en /taller/acceso. KTR-4015: público $65.731 → taller $54.774. En Supabase solo verás precio_lista.",
 };
 
 const catsBd = contarPor(bd, (p) => p.categoria ?? "(vacío)");
-const catsAmort = [...new Set(bd.map((p) => p.categoria).filter((c) => /amortigu/i.test(c ?? "")))].sort();
+const catsAmort = [
+  ...new Set(bd.map((p) => p.categoria).filter((c) => /amortigu/i.test(c ?? ""))),
+].sort();
 
 const paso44 = {
   titulo: "4.4 Categorías consistentes",
@@ -355,7 +368,9 @@ const paso44 = {
       (p) => p.marca === "Renault" && /amortigu/i.test(p.categoria ?? "") && p.stock_actual > 0,
     ).length,
     referencias: bd
-      .filter((p) => p.marca === "Renault" && /amortigu/i.test(p.categoria ?? "") && p.stock_actual > 0)
+      .filter(
+        (p) => p.marca === "Renault" && /amortigu/i.test(p.categoria ?? "") && p.stock_actual > 0,
+      )
       .map((p) => p.referencia),
   },
   veredicto: catsAmort.length > 1 ? "PARCIAL — raw inconsistente; UI agrupa parcialmente" : "OK",
@@ -396,7 +411,9 @@ const paso46 = {
     totalCrudos: crudos.length,
     pct: piezasJson.length ? ((crudos.length / piezasJson.length) * 100).toFixed(1) + "%" : "0%",
     conStock: crudosConStock.length,
-    muestra5: crudos.slice(0, 5).map((p) => ({ referencia: p.referencia, nombre: p.nombre, marca: p.marca })),
+    muestra5: crudos
+      .slice(0, 5)
+      .map((p) => ({ referencia: p.referencia, nombre: p.nombre, marca: p.marca })),
   },
   enBodega: {
     crudosConStock: crudosConStock.length,
@@ -411,7 +428,7 @@ const paso46 = {
       ? "ACEPTABLE_EN_BODEGA — crudos mayormente en bajo pedido"
       : "REVISAR — hay fichas crudas con stock en bodega",
   comoValidarVos:
-    "En /catalogo sin expandir bajo pedido: no deberías ver tuercas 1\" ALTA RF. Expandí bajo pedido: ahí sí aparecen.",
+    'En /catalogo sin expandir bajo pedido: no deberías ver tuercas 1" ALTA RF. Expandí bajo pedido: ahí sí aparecen.',
 };
 
 const pipeline = {

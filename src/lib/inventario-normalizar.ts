@@ -32,8 +32,7 @@ export function completarPieza(p: PiezaParcial): PiezaInventario {
     categoriaGrupo: p.categoriaGrupo ?? grupoCategoria(categoria),
     precioLista: p.precioLista,
     precioTallerRef:
-      p.precioTallerRef ??
-      (p.precioTaller != null ? Math.round(p.precioTaller) : undefined),
+      p.precioTallerRef ?? (p.precioTaller != null ? Math.round(p.precioTaller) : undefined),
     stock: p.stock,
     marca: marcaVehiculoDePieza({
       slug: p.slug,
@@ -48,6 +47,7 @@ export function completarPieza(p: PiezaParcial): PiezaInventario {
       marcaProducto: p.marcaProducto ?? "KTC",
       lineaVehiculo: linea,
     }),
-    marcaProducto: p.marcaProducto ?? inferirProveedor(p.marca, p.referencia),    lineaVehiculo: linea === "camion" || linea === "utilitario" ? linea : "liviano",
+    marcaProducto: p.marcaProducto ?? inferirProveedor(p.marca, p.referencia),
+    lineaVehiculo: linea === "camion" || linea === "utilitario" ? linea : "liviano",
   };
 }

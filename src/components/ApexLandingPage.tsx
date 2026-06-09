@@ -332,7 +332,10 @@ export default function ApexLandingPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="sm:col-span-2">
-                <label htmlFor="vehiculo" className="block text-sm font-semibold text-gray-300 mb-1">
+                <label
+                  htmlFor="vehiculo"
+                  className="block text-sm font-semibold text-gray-300 mb-1"
+                >
                   Vehículo (opcional)
                 </label>
                 <input
@@ -409,9 +412,7 @@ export default function ApexLandingPage() {
         <div className="max-w-3xl mx-auto rounded-2xl border border-white/10 bg-black/20 px-6 py-6">
           <p className="text-sm font-semibold text-white">Pagos y garantía</p>
           <ul className="mt-3 text-sm text-gray-400 space-y-2 leading-relaxed">
-            <li>
-              - Los precios son por unidad.
-            </li>
+            <li>- Los precios son por unidad.</li>
             <li>- Para confirmar tu pedido: necesitamos el 50% de anticipo.</li>
             <li>- Si eres taller validado: tu pedido se despacha contra entrega.</li>
             <li>- Métodos: Nequi, Daviplata, transferencia o efectivo contra entrega.</li>

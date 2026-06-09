@@ -19,7 +19,9 @@ if (existsSync(envPath)) {
   }
 }
 
-const url = process.env.SUPABASE_URL?.trim().replace(/\/rest\/v1\/?$/i, "").replace(/\/$/, "");
+const url = process.env.SUPABASE_URL?.trim()
+  .replace(/\/rest\/v1\/?$/i, "")
+  .replace(/\/$/, "");
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 if (!url || !key) {
   console.log(JSON.stringify({ ok: false, error: "Faltan credenciales Supabase" }));

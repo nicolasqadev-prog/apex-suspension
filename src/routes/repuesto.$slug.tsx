@@ -129,7 +129,9 @@ function RepuestoDetallePage() {
           ) : (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Precio lista</span>
-              <span className="font-semibold text-white">{formatoPrecioCop(pieza.precioLista)}</span>
+              <span className="font-semibold text-white">
+                {formatoPrecioCop(pieza.precioLista)}
+              </span>
             </div>
           )}
           <div className="flex justify-between text-sm">

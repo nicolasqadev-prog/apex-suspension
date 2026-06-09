@@ -124,7 +124,9 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
       <div className="flex items-start gap-2">
         <Smartphone className="h-5 w-5 text-violet-300 shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-semibold text-white">Soporte y preparación antes de operación</p>
+          <p className="text-sm font-semibold text-white">
+            Soporte y preparación antes de operación
+          </p>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
             Configura talleres, haz pedidos de prueba y revisa la PWA{" "}
             <strong className="text-gray-300">sin afectar clientes reales</strong>. Cuando todo esté
@@ -134,10 +136,18 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
       </div>
 
       <div className="rounded-lg border border-amber-500/40 bg-amber-950/25 p-4 space-y-3">
-        <p className="text-xs font-semibold text-amber-200">Modo preparación (borrador operativo)</p>
+        <p className="text-xs font-semibold text-amber-200">
+          Modo preparación (borrador operativo)
+        </p>
         <ul className="text-[11px] text-gray-400 space-y-1 list-disc pl-4">
-          <li>Talleres que registres quedan en <strong className="text-gray-300">borrador</strong> (no entran en /taller/acceso).</li>
-          <li>Pedidos desde talleres en borrador se guardan como <strong className="text-gray-300">prueba</strong> (sin push al cliente).</li>
+          <li>
+            Talleres que registres quedan en <strong className="text-gray-300">borrador</strong> (no
+            entran en /taller/acceso).
+          </li>
+          <li>
+            Pedidos desde talleres en borrador se guardan como{" "}
+            <strong className="text-gray-300">prueba</strong> (sin push al cliente).
+          </li>
           <li>En el panel solo verás pedidos de prueba mientras esté activo.</li>
         </ul>
         <div className="flex flex-wrap gap-2">
@@ -165,10 +175,12 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
       </div>
 
       <div className="rounded-lg border border-white/10 bg-black/25 p-4 space-y-3">
-        <p className="text-xs font-semibold text-violet-200">Vista previa visual (solo tu navegador)</p>
+        <p className="text-xs font-semibold text-violet-200">
+          Vista previa visual (solo tu navegador)
+        </p>
         <p className="text-[11px] text-gray-500 leading-relaxed">
-          Franja morada, ocultar avisos de instalar/notificaciones y banner de prueba. No cambia lo que
-          ven los clientes.
+          Franja morada, ocultar avisos de instalar/notificaciones y banner de prueba. No cambia lo
+          que ven los clientes.
         </p>
         <Button
           type="button"
@@ -194,7 +206,9 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
       </div>
 
       <div className="rounded-lg border border-white/10 bg-black/25 p-4 space-y-3">
-        <p className="text-xs font-semibold text-violet-200">Banner de prueba (solo vista previa)</p>
+        <p className="text-xs font-semibold text-violet-200">
+          Banner de prueba (solo vista previa)
+        </p>
         <label className="flex items-center gap-2 text-xs text-gray-400">
           <input
             type="checkbox"
@@ -221,7 +235,9 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
       </div>
 
       <div className="rounded-lg border border-white/10 bg-black/25 p-4 space-y-3">
-        <p className="text-xs font-semibold text-violet-200">Probar catálogo como taller (borrador)</p>
+        <p className="text-xs font-semibold text-violet-200">
+          Probar catálogo como taller (borrador)
+        </p>
         <div className="flex flex-col sm:flex-row gap-2">
           <Input
             value={whatsappPrueba}

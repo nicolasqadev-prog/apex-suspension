@@ -37,9 +37,7 @@ export function PwaEngagementActions({ onRequestInstall, compact }: Props) {
   }
 
   return (
-    <div
-      className={`flex flex-wrap items-center justify-center gap-2 ${compact ? "" : "mt-4"}`}
-    >
+    <div className={`flex flex-wrap items-center justify-center gap-2 ${compact ? "" : "mt-4"}`}>
       {showInstall && (
         <Button
           type="button"

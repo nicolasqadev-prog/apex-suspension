@@ -32,12 +32,21 @@ const headers = {
 
 const DESCUENTO = 16.67;
 
-const get = await fetch(`${url}/rest/v1/talleres_fidelizados?select=whatsapp,nombre_taller,descuento_porcentaje`, {
-  headers: { apikey: key, Authorization: `Bearer ${key}` },
-});
+const get = await fetch(
+  `${url}/rest/v1/talleres_fidelizados?select=whatsapp,nombre_taller,descuento_porcentaje`,
+  {
+    headers: { apikey: key, Authorization: `Bearer ${key}` },
+  },
+);
 
 if (!get.ok) {
-  console.log(JSON.stringify({ actualizados: 0, nota: "Sin talleres o tabla no accesible", status: get.status }));
+  console.log(
+    JSON.stringify({
+      actualizados: 0,
+      nota: "Sin talleres o tabla no accesible",
+      status: get.status,
+    }),
+  );
   process.exit(0);
 }
 
@@ -55,4 +64,6 @@ for (const t of talleres) {
   if (res.ok) actualizados += 1;
 }
 
-console.log(JSON.stringify({ talleres: talleres.length, actualizados, descuento: DESCUENTO }, null, 2));
+console.log(
+  JSON.stringify({ talleres: talleres.length, actualizados, descuento: DESCUENTO }, null, 2),
+);

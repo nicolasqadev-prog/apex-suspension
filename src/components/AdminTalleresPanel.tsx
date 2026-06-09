@@ -59,9 +59,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
     e.preventDefault();
     if (!adminPin) return;
     setMessage(null);
-    const existing = editingWhatsapp
-      ? talleres.find((t) => t.whatsapp === editingWhatsapp)
-      : null;
+    const existing = editingWhatsapp ? talleres.find((t) => t.whatsapp === editingWhatsapp) : null;
     const res = await guardarTallerAdmin({
       data: {
         adminPin,
@@ -201,9 +199,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
           <input
             type="checkbox"
             checked={form.contraEntregaHabilitada}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, contraEntregaHabilitada: e.target.checked }))
-            }
+            onChange={(e) => setForm((f) => ({ ...f, contraEntregaHabilitada: e.target.checked }))}
           />
           Contra entrega habilitada
         </label>
@@ -234,7 +230,8 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
 
       <div className="flex items-center justify-between gap-2 mb-3">
         <p className="text-xs font-semibold text-gray-300">
-          Registrados ({talleres.length}) · {loading ? "actualizando…" : modoPreparacion ? "borrador" : "operación"}
+          Registrados ({talleres.length}) ·{" "}
+          {loading ? "actualizando…" : modoPreparacion ? "borrador" : "operación"}
         </p>
         <Button
           type="button"
@@ -253,7 +250,9 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
           <li
             key={t.id}
             className={`rounded-lg border p-3 text-sm ${
-              t.activo ? "border-white/10 bg-black/20" : "border-red-900/40 bg-red-950/20 opacity-80"
+              t.activo
+                ? "border-white/10 bg-black/20"
+                : "border-red-900/40 bg-red-950/20 opacity-80"
             }`}
           >
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">

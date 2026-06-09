@@ -30,9 +30,7 @@ if (!url || !key) {
   process.exit(1);
 }
 
-const ejemplo = JSON.parse(
-  readFileSync(join(root, "data/inventario.ejemplo.json"), "utf8"),
-);
+const ejemplo = JSON.parse(readFileSync(join(root, "data/inventario.ejemplo.json"), "utf8"));
 const slugs = ejemplo.piezas.map((p) => p.slug);
 const headers = {
   apikey: key,
@@ -43,14 +41,11 @@ const headers = {
 
 let desactivados = 0;
 for (const slug of slugs) {
-  const res = await fetch(
-    `${url}/rest/v1/productos?slug=eq.${encodeURIComponent(slug)}`,
-    {
-      method: "PATCH",
-      headers,
-      body: JSON.stringify({ activo: false }),
-    },
-  );
+  const res = await fetch(`${url}/rest/v1/productos?slug=eq.${encodeURIComponent(slug)}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({ activo: false }),
+  });
   if (res.ok) {
     const rows = await res.json();
     if (rows.length) desactivados += 1;

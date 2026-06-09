@@ -39,11 +39,12 @@ export function buildWhatsappHandoffLink(d: MostradorDraft): string {
         ? "\nNota: somos taller validado en Apex; en nuestra cuenta aplica contra entrega (confirmar con el equipo)."
         : "\nNota: somos taller validado en Apex (confirmar condiciones de pago/entrega con el equipo)."
       : "";
-  const finalMsg = [municipio ? `${msg}\nMunicipio: ${municipio}` : msg, tallerNote].filter(Boolean).join("");
+  const finalMsg = [municipio ? `${msg}\nMunicipio: ${municipio}` : msg, tallerNote]
+    .filter(Boolean)
+    .join("");
   return enlaceWhatsApp(finalMsg);
 }
 
 export function normalizeShortText(raw: string, max = 80): string {
   return raw.replace(/\s+/g, " ").trim().slice(0, max);
 }
-

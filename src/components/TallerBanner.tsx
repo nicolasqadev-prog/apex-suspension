@@ -31,7 +31,9 @@ export default function TallerBanner() {
       <div className="flex items-start gap-2">
         <Wrench className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-semibold text-emerald-100">Modo taller · {taller.nombreTaller}</p>
+          <p className="text-sm font-semibold text-emerald-100">
+            Modo taller · {taller.nombreTaller}
+          </p>
           <p className="text-xs text-emerald-200/80 mt-0.5">
             Precio taller con {taller.descuentoPorcentaje}% de descuento sobre lista · stock y
             referencias desde la base de datos.

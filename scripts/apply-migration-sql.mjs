@@ -27,11 +27,12 @@ if (existsSync(envPath)) {
 }
 
 const sqlFile =
-  process.argv[2] ||
-  join(root, "supabase/migrations/20260609120000_productos_datos_maestros.sql");
+  process.argv[2] || join(root, "supabase/migrations/20260609120000_productos_datos_maestros.sql");
 const sql = readFileSync(sqlFile, "utf8");
 const accessToken = process.env.SUPABASE_ACCESS_TOKEN?.trim();
-const supabaseUrl = process.env.SUPABASE_URL?.trim().replace(/\/rest\/v1\/?$/i, "").replace(/\/$/, "");
+const supabaseUrl = process.env.SUPABASE_URL?.trim()
+  .replace(/\/rest\/v1\/?$/i, "")
+  .replace(/\/$/, "");
 const projectRef = supabaseUrl?.match(/https:\/\/([^.]+)\.supabase\.co/i)?.[1];
 let dbUrl = process.env.DATABASE_URL || process.env.DIRECT_URL;
 const dbPassword = process.env.SUPABASE_DB_PASSWORD?.trim();

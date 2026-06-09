@@ -70,7 +70,8 @@ function TallerAccesoPage() {
         </div>
         <p className="text-sm text-gray-400 leading-relaxed">
           Si tu taller está en el programa de fidelización de Apex, ingresa el mismo WhatsApp que
-          tenemos registrado. Verás el catálogo con tu precio de taller y podrás armar pedidos rápido.
+          tenemos registrado. Verás el catálogo con tu precio de taller y podrás armar pedidos
+          rápido.
         </p>
 
         <form onSubmit={onSubmit} className="mt-8 space-y-4">

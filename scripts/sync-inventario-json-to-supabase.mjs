@@ -31,10 +31,7 @@ function loadEnvLocal() {
     if (eq <= 0) continue;
     const key = trimmed.slice(0, eq).trim();
     let val = trimmed.slice(eq + 1).trim();
-    if (
-      (val.startsWith('"') && val.endsWith('"')) ||
-      (val.startsWith("'") && val.endsWith("'"))
-    ) {
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
       val = val.slice(1, -1);
     }
     if (!process.env[key]) process.env[key] = val;
@@ -177,9 +174,7 @@ for (let i = 0; i < piezas.length; i++) {
   const categoria_grupo = p.categoriaGrupo ?? null;
   const precio_lista = Number(p.precioLista);
   const precio_taller =
-    p.precioTaller != null && !Number.isNaN(Number(p.precioTaller))
-      ? Number(p.precioTaller)
-      : null;
+    p.precioTaller != null && !Number.isNaN(Number(p.precioTaller)) ? Number(p.precioTaller) : null;
   const stock = Math.max(0, Math.floor(Number(p.stock ?? 0)));
 
   if (!slug || !referencia || !nombre || Number.isNaN(precio_lista)) {

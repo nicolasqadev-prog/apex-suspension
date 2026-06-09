@@ -153,9 +153,7 @@ export function filtrarPiezas(
   }
 
   if (filtros.lineaVehiculo === "liviano") {
-    list = list.filter(
-      (p) => p.lineaVehiculo === "liviano" || p.stock > 0,
-    );
+    list = list.filter((p) => p.lineaVehiculo === "liviano" || p.stock > 0);
   } else if (filtros.lineaVehiculo === "camion") {
     list = list.filter((p) => p.lineaVehiculo === "camion");
   }
@@ -185,9 +183,7 @@ export function ordenarPiezas<T extends PiezaInventario>(
     return sorted.sort((a, b) => b.stock - a.stock || a.nombre.localeCompare(b.nombre, "es"));
   }
 
-  return sorted.sort(
-    (a, b) => b.stock - a.stock || a.nombre.localeCompare(b.nombre, "es"),
-  );
+  return sorted.sort((a, b) => b.stock - a.stock || a.nombre.localeCompare(b.nombre, "es"));
 }
 
 export function particionarPorBodega<T extends PiezaInventario>(piezas: T[]) {

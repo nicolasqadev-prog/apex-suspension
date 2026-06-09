@@ -23,10 +23,7 @@ async function fileExists(path) {
 
 /** Recorta márgenes blancos del PNG fuente para que el ícono PWA no quede miniatura. */
 async function trimmedLogoSource() {
-  return sharp(pwaIconSource)
-    .trim({ threshold: 12 })
-    .png()
-    .toBuffer();
+  return sharp(pwaIconSource).trim({ threshold: 12 }).png().toBuffer();
 }
 
 /** Ícono cuadrado para instalación PWA (fondo blanco, logo centrado con aire). */

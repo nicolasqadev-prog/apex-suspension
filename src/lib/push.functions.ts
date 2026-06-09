@@ -93,10 +93,7 @@ export const actualizarEstadoPedidoAdmin = createServerFn({ method: "POST" })
     if (prev.pedido.es_prueba) {
       push = { skipped: true, reason: "Pedido de prueba: no se envía push al cliente" };
     } else if (data.notificarCliente !== false && isWebPushConfigured()) {
-      const payload = mensajePushPorEstadoPedido(
-        data.estado,
-        updated.pedido.taller_nombre,
-      );
+      const payload = mensajePushPorEstadoPedido(data.estado, updated.pedido.taller_nombre);
       const sent = await sendPushToTelefono(updated.pedido.telefono, payload);
       if (sent.ok) {
         push = {

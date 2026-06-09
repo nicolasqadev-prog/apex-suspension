@@ -46,7 +46,9 @@ type Props = {
 export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: Props) {
   const [vapidOk, setVapidOk] = useState<boolean | null>(null);
   const [title, setTitle] = useState("Novedades Apex Suspensión");
-  const [body, setBody] = useState("Hay actualizaciones en stock y pedidos. Abre la app para ver más.");
+  const [body, setBody] = useState(
+    "Hay actualizaciones en stock y pedidos. Abre la app para ver más.",
+  );
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -96,9 +98,7 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
       } else if (push && "skipped" in push) {
         extra = ` · Push: ${push.reason}`;
       }
-      setMessage(
-        `Pedido actualizado: ${res.estadoAnterior} → ${res.pedido.estado}${extra}`,
-      );
+      setMessage(`Pedido actualizado: ${res.estadoAnterior} → ${res.pedido.estado}${extra}`);
       onPedidosChange();
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "No se pudo actualizar");
@@ -120,8 +120,8 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
           {vapidOk === false && (
             <p className="mt-2 text-xs text-amber-200/90">
               VAPID no configurado en el Worker. Ejecuta{" "}
-              <code className="font-mono text-[11px]">npm run vapid:keys</code> y agrega los secretos
-              en GitHub / Cloudflare (ver docs/push-notificaciones.md).
+              <code className="font-mono text-[11px]">npm run vapid:keys</code> y agrega los
+              secretos en GitHub / Cloudflare (ver docs/push-notificaciones.md).
             </p>
           )}
           {vapidOk === true && (
@@ -162,7 +162,9 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
 
       {pedidos.length > 0 && (
         <div className="mt-6 border-t border-white/10 pt-4">
-          <p className="text-xs font-semibold text-gray-300 mb-3">Estado del pedido + aviso al cliente</p>
+          <p className="text-xs font-semibold text-gray-300 mb-3">
+            Estado del pedido + aviso al cliente
+          </p>
           <ul className="space-y-3">
             {pedidos.map((p) => (
               <li

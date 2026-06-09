@@ -129,9 +129,7 @@ export async function registrarMovimientoStock(input: {
   productoId: string;
   delta: number;
   motivo: string;
-}): Promise<
-  { ok: true; stockActual: number } | { ok: false; reason: string }
-> {
+}): Promise<{ ok: true; stockActual: number } | { ok: false; reason: string }> {
   const env = getSupabaseEnv();
   if (!env) return { ok: false, reason: "Supabase no configurado" };
 

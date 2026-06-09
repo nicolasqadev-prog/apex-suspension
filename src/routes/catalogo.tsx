@@ -121,10 +121,7 @@ function CatalogoPage() {
     return piezasPublicas;
   }, [piezasPublicas, piezasTaller, taller]);
 
-  const totalBodega = useMemo(
-    () => piezasBase.filter((p) => p.stock > 0).length,
-    [piezasBase],
-  );
+  const totalBodega = useMemo(() => piezasBase.filter((p) => p.stock > 0).length, [piezasBase]);
 
   const marcasOpts = useMemo(() => marcasVehiculoOpciones(piezasBase), [piezasBase]);
   const categoriasOpts = useMemo(() => categoriasOpciones(piezasBase), [piezasBase]);
@@ -145,8 +142,7 @@ function CatalogoPage() {
 
   const { bodega, bajoPedido } = useMemo(() => {
     const filtradas = filtrarPiezas(piezasBase, filtros);
-    const ordenar = (lista: PiezaVista[]) =>
-      ordenarPiezas(lista, orden, q, precioMostrar);
+    const ordenar = (lista: PiezaVista[]) => ordenarPiezas(lista, orden, q, precioMostrar);
     const partes = particionarPorBodega(filtradas);
     return {
       bodega: ordenar(partes.bodega),
@@ -179,7 +175,8 @@ function CatalogoPage() {
               {!taller && (
                 <span className="text-gray-400">
                   {" "}
-                  · {totalBodega} en bodega · {piezasBase.length.toLocaleString("es-CO")} referencias
+                  · {totalBodega} en bodega · {piezasBase.length.toLocaleString("es-CO")}{" "}
+                  referencias
                   {fuente === "json" ? (
                     <span className="text-amber-500/90"> · modo demo (sin Supabase)</span>
                   ) : null}
@@ -276,8 +273,8 @@ function CatalogoPage() {
           </label>
         </div>
         <p className="text-[10px] text-gray-600 mb-6">
-          Primero ves lo que hay <span className="text-gray-500">en bodega</span>. El catálogo bajo pedido solo
-          aparece si buscás o abrís esa sección.
+          Primero ves lo que hay <span className="text-gray-500">en bodega</span>. El catálogo bajo
+          pedido solo aparece si buscás o abrís esa sección.
         </p>
 
         {listaCargando && (
@@ -323,53 +320,55 @@ function CatalogoPage() {
             </section>
 
             <section>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-                  <div>
-                    <h2 className="text-sm font-bold uppercase tracking-wide text-gray-400">
-                      Catálogo bajo pedido
-                    </h2>
-                    <p className="text-xs text-gray-600 mt-0.5">
-                      Referencias del proveedor sin stock físico · se confirma por WhatsApp
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="border-gray-600 text-gray-300 shrink-0"
-                    onClick={() => setVerBajoPedido((v) => !v)}
-                  >
-                    {mostrarBajoPedido ? (
-                      <>
-                        <ChevronUp className="h-4 w-4 mr-1" />
-                        Ocultar ({bajoPedido.length})
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="h-4 w-4 mr-1" />
-                        Ver bajo pedido ({bajoPedido.length})
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                {mostrarBajoPedido && bajoPedido.length > 0 && (
-                  <ul className="space-y-3">
-                    {bajoPedido.map((p) => (
-                      <PiezaCard key={p.slug} p={p} moneda={moneda} taller={!!taller} bajoPedido />
-                    ))}
-                  </ul>
-                )}
-
-                {mostrarBajoPedido && bajoPedido.length === 0 && (
-                  <p className="text-sm text-gray-500 py-6 text-center">
-                    No hay referencias bajo pedido con esos filtros.
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                <div>
+                  <h2 className="text-sm font-bold uppercase tracking-wide text-gray-400">
+                    Catálogo bajo pedido
+                  </h2>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Referencias del proveedor sin stock físico · se confirma por WhatsApp
                   </p>
-                )}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-600 text-gray-300 shrink-0"
+                  onClick={() => setVerBajoPedido((v) => !v)}
+                >
+                  {mostrarBajoPedido ? (
+                    <>
+                      <ChevronUp className="h-4 w-4 mr-1" />
+                      Ocultar ({bajoPedido.length})
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      Ver bajo pedido ({bajoPedido.length})
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {mostrarBajoPedido && bajoPedido.length > 0 && (
+                <ul className="space-y-3">
+                  {bajoPedido.map((p) => (
+                    <PiezaCard key={p.slug} p={p} moneda={moneda} taller={!!taller} bajoPedido />
+                  ))}
+                </ul>
+              )}
+
+              {mostrarBajoPedido && bajoPedido.length === 0 && (
+                <p className="text-sm text-gray-500 py-6 text-center">
+                  No hay referencias bajo pedido con esos filtros.
+                </p>
+              )}
             </section>
 
             {sinResultados && (
-              <p className="text-center text-gray-500 py-12">No hay resultados para esa búsqueda.</p>
+              <p className="text-center text-gray-500 py-12">
+                No hay resultados para esa búsqueda.
+              </p>
             )}
           </>
         )}
@@ -437,7 +436,9 @@ function PiezaCard({
                 </>
               ) : (
                 <>
-                  <p className="text-[10px] uppercase tracking-wide text-gray-500">Precio público</p>
+                  <p className="text-[10px] uppercase tracking-wide text-gray-500">
+                    Precio público
+                  </p>
                   <p className="text-sm font-bold text-white">{formatoPrecioCop(p.precioLista)}</p>
                 </>
               )}

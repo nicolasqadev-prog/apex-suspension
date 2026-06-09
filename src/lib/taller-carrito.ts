@@ -65,9 +65,7 @@ export function quitarDelCarritoTaller(slug: string) {
 
 export function actualizarCantidadCarritoTaller(slug: string, cantidad: number) {
   const qty = Math.max(1, Math.floor(cantidad));
-  const actual = leerCarritoTaller().map((l) =>
-    l.slug === slug ? { ...l, cantidad: qty } : l,
-  );
+  const actual = leerCarritoTaller().map((l) => (l.slug === slug ? { ...l, cantidad: qty } : l));
   guardarCarritoTaller(actual);
   return actual;
 }

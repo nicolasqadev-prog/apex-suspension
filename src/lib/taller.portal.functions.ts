@@ -10,14 +10,18 @@ const AllowBorradorSchema = z.object({
   allowNoPublicado: z.boolean().optional(),
 });
 
-const WhatsappSchema = z.object({
-  whatsapp: z.string().min(7).max(20),
-}).merge(AllowBorradorSchema);
+const WhatsappSchema = z
+  .object({
+    whatsapp: z.string().min(7).max(20),
+  })
+  .merge(AllowBorradorSchema);
 
-const SlugSchema = z.object({
-  whatsapp: z.string().min(7).max(20),
-  slug: z.string().min(1).max(120),
-}).merge(AllowBorradorSchema);
+const SlugSchema = z
+  .object({
+    whatsapp: z.string().min(7).max(20),
+    slug: z.string().min(1).max(120),
+  })
+  .merge(AllowBorradorSchema);
 
 const LineaPedidoSchema = z.object({
   slug: z.string().min(1).max(120),

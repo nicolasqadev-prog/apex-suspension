@@ -40,7 +40,10 @@ ${body}
 `;
 }
 
-async function supabaseHeaders(): Promise<{ base: string; headers: Record<string, string> } | null> {
+async function supabaseHeaders(): Promise<{
+  base: string;
+  headers: Record<string, string>;
+} | null> {
   const rawUrl = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   if (!rawUrl || !key) return null;
@@ -74,7 +77,9 @@ export async function countActiveProductSlugs(): Promise<number> {
 export async function fetchActiveSlugsPage(page: number): Promise<string[]> {
   const cfg = await supabaseHeaders();
   if (!cfg) {
-    const all = listarPiezas().map((p) => p.slug).sort();
+    const all = listarPiezas()
+      .map((p) => p.slug)
+      .sort();
     const start = (page - 1) * SITEMAP_CHUNK_SIZE;
     return all.slice(start, start + SITEMAP_CHUNK_SIZE);
   }

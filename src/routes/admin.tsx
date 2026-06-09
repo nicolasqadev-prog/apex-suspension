@@ -16,10 +16,7 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  ADMIN_PREPARACION_EVENT,
-  isModoPreparacion,
-} from "@/lib/admin-preparacion";
+import { ADMIN_PREPARACION_EVENT, isModoPreparacion } from "@/lib/admin-preparacion";
 import { listarPedidosRecientes } from "@/lib/pedidos.functions";
 
 type Pedido = {
@@ -299,8 +296,8 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
 
         {modoPreparacion && (
           <p className="mb-4 text-xs text-amber-200/90 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-2">
-            Modo preparación activo: talleres nuevos en borrador, pedidos de prueba separados. Publica
-            desde la pestaña Soporte PWA cuando vayas a operación real.
+            Modo preparación activo: talleres nuevos en borrador, pedidos de prueba separados.
+            Publica desde la pestaña Soporte PWA cuando vayas a operación real.
           </p>
         )}
 
@@ -321,80 +318,82 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
           <>
             <AdminPushPanel adminPin={adminPin} pedidos={pedidos} onPedidosChange={refresh} />
 
-        <div className="rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-5 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-white">Pedidos recientes</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {modoPreparacion
-                  ? "Solo pedidos de prueba (simulacros). No uses para rutas reales."
-                  : "Pedidos reales. Selecciona para ruta en Google Maps."}
-              </p>
-            </div>
-            <Button
-              asChild
-              className="bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-semibold"
-              disabled={!routeUrl}
-            >
-              <a href={routeUrl ?? "#"} target="_blank" rel="noreferrer">
-                Abrir ruta (Maps)
-              </a>
-            </Button>
-          </div>
-
-          {error && (
-            <p className="mt-4 text-xs text-red-300">
-              {error}. Configura `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` como secretos del
-              servidor para ver pedidos aquí.
-            </p>
-          )}
-
-          <div className="mt-4 divide-y divide-white/5">
-            {pedidos.map((p) => (
-              <label key={p.id} className="flex gap-3 py-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={!!selected[p.id]}
-                  onChange={(e) => setSelected((s) => ({ ...s, [p.id]: e.target.checked }))}
-                  className="mt-1"
-                />
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-white">
-                        {p.taller_nombre}
-                        {p.es_prueba && (
-                          <span className="ml-2 text-[10px] font-normal text-amber-400">prueba</span>
-                        )}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {p.direccion ?? "Sin dirección"}
-                      </p>
-                      {p.notas && <p className="text-[11px] text-gray-500 mt-1">{p.notas}</p>}
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-[11px] text-gray-500">{p.estado}</p>
-                      <p className="text-[11px] text-gray-500">
-                        {new Date(p.created_at).toLocaleTimeString("es-CO", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                  </div>
+            <div className="rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-5 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-white">Pedidos recientes</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {modoPreparacion
+                      ? "Solo pedidos de prueba (simulacros). No uses para rutas reales."
+                      : "Pedidos reales. Selecciona para ruta en Google Maps."}
+                  </p>
                 </div>
-              </label>
-            ))}
-            {!error && !loading && pedidos.length === 0 && (
-              <p className="text-xs text-gray-500 py-6 text-center">
-                No hay pedidos recientes en los últimos {minutes} minutos.
-              </p>
-            )}
-          </div>
-        </div>
+                <Button
+                  asChild
+                  className="bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white font-semibold"
+                  disabled={!routeUrl}
+                >
+                  <a href={routeUrl ?? "#"} target="_blank" rel="noreferrer">
+                    Abrir ruta (Maps)
+                  </a>
+                </Button>
+              </div>
 
-        <OperacionConversionPlaybook />
-        <AdminDispatchPanel />
+              {error && (
+                <p className="mt-4 text-xs text-red-300">
+                  {error}. Configura `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` como secretos del
+                  servidor para ver pedidos aquí.
+                </p>
+              )}
+
+              <div className="mt-4 divide-y divide-white/5">
+                {pedidos.map((p) => (
+                  <label key={p.id} className="flex gap-3 py-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={!!selected[p.id]}
+                      onChange={(e) => setSelected((s) => ({ ...s, [p.id]: e.target.checked }))}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-white">
+                            {p.taller_nombre}
+                            {p.es_prueba && (
+                              <span className="ml-2 text-[10px] font-normal text-amber-400">
+                                prueba
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {p.direccion ?? "Sin dirección"}
+                          </p>
+                          {p.notas && <p className="text-[11px] text-gray-500 mt-1">{p.notas}</p>}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-[11px] text-gray-500">{p.estado}</p>
+                          <p className="text-[11px] text-gray-500">
+                            {new Date(p.created_at).toLocaleTimeString("es-CO", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+                ))}
+                {!error && !loading && pedidos.length === 0 && (
+                  <p className="text-xs text-gray-500 py-6 text-center">
+                    No hay pedidos recientes en los últimos {minutes} minutos.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <OperacionConversionPlaybook />
+            <AdminDispatchPanel />
           </>
         )}
       </main>
@@ -416,9 +415,7 @@ function OperacionConversionPlaybook() {
 
       <Accordion type="multiple" className="mt-4">
         <AccordionItem value="principio">
-          <AccordionTrigger className="text-gray-200">
-            Principio que gobierna todo
-          </AccordionTrigger>
+          <AccordionTrigger className="text-gray-200">Principio que gobierna todo</AccordionTrigger>
           <AccordionContent className="text-xs text-gray-400 leading-relaxed">
             <p>
               El cliente decide por emoción y lo justifica con razones. Apex no vende repuestos:
@@ -429,7 +426,9 @@ function OperacionConversionPlaybook() {
         </AccordionItem>
 
         <AccordionItem value="fase1">
-          <AccordionTrigger className="text-gray-200">Fase 1 — Antes del primer cliente</AccordionTrigger>
+          <AccordionTrigger className="text-gray-200">
+            Fase 1 — Antes del primer cliente
+          </AccordionTrigger>
           <AccordionContent className="text-xs text-gray-400 leading-relaxed space-y-3">
             <div>
               <p className="text-gray-200 font-semibold">Google Business Profile (prioridad)</p>
@@ -443,7 +442,9 @@ function OperacionConversionPlaybook() {
               </ul>
             </div>
             <div>
-              <p className="text-gray-200 font-semibold">SEO local mínimo (cuando haya señales reales)</p>
+              <p className="text-gray-200 font-semibold">
+                SEO local mínimo (cuando haya señales reales)
+              </p>
               <p className="mt-1">
                 Una página por municipio con cobertura (Chía, Cajicá, Zipaquirá, Tocancipá) con
                 texto simple: qué venden, cobertura y referencias de alta rotación.
@@ -459,7 +460,9 @@ function OperacionConversionPlaybook() {
         </AccordionItem>
 
         <AccordionItem value="fase2">
-          <AccordionTrigger className="text-gray-200">Fase 2 — Primer contacto (WhatsApp)</AccordionTrigger>
+          <AccordionTrigger className="text-gray-200">
+            Fase 2 — Primer contacto (WhatsApp)
+          </AccordionTrigger>
           <AccordionContent className="text-xs text-gray-400 leading-relaxed space-y-3">
             <div>
               <p className="text-gray-200 font-semibold">Regla</p>
@@ -472,25 +475,31 @@ function OperacionConversionPlaybook() {
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <p className="text-gray-200 font-semibold">Ejemplo (cliente ya sabe la pieza)</p>
               <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
-Buenos días. Para confirmar la referencia exacta: ¿qué año es el Sail y qué versión, LS o LT? Con eso te confirmo disponibilidad y precio.
+                Buenos días. Para confirmar la referencia exacta: ¿qué año es el Sail y qué versión,
+                LS o LT? Con eso te confirmo disponibilidad y precio.
               </pre>
             </div>
 
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <p className="text-gray-200 font-semibold">Respuestas rápidas (atajos)</p>
               <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
-/confirmar → Para confirmar tu pedido necesito: pieza, vehículo, año, versión y tu dirección de entrega.
-/stock → Revisamos disponibilidad y te confirmamos en minutos.
-/precio → Los precios están en el catálogo. Dime la referencia y te confirmo disponibilidad.
-/entrega → Coordinamos entrega el mismo día cuando hay stock y cupo en ruta. El ETA exacto te lo confirmamos antes de salir.
-/garantia → Cada pieza tiene garantía por defecto de fabricación. Si algo falla, lo resolvemos sin rodeos.
+                /confirmar → Para confirmar tu pedido necesito: pieza, vehículo, año, versión y tu
+                dirección de entrega. /stock → Revisamos disponibilidad y te confirmamos en minutos.
+                /precio → Los precios están en el catálogo. Dime la referencia y te confirmo
+                disponibilidad. /entrega → Coordinamos entrega el mismo día cuando hay stock y cupo
+                en ruta. El ETA exacto te lo confirmamos antes de salir. /garantia → Cada pieza
+                tiene garantía por defecto de fabricación. Si algo falla, lo resolvemos sin rodeos.
               </pre>
             </div>
 
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-              <p className="text-gray-200 font-semibold">Mensaje automático (bienvenida/ausencia)</p>
+              <p className="text-gray-200 font-semibold">
+                Mensaje automático (bienvenida/ausencia)
+              </p>
               <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
-Hola, gracias por escribirnos. Somos Apex Suspensión — repuestos de suspensión y dirección con entrega el mismo día en la Sabana de Bogotá. Te respondemos en minutos. Mientras tanto puedes ver el catálogo aquí: [enlace PWA]
+                Hola, gracias por escribirnos. Somos Apex Suspensión — repuestos de suspensión y
+                dirección con entrega el mismo día en la Sabana de Bogotá. Te respondemos en
+                minutos. Mientras tanto puedes ver el catálogo aquí: [enlace PWA]
               </pre>
             </div>
           </AccordionContent>
@@ -507,62 +516,73 @@ Hola, gracias por escribirnos. Somos Apex Suspensión — repuestos de suspensi�
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <p className="text-gray-200 font-semibold">Referencia equivocada</p>
               <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
-Revisando tu pedido encontramos que la referencia no corresponde a tu vehículo. Te confirmamos la correcta antes de salir para que no tengas que hacer una devolución.
+                Revisando tu pedido encontramos que la referencia no corresponde a tu vehículo. Te
+                confirmamos la correcta antes de salir para que no tengas que hacer una devolución.
               </pre>
             </div>
 
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <p className="text-gray-200 font-semibold">Sin stock</p>
               <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
-La referencia que necesitas no la tenemos en este momento. Podemos conseguirla o revisar una marca equivalente con el mismo estándar. ¿Cuál prefieres?
+                La referencia que necesitas no la tenemos en este momento. Podemos conseguirla o
+                revisar una marca equivalente con el mismo estándar. ¿Cuál prefieres?
               </pre>
             </div>
 
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <p className="text-gray-200 font-semibold">Domicilio tarde</p>
               <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
-Te escribimos para avisarte que el domicilio va con un retraso aproximado de [tiempo real]. Ya está en camino. Te confirmamos cuando llegue.
+                Te escribimos para avisarte que el domicilio va con un retraso aproximado de [tiempo
+                real]. Ya está en camino. Te confirmamos cuando llegue.
               </pre>
             </div>
 
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <p className="text-gray-200 font-semibold">Pieza incorrecta entregada</p>
               <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
-Entendemos lo que pasó y lo resolvemos hoy. Te enviamos la correcta y coordinamos la devolución sin costo para ti.
+                Entendemos lo que pasó y lo resolvemos hoy. Te enviamos la correcta y coordinamos la
+                devolución sin costo para ti.
               </pre>
             </div>
 
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <p className="text-gray-200 font-semibold">Pieza falla después de instalada</p>
               <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
-Si la pieza falló por defecto de fabricación la reponemos. Cuéntanos qué pasó.
-Si hay duda: ¿tu mecánico puede confirmarnos cómo quedó montada? Eso nos ayuda a separar fabricación vs instalación.
+                Si la pieza falló por defecto de fabricación la reponemos. Cuéntanos qué pasó. Si
+                hay duda: ¿tu mecánico puede confirmarnos cómo quedó montada? Eso nos ayuda a
+                separar fabricación vs instalación.
               </pre>
             </div>
           </AccordionContent>
         </AccordionItem>
 
         <AccordionItem value="fase4">
-          <AccordionTrigger className="text-gray-200">Fase 4 — Después de la primera venta</AccordionTrigger>
+          <AccordionTrigger className="text-gray-200">
+            Fase 4 — Después de la primera venta
+          </AccordionTrigger>
           <AccordionContent className="text-xs text-gray-400 leading-relaxed space-y-3">
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <p className="text-gray-200 font-semibold">Pedir reseña (momento exacto)</p>
               <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
-¿Llegó todo bien? Si el servicio estuvo bien y quieres dejarnos una reseña en Google nos ayudas un montón. [enlace]
+                ¿Llegó todo bien? Si el servicio estuvo bien y quieres dejarnos una reseña en Google
+                nos ayudas un montón. [enlace]
               </pre>
             </div>
 
             <div className="rounded-lg border border-white/10 bg-black/20 p-3">
               <p className="text-gray-200 font-semibold">Guardar el número / lista de difusión</p>
               <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] text-gray-300">
-Guarda este número para futuras cotizaciones. Cuando llegue stock nuevo de referencias de alta rotación te avisamos.
+                Guarda este número para futuras cotizaciones. Cuando llegue stock nuevo de
+                referencias de alta rotación te avisamos.
               </pre>
             </div>
           </AccordionContent>
         </AccordionItem>
 
         <AccordionItem value="fase5">
-          <AccordionTrigger className="text-gray-200">Fase 5 — Crecimiento (hitos)</AccordionTrigger>
+          <AccordionTrigger className="text-gray-200">
+            Fase 5 — Crecimiento (hitos)
+          </AccordionTrigger>
           <AccordionContent className="text-xs text-gray-400 leading-relaxed space-y-2">
             <ul className="space-y-1">
               <li>- Primeras 5 reseñas reales en Google</li>

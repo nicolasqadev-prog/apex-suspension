@@ -17,10 +17,7 @@ function mapPiezaTaller(
   };
 }
 
-export async function loadCatalogoTaller(
-  whatsapp: string,
-  opts?: { allowNoPublicado?: boolean },
-) {
+export async function loadCatalogoTaller(whatsapp: string, opts?: { allowNoPublicado?: boolean }) {
   const taller = await getTallerFidelizadoByWhatsapp(whatsapp, opts);
   if (!taller) {
     return { ok: false as const, reason: "no_autorizado" as const };
