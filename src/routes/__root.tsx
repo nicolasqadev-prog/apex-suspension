@@ -2,10 +2,7 @@ import React, { useEffect } from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import MostradorChat from "@/components/MostradorChat";
 import AdminPreviewBanner from "@/components/AdminPreviewBanner";
-import PwaEngagementPrompt from "@/components/PwaEngagementPrompt";
-import PwaWelcomeSplash from "@/components/PwaWelcomeSplash";
 import { TallerSessionProvider } from "@/components/TallerSessionProvider";
 import { siteOriginForHead } from "@/lib/site-url";
 
@@ -149,14 +146,11 @@ function RootComponent() {
     <>
       <ServiceWorkerRegistration />
       <AdminPreviewBanner />
-      <PwaWelcomeSplash />
-      <PwaEngagementPrompt />
       <RootErrorBoundary>
         <TallerSessionProvider>
           <Outlet />
         </TallerSessionProvider>
       </RootErrorBoundary>
-      <MostradorChat />
     </>
   );
 }

@@ -104,13 +104,16 @@ export default function ApexLandingPage() {
             <ArrowRight className="w-5 h-5 ml-1" />
           </a>
 
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new Event("apex:mostrador:open"))}
+          <a
+            href={enlaceWhatsApp(
+              "Hola Apex Suspensión, no sé qué pieza necesito. ¿Me pueden orientar para cotizar?",
+            )}
+            target="_blank"
+            rel="noreferrer"
             className="mt-4 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
           >
-            ¿No sabes qué pieza es? Te orientamos para cotizar →
-          </button>
+            ¿No sabes qué pieza es? Escríbenos por WhatsApp →
+          </a>
 
           <PwaEngagementActions />
 
@@ -138,13 +141,16 @@ export default function ApexLandingPage() {
                   orientamos para cotizar. Siempre confirma el diagnóstico con tu mecánico de
                   confianza.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => window.dispatchEvent(new Event("apex:mostrador:open"))}
+                <a
+                  href={enlaceWhatsApp(
+                    "Hola Apex Suspensión, mi carro presenta un problema y no sé qué pieza es. ¿Me pueden orientar?",
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
                   className="mt-3 inline-flex text-sm font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300"
                 >
-                  Describir el problema →
-                </button>
+                  Escribir por WhatsApp →
+                </a>
               </div>
             </div>
           </section>
