@@ -75,7 +75,6 @@ function CatalogoPage() {
   const [fuenteTaller, setFuenteTaller] = useState<"supabase" | "json" | null>(null);
   const [cargandoTaller, setCargandoTaller] = useState(false);
   const [q, setQ] = useState("");
-  const [whatsappGuardado] = usePersistentState("apex.whatsapp", "");
   const [marcaVehiculo, setMarcaVehiculo] = useState("");
   const [categoria, setCategoria] = useState("");
   const [orden, setOrden] = useState<OrdenCatalogo>("stock-desc");
