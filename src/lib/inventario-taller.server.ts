@@ -13,8 +13,11 @@ function mapPiezaTaller(
   };
 }
 
-export async function loadCatalogoTaller(whatsapp: string) {
-  const taller = await getTallerFidelizadoByWhatsapp(whatsapp);
+export async function loadCatalogoTaller(
+  whatsapp: string,
+  opts?: { allowNoPublicado?: boolean },
+) {
+  const taller = await getTallerFidelizadoByWhatsapp(whatsapp, opts);
   if (!taller) {
     return { ok: false as const, reason: "no_autorizado" as const };
   }
@@ -27,6 +30,7 @@ export async function loadCatalogoTaller(whatsapp: string) {
       nombreTaller: taller.nombreTaller,
       descuentoPorcentaje: taller.descuentoPorcentaje,
       contraEntregaHabilitada: taller.contraEntregaHabilitada,
+      publicado: taller.publicado,
     },
     piezas: catalogo.piezas.map((p) => mapPiezaTaller(p, taller.descuentoPorcentaje)),
     moneda: catalogo.moneda,
@@ -34,8 +38,12 @@ export async function loadCatalogoTaller(whatsapp: string) {
   };
 }
 
-export async function loadPiezaTaller(whatsapp: string, slug: string) {
-  const taller = await getTallerFidelizadoByWhatsapp(whatsapp);
+export async function loadPiezaTaller(
+  whatsapp: string,
+  slug: string,
+  opts?: { allowNoPublicado?: boolean },
+) {
+  const taller = await getTallerFidelizadoByWhatsapp(whatsapp, opts);
   if (!taller) {
     return { ok: false as const, reason: "no_autorizado" as const };
   }

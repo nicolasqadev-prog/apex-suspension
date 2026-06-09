@@ -5,6 +5,8 @@ export type TallerFidelizado = {
   nombreTaller: string;
   descuentoPorcentaje: number;
   contraEntregaHabilitada: boolean;
+  /** false = borrador (solo pruebas admin). */
+  publicado: boolean;
 };
 
 type SupabaseEnv = {
@@ -19,8 +21,13 @@ function getSupabaseEnv(): SupabaseEnv | null {
   return { url: normalizeSupabaseUrl(rawUrl), serviceRoleKey };
 }
 
+/** Solo dígitos; si es celular CO de 10 dígitos (3xx…), antepone 57. */
 export function normalizeWhatsapp(raw: string): string {
-  return raw.replace(/\D/g, "");
+  let digits = raw.replace(/\D/g, "");
+  if (digits.length === 10 && digits.startsWith("3")) {
+    digits = `57${digits}`;
+  }
+  return digits;
 }
 
 type TallerRow = {
@@ -29,10 +36,12 @@ type TallerRow = {
   descuento_porcentaje: number;
   contra_entrega_habilitada: boolean;
   activo: boolean;
+  publicado?: boolean;
 };
 
 export async function getTallerFidelizadoByWhatsapp(
   rawWhatsapp: string,
+  opts?: { allowNoPublicado?: boolean },
 ): Promise<TallerFidelizado | null> {
   const env = getSupabaseEnv();
   if (!env) return null;
@@ -43,10 +52,13 @@ export async function getTallerFidelizadoByWhatsapp(
   const url = new URL(`${env.url}/rest/v1/talleres_fidelizados`);
   url.searchParams.set(
     "select",
-    "whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo",
+    "whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo,publicado",
   );
   url.searchParams.set("whatsapp", `eq.${whatsapp}`);
   url.searchParams.set("activo", "eq.true");
+  if (!opts?.allowNoPublicado) {
+    url.searchParams.set("publicado", "eq.true");
+  }
   url.searchParams.set("limit", "1");
 
   const res = await fetch(url.toString(), {
@@ -67,5 +79,6 @@ export async function getTallerFidelizadoByWhatsapp(
     nombreTaller: row.nombre_taller,
     descuentoPorcentaje: Number(row.descuento_porcentaje ?? 0),
     contraEntregaHabilitada: Boolean(row.contra_entrega_habilitada),
+    publicado: row.publicado !== false,
   };
 }

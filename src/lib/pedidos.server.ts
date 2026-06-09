@@ -1,3 +1,4 @@
+import { getProductoIdBySlug } from "./inventario-admin.server";
 import { normalizeSupabaseUrl } from "./supabase-env";
 
 type SupabaseEnv = {
@@ -20,6 +21,7 @@ type PedidoRow = {
   direccion: string | null;
   notas: string | null;
   created_at: string;
+  es_prueba?: boolean;
 };
 
 export type CreatePedidoInput = {
@@ -34,7 +36,8 @@ export type CreatePedidoInput = {
 
 export async function createPedido(
   input: CreatePedidoInput,
-): Promise<{ ok: true } | { ok: false; reason: string }> {
+  opts?: { esPrueba?: boolean; lineas?: LineaPedidoInput[] },
+): Promise<{ ok: true; pedidoId: string } | { ok: false; reason: string }> {
   const env = getSupabaseEnv();
   if (!env) return { ok: false, reason: "Supabase no configurado en servidor" };
 
@@ -53,6 +56,7 @@ export async function createPedido(
     telefono: input.whatsapp,
     direccion: direccionFull,
     notas: notas || null,
+    es_prueba: opts?.esPrueba ?? false,
   };
 
   const res = await fetch(`${env.url}/rest/v1/pedidos`, {
@@ -61,7 +65,7 @@ export async function createPedido(
       apikey: env.serviceRoleKey,
       Authorization: `Bearer ${env.serviceRoleKey}`,
       "Content-Type": "application/json",
-      Prefer: "return=minimal",
+      Prefer: "return=representation",
     },
     body: JSON.stringify(payload),
   });
@@ -71,19 +75,59 @@ export async function createPedido(
     return { ok: false, reason: `Supabase insert falló (${res.status}) ${text}`.slice(0, 220) };
   }
 
-  return { ok: true };
+  const rows = (await res.json()) as { id: string }[];
+  const pedidoId = rows[0]?.id;
+  if (!pedidoId) return { ok: false, reason: "Pedido creado sin id" };
+
+  const lineas = opts?.lineas ?? [];
+  for (const linea of lineas) {
+    if (linea.cantidad <= 0) continue;
+    const productoId = await getProductoIdBySlug(linea.slug);
+    if (!productoId) continue;
+
+    const lineRes = await fetch(`${env.url}/rest/v1/pedido_lineas`, {
+      method: "POST",
+      headers: {
+        apikey: env.serviceRoleKey,
+        Authorization: `Bearer ${env.serviceRoleKey}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        pedido_id: pedidoId,
+        producto_id: productoId,
+        cantidad: linea.cantidad,
+        precio_unitario: linea.precioUnitario,
+      }),
+    });
+    if (!lineRes.ok) {
+      const text = await lineRes.text().catch(() => "");
+      return {
+        ok: false,
+        reason: `Pedido creado pero línea falló (${lineRes.status}) ${text}`.slice(0, 200),
+      };
+    }
+  }
+
+  return { ok: true, pedidoId };
 }
 
 export async function listPedidosRecientes(
   minutes: number,
+  opts?: { soloPrueba?: boolean; soloProduccion?: boolean },
 ): Promise<{ ok: true; pedidos: PedidoRow[] } | { ok: false; reason: string }> {
   const env = getSupabaseEnv();
   if (!env) return { ok: false, reason: "Supabase no configurado en servidor" };
 
   const since = new Date(Date.now() - minutes * 60_000).toISOString();
   const url = new URL(`${env.url}/rest/v1/pedidos`);
-  url.searchParams.set("select", "id,estado,taller_nombre,telefono,direccion,notas,created_at");
+  url.searchParams.set(
+    "select",
+    "id,estado,taller_nombre,telefono,direccion,notas,created_at,es_prueba",
+  );
   url.searchParams.set("created_at", `gte.${since}`);
+  if (opts?.soloPrueba) url.searchParams.set("es_prueba", "eq.true");
+  if (opts?.soloProduccion) url.searchParams.set("es_prueba", "eq.false");
   url.searchParams.set("order", "created_at.desc");
   url.searchParams.set("limit", "50");
 
@@ -127,7 +171,10 @@ export async function getPedidoById(
   if (!env) return { ok: false, reason: "Supabase no configurado en servidor" };
 
   const url = new URL(`${env.url}/rest/v1/pedidos`);
-  url.searchParams.set("select", "id,estado,taller_nombre,telefono,direccion,notas,created_at");
+  url.searchParams.set(
+    "select",
+    "id,estado,taller_nombre,telefono,direccion,notas,created_at,es_prueba",
+  );
   url.searchParams.set("id", `eq.${id}`);
   url.searchParams.set("limit", "1");
 

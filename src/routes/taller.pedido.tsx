@@ -13,6 +13,7 @@ import {
   quitarDelCarritoTaller,
   vaciarCarritoTaller,
 } from "@/lib/taller-carrito";
+import { allowTallerBorradorEnCliente } from "@/lib/admin-preparacion";
 import { enviarPedidoTaller } from "@/lib/taller.portal.functions";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 import type { LineaCarritoTaller } from "@/lib/taller.types";
@@ -63,6 +64,7 @@ function TallerPedidoPage() {
           municipio: municipio.trim() || undefined,
           direccion: direccion.trim() || undefined,
           notas: notas.trim() || undefined,
+          allowNoPublicado: allowTallerBorradorEnCliente(),
         },
       });
       if (!res.ok) {

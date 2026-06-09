@@ -90,7 +90,9 @@ export const actualizarEstadoPedidoAdmin = createServerFn({ method: "POST" })
       | { skipped: true; reason: string }
       | undefined;
 
-    if (data.notificarCliente !== false && isWebPushConfigured()) {
+    if (prev.pedido.es_prueba) {
+      push = { skipped: true, reason: "Pedido de prueba: no se envía push al cliente" };
+    } else if (data.notificarCliente !== false && isWebPushConfigured()) {
       const payload = mensajePushPorEstadoPedido(
         data.estado,
         updated.pedido.taller_nombre,

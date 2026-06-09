@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { allowTallerBorradorEnCliente } from "@/lib/admin-preparacion";
 import { iniciarSesionTaller } from "@/lib/taller.portal.functions";
 import type { TallerSesion } from "@/lib/taller.types";
 import { vaciarCarritoTaller } from "@/lib/taller-carrito";
@@ -39,7 +40,9 @@ export function TallerSessionProvider({ children }: { children: ReactNode }) {
 
     let cancelled = false;
     setLoading(true);
-    iniciarSesionTaller({ data: { whatsapp: w } })
+    iniciarSesionTaller({
+      data: { whatsapp: w, allowNoPublicado: allowTallerBorradorEnCliente() },
+    })
       .then((res) => {
         if (cancelled) return;
         if (res.ok && res.taller) {
@@ -66,7 +69,9 @@ export function TallerSessionProvider({ children }: { children: ReactNode }) {
       }
       setLoading(true);
       try {
-        const res = await iniciarSesionTaller({ data: { whatsapp: w } });
+        const res = await iniciarSesionTaller({
+          data: { whatsapp: w, allowNoPublicado: allowTallerBorradorEnCliente() },
+        });
         if (!res.ok) {
           setTaller(null);
           return { ok: false, reason: res.reason ?? "no_autorizado" };

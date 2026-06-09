@@ -1,0 +1,1250 @@
+{
+  "meta": {
+    "fuente": "inventario-apex-vivo",
+    "actualizado": "2026-06-08",
+    "moneda": "COP",
+    "descuentoTallerRecomendadoPct": 16.67
+  },
+  "piezas": [
+    {
+      "slug": "ktr-4016",
+      "referencia": "KTR-4016",
+      "nombre": "Terminal Dirección Optra DER",
+      "aplicacion": "Terminal Dirección Optra DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 65731,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ksl-1005",
+      "referencia": "KSL-1005",
+      "nombre": "Bieleta Estab. Luv Dmax 4x4 RT50 Del IZQ",
+      "aplicacion": "Bieleta Estab. Luv Dmax 4x4 RT50 Del IZQ",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 58646,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "kbj-4013",
+      "referencia": "KBJ-4013",
+      "nombre": "Rótula Luv 2300 SUP",
+      "aplicacion": "Rótula Luv 2300 SUP",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 72651,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ktr-4035",
+      "referencia": "KTR-4035",
+      "nombre": "Terminal Dirección Sail IZQ",
+      "aplicacion": "Terminal Dirección Sail IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 64046,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "kbj-4001",
+      "referencia": "KBJ-4001",
+      "nombre": "Rótula Aveo-Sail",
+      "aplicacion": "Rótula Aveo-Sail",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 58243,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ktr-4034",
+      "referencia": "KTR-4034",
+      "nombre": "Terminal Dirección Sail DER",
+      "aplicacion": "Terminal Dirección Sail DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 64046,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "kbj-4008",
+      "referencia": "KBJ-4008",
+      "nombre": "Rótula Luv 2300 4x4 D-Max 4x2-4x4 Trooper INF (x2)",
+      "aplicacion": "Rótula Luv 2300 4x4 D-Max 4x2-4x4 Trooper INF (x2)",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 102786,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ktr-4019",
+      "referencia": "KTR-4019",
+      "nombre": "Terminal Dir Spark GT 1.2",
+      "aplicacion": "Terminal Dir Spark GT 1.2",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 66060,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ktr-4015",
+      "referencia": "KTR-4015",
+      "nombre": "Terminal Dir Optra IZQ",
+      "aplicacion": "Terminal Dir Optra IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 65731,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ktr-4002",
+      "referencia": "KTR-4002",
+      "nombre": "Terminal Dir Aveo DER",
+      "aplicacion": "Terminal Dir Aveo DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 60824,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ktr-4003",
+      "referencia": "KTR-4003",
+      "nombre": "Terminal Dir Aveo IZQ",
+      "aplicacion": "Terminal Dir Aveo IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 60824,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ksl-1006",
+      "referencia": "KSL-1006",
+      "nombre": "Bieleta Estab. Luv D-Max 4x4 RT-50 Del DER",
+      "aplicacion": "Bieleta Estab. Luv D-Max 4x4 RT-50 Del DER",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 58646,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ksl-1004",
+      "referencia": "KSL-1004",
+      "nombre": "Bieleta Estab. Spark GT",
+      "aplicacion": "Bieleta Estab. Spark GT",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 48412,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "kre-3015",
+      "referencia": "KRE-3015",
+      "nombre": "Terminal Axial Spark Chronos-Matiz",
+      "aplicacion": "Terminal Axial Spark Chronos-Matiz",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 53812,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "kre-3002",
+      "referencia": "KRE-3002",
+      "nombre": "Terminal Axial Aveo DER",
+      "aplicacion": "Terminal Axial Aveo DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 55497,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ksl-1010",
+      "referencia": "KSL-1010",
+      "nombre": "Bieleta Estab. Optra Del DER",
+      "aplicacion": "Bieleta Estab. Optra Del DER",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 56064,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ksl-1011",
+      "referencia": "KSL-1011",
+      "nombre": "Bieleta Estab. Optra Del IZQ",
+      "aplicacion": "Bieleta Estab. Optra Del IZQ",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 56064,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "kre-3013",
+      "referencia": "KRE-3013",
+      "nombre": "Terminal Axial Sail",
+      "aplicacion": "Terminal Axial Sail",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 54691,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "kre-3026",
+      "referencia": "KRE-3026",
+      "nombre": "Terminal Axial Captiva 3.2 Tracker II 368mm-M14",
+      "aplicacion": "Terminal Axial Captiva 3.2 Tracker II 368mm-M14",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 62747,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ksa-ch043",
+      "referencia": "KSA-CH043",
+      "nombre": "Amortiguador Captiva 18-08 2.4 Del IZQ",
+      "aplicacion": "Amortiguador Captiva 18-08 2.4 Del IZQ",
+      "categoria": "Amortiguadores",
+      "precioLista": 294504,
+      "stock": 1,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ksa-ch042",
+      "referencia": "KSA-CH042",
+      "nombre": "Amortiguador Captiva 18-08 2.4 Del DER",
+      "aplicacion": "Amortiguador Captiva 18-08 2.4 Del DER",
+      "categoria": "Amortiguadores",
+      "precioLista": 294504,
+      "stock": 1,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "kbj-4091",
+      "referencia": "KBJ-4091",
+      "nombre": "Rótula Cobalt-Tracker-Sonic-Onix",
+      "aplicacion": "Rótula Cobalt-Tracker-Sonic-Onix",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 67415,
+      "stock": 2,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "ktr-4018",
+      "referencia": "KTR-4018",
+      "nombre": "Terminal Dir Spark Chronos / Daewoo Matiz-Tico",
+      "aplicacion": "Terminal Dir Spark Chronos / Daewoo Matiz-Tico",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 47039,
+      "stock": 2,
+      "marca": "Chevrolet/Daewoo"
+    },
+    {
+      "slug": "ksa-da001",
+      "referencia": "KSA-DA001",
+      "nombre": "Amortiguador Spark 7.24 / Daewoo Matiz II Del DER",
+      "aplicacion": "Amortiguador Spark 7.24 / Daewoo Matiz II Del DER",
+      "categoria": "Amortiguadores",
+      "precioLista": 159649,
+      "stock": 1,
+      "marca": "Chevrolet/Daewoo"
+    },
+    {
+      "slug": "ksa-da002",
+      "referencia": "KSA-DA002",
+      "nombre": "Amortiguador Spark 7.24 / Daewoo Matiz II Del IZQ",
+      "aplicacion": "Amortiguador Spark 7.24 / Daewoo Matiz II Del IZQ",
+      "categoria": "Amortiguadores",
+      "precioLista": 159649,
+      "stock": 1,
+      "marca": "Chevrolet/Daewoo"
+    },
+    {
+      "slug": "ksl-1001",
+      "referencia": "KSL-1001",
+      "nombre": "Bieleta Estab. Aveo / Allegro",
+      "aplicacion": "Bieleta Estab. Aveo / Allegro",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 48741,
+      "stock": 2,
+      "marca": "Chevrolet/Mazda"
+    },
+    {
+      "slug": "ksl-1013",
+      "referencia": "KSL-1013",
+      "nombre": "Bieleta Estab. Swift-Esteem-Vitara / Nissan Sentra",
+      "aplicacion": "Bieleta Estab. Swift-Esteem-Vitara / Nissan Sentra",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 46874,
+      "stock": 2,
+      "marca": "Chevrolet/Nissan"
+    },
+    {
+      "slug": "ktr-4333",
+      "referencia": "KTR-4333",
+      "nombre": "Terminal Dirección Fiesta 18-12 IZQ",
+      "aplicacion": "Terminal Dirección Fiesta 18-12 IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 50023,
+      "stock": 2,
+      "marca": "Ford"
+    },
+    {
+      "slug": "ktr-4332",
+      "referencia": "KTR-4332",
+      "nombre": "Terminal Dir Ford Fiesta 18-12 DER",
+      "aplicacion": "Terminal Dir Ford Fiesta 18-12 DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 50023,
+      "stock": 2,
+      "marca": "Ford"
+    },
+    {
+      "slug": "kre-3024",
+      "referencia": "KRE-3024",
+      "nombre": "Terminal Axial Ford Fiesta 18-12 SE",
+      "aplicacion": "Terminal Axial Ford Fiesta 18-12 SE",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 53318,
+      "stock": 2,
+      "marca": "Ford"
+    },
+    {
+      "slug": "ksa-fo001",
+      "referencia": "KSA-FO001",
+      "nombre": "Amortiguador Ford Fiesta Del IZQ",
+      "aplicacion": "Amortiguador Ford Fiesta Del IZQ",
+      "categoria": "Amortiguadores",
+      "precioLista": 242217,
+      "stock": 1,
+      "marca": "Ford"
+    },
+    {
+      "slug": "ksa-fo002",
+      "referencia": "KSA-FO002",
+      "nombre": "Amortiguador Ford Fiesta Del DER",
+      "aplicacion": "Amortiguador Ford Fiesta Del DER",
+      "categoria": "Amortiguadores",
+      "precioLista": 242217,
+      "stock": 1,
+      "marca": "Ford"
+    },
+    {
+      "slug": "kre-3103",
+      "referencia": "KRE-3103",
+      "nombre": "Terminal Axial Atos-Santro",
+      "aplicacion": "Terminal Axial Atos-Santro",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 49290,
+      "stock": 2,
+      "marca": "Hyundai"
+    },
+    {
+      "slug": "kbj-4021",
+      "referencia": "KBJ-4021",
+      "nombre": "Rótula Hyundai Atos-Santro",
+      "aplicacion": "Rótula Hyundai Atos-Santro",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 51963,
+      "stock": 2,
+      "marca": "Hyundai"
+    },
+    {
+      "slug": "kbj-4020",
+      "referencia": "KBJ-4020",
+      "nombre": "ROTULA HYUNDAI ACCENT VISION-KIA SEPHIA",
+      "aplicacion": "ROTULA HYUNDAI ACCENT VISION-KIA SEPHIA",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 57675,
+      "stock": 2,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "ktr-4204",
+      "referencia": "KTR-4204",
+      "nombre": "Terminal Dir H Atos-Santro-i10 / Kia Picanto-Stylus",
+      "aplicacion": "Terminal Dir H Atos-Santro-i10 / Kia Picanto-Stylus",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 45922,
+      "stock": 2,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "ktr-4213",
+      "referencia": "KTR-4213",
+      "nombre": "Terminal Dir Accent Vision IZQ / Kia Rio Xcite IZQ",
+      "aplicacion": "Terminal Dir Accent Vision IZQ / Kia Rio Xcite IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 66939,
+      "stock": 2,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "ktr-4212",
+      "referencia": "KTR-4212",
+      "nombre": "Terminal Dir Accent Vision DER / Kia Rio Xcite DER",
+      "aplicacion": "Terminal Dir Accent Vision DER / Kia Rio Xcite DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 66939,
+      "stock": 2,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "ksl-2014",
+      "referencia": "KSL-2014",
+      "nombre": "Bieleta Estab. Hyundai i10 Del DER / Grand i10 / Elantra / Kia Picanto Morning",
+      "aplicacion": "Bieleta Estab. Hyundai i10 Del DER / Grand i10 / Elantra / Kia Picanto Morning",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 49052,
+      "stock": 2,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "kre-3102",
+      "referencia": "KRE-3102",
+      "nombre": "Terminal Axial Accent Vision / Kia Rio Xcite",
+      "aplicacion": "Terminal Axial Accent Vision / Kia Rio Xcite",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 63882,
+      "stock": 2,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "ksl-2003",
+      "referencia": "KSL-2003",
+      "nombre": "Bieleta Estab. Accent Vision / Kia Rio Xcite IZQ",
+      "aplicacion": "Bieleta Estab. Accent Vision / Kia Rio Xcite IZQ",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 52037,
+      "stock": 2,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "ksl-2002",
+      "referencia": "KSL-2002",
+      "nombre": "Bieleta Estab. Accent Vision / Kia Rio Xcite DER",
+      "aplicacion": "Bieleta Estab. Accent Vision / Kia Rio Xcite DER",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 52037,
+      "stock": 2,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "ksl-2013",
+      "referencia": "KSL-2013",
+      "nombre": "Bieleta Estab. Hyundai i10 Del IZQ / Grand i10 / Elantra / Kia Picanto Morning",
+      "aplicacion": "Bieleta Estab. Hyundai i10 Del IZQ / Grand i10 / Elantra / Kia Picanto Morning",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 49052,
+      "stock": 2,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "ksa-hy014",
+      "referencia": "KSA-HY014",
+      "nombre": "Amortiguador Accent Vision / Kia Rio Xcite DEL DER",
+      "aplicacion": "Amortiguador Accent Vision / Kia Rio Xcite DEL DER",
+      "categoria": "Amortiguadores",
+      "precioLista": 230061,
+      "stock": 1,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "ksa-hy015",
+      "referencia": "KSA-HY015",
+      "nombre": "Amortiguador Accent Vision / Kia Rio Xcite DEL IZQ",
+      "aplicacion": "Amortiguador Accent Vision / Kia Rio Xcite DEL IZQ",
+      "categoria": "Amortiguadores",
+      "precioLista": 230061,
+      "stock": 1,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "kbj-4023",
+      "referencia": "KBJ-4023",
+      "nombre": "Rótula Hyundai i10 EON / Kia Picanto Morning Presión",
+      "aplicacion": "Rótula Hyundai i10 EON / Kia Picanto Morning Presión",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 51963,
+      "stock": 2,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "ksa-hy016",
+      "referencia": "KSA-HY016",
+      "nombre": "Amortiguador Accent Vision / Kia Rio Xcite TRAS (x2)",
+      "aplicacion": "Amortiguador Accent Vision / Kia Rio Xcite TRAS (x2)",
+      "categoria": "Amortiguadores",
+      "precioLista": 131144,
+      "stock": 2,
+      "marca": "Hyundai/Kia"
+    },
+    {
+      "slug": "ksa-ki024",
+      "referencia": "KSA-KI024",
+      "nombre": "Amortiguador Picanto ION Delantero Der GAS",
+      "aplicacion": "Amortiguador Picanto ION Delantero Der GAS",
+      "categoria": "Amortiguadores",
+      "precioLista": 181326,
+      "stock": 1,
+      "marca": "Kia"
+    },
+    {
+      "slug": "ktr-4217",
+      "referencia": "KTR-4217",
+      "nombre": "Terminal Dirección Picanto 17-12 ION Xtreme 1.2 IZQ",
+      "aplicacion": "Terminal Dirección Picanto 17-12 ION Xtreme 1.2 IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 72651,
+      "stock": 2,
+      "marca": "Kia"
+    },
+    {
+      "slug": "ktr-4223",
+      "referencia": "KTR-4223",
+      "nombre": "Terminal Dirección Picanto 20-18 ION IZQ",
+      "aplicacion": "Terminal Dirección Picanto 20-18 ION IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 67507,
+      "stock": 2,
+      "marca": "Kia"
+    },
+    {
+      "slug": "ktr-4222",
+      "referencia": "KTR-4222",
+      "nombre": "Terminal Dir Kia Picanto 20-18 ION DER",
+      "aplicacion": "Terminal Dir Kia Picanto 20-18 ION DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 67507,
+      "stock": 2,
+      "marca": "Kia"
+    },
+    {
+      "slug": "ksa-ki025",
+      "referencia": "KSA-KI025",
+      "nombre": "Amortiguador Kia Picanto 17-13 ION Del IZQ GAS",
+      "aplicacion": "Amortiguador Kia Picanto 17-13 ION Del IZQ GAS",
+      "categoria": "Amortiguadores",
+      "precioLista": 181326,
+      "stock": 1,
+      "marca": "Kia"
+    },
+    {
+      "slug": "kre-3114",
+      "referencia": "KRE-3114",
+      "nombre": "Terminal Axial Kia Picanto ION / Hyundai i10 Hidráulico",
+      "aplicacion": "Terminal Axial Kia Picanto ION / Hyundai i10 Hidráulico",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 55735,
+      "stock": 2,
+      "marca": "Kia/Hyundai"
+    },
+    {
+      "slug": "kbj-4030",
+      "referencia": "KBJ-4030",
+      "nombre": "Rótula Kia Picanto ION-Spice 1 Soul / Hyundai i10 Grand Presión",
+      "aplicacion": "Rótula Kia Picanto ION-Spice 1 Soul / Hyundai i10 Grand Presión",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 51707,
+      "stock": 2,
+      "marca": "Kia/Hyundai"
+    },
+    {
+      "slug": "kbj-4042",
+      "referencia": "KBJ-4042",
+      "nombre": "Rótula BT-50 4x2 4x4 SUP Gasol B2000-2200 SUP",
+      "aplicacion": "Rótula BT-50 4x2 4x4 SUP Gasol B2000-2200 SUP",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 63644,
+      "stock": 2,
+      "marca": "Mazda"
+    },
+    {
+      "slug": "ktr-4302",
+      "referencia": "KTR-4302",
+      "nombre": "Terminal Dirección Mazda 2 15-08 IZQ",
+      "aplicacion": "Terminal Dirección Mazda 2 15-08 IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 79663,
+      "stock": 2,
+      "marca": "Mazda"
+    },
+    {
+      "slug": "kbj-4033",
+      "referencia": "KBJ-4033",
+      "nombre": "ROTULA MAZDA 3 BK3P-34-300",
+      "aplicacion": "ROTULA MAZDA 3 BK3P-34-300",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 61136,
+      "stock": 2,
+      "marca": "Mazda"
+    },
+    {
+      "slug": "ktr-4301",
+      "referencia": "KTR-4301",
+      "nombre": "Terminal Dir Mazda 2 15-08 DER",
+      "aplicacion": "Terminal Dir Mazda 2 15-08 DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 77082,
+      "stock": 2,
+      "marca": "Mazda"
+    },
+    {
+      "slug": "ksl-2108",
+      "referencia": "KSL-2108",
+      "nombre": "Bieleta Estab. Mazda 3 13-03 DEL",
+      "aplicacion": "Bieleta Estab. Mazda 3 13-03 DEL",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 52275,
+      "stock": 2,
+      "marca": "Mazda"
+    },
+    {
+      "slug": "ksl-2103",
+      "referencia": "KSL-2103",
+      "nombre": "Bieleta Estab. Mazda 2 22-08 Skyactive / CX30-CX3 Skyactive Del",
+      "aplicacion": "Bieleta Estab. Mazda 2 22-08 Skyactive / CX30-CX3 Skyactive Del",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 54526,
+      "stock": 2,
+      "marca": "Mazda"
+    },
+    {
+      "slug": "kre-3202",
+      "referencia": "KRE-3202",
+      "nombre": "Terminal Axial Mazda 3 10-02",
+      "aplicacion": "Terminal Axial Mazda 3 10-02",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 61941,
+      "stock": 2,
+      "marca": "Mazda"
+    },
+    {
+      "slug": "ktr-4304",
+      "referencia": "KTR-4304",
+      "nombre": "Terminal Dir Mazda 3 14-03 DER",
+      "aplicacion": "Terminal Dir Mazda 3 14-03 DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 58481,
+      "stock": 2,
+      "marca": "Mazda"
+    },
+    {
+      "slug": "ktr-4303",
+      "referencia": "KTR-4303",
+      "nombre": "Terminal Dir Mazda 3 14-03 IZQ",
+      "aplicacion": "Terminal Dir Mazda 3 14-03 IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 58481,
+      "stock": 2,
+      "marca": "Mazda"
+    },
+    {
+      "slug": "ksa-ma001",
+      "referencia": "KSA-MA001",
+      "nombre": "Amortiguador Mazda 2 13-08 Del DER GAS ",
+      "aplicacion": "Amortiguador Mazda 2 13-08 Del DER GAS ",
+      "categoria": "Amortiguadores",
+      "precioLista": 233850,
+      "stock": 1,
+      "marca": "Mazda 2"
+    },
+    {
+      "slug": "ksa-ma002",
+      "referencia": "KSA-MA002",
+      "nombre": "Amortiguador Mazda 2 13-08 Del IZQ GAS ",
+      "aplicacion": "Amortiguador Mazda 2 13-08 Del IZQ GAS ",
+      "categoria": "Amortiguadores",
+      "precioLista": 233850,
+      "stock": 1,
+      "marca": "Mazda 2"
+    },
+    {
+      "slug": "kbj-4085",
+      "referencia": "KBJ-4085",
+      "nombre": "Rótula Mazda 2 15-08 Skyactive 19-16 / Ford Fiesta 17-11",
+      "aplicacion": "Rótula Mazda 2 15-08 Skyactive 19-16 / Ford Fiesta 17-11",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 60824,
+      "stock": 2,
+      "marca": "Mazda/Ford"
+    },
+    {
+      "slug": "kbj-4043",
+      "referencia": "KBJ-4043",
+      "nombre": "Rótula BT-50 4x4 INF Cono 19.5mm / Ford Ranger 4x4 INF",
+      "aplicacion": "Rótula BT-50 4x4 INF Cono 19.5mm / Ford Ranger 4x4 INF",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 86034,
+      "stock": 2,
+      "marca": "Mazda/Ford"
+    },
+    {
+      "slug": "ktr-4308",
+      "referencia": "KTR-4308",
+      "nombre": "Terminal Dirección M6 / Ford Edge-Fusion DER",
+      "aplicacion": "Terminal Dirección M6 / Ford Edge-Fusion DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 80706,
+      "stock": 2,
+      "marca": "Mazda/Ford"
+    },
+    {
+      "slug": "ktr-4309",
+      "referencia": "KTR-4309",
+      "nombre": "Terminal Dir M6 / Ford Edge-Fusion IZQ",
+      "aplicacion": "Terminal Dir M6 / Ford Edge-Fusion IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 79095,
+      "stock": 2,
+      "marca": "Mazda/Ford"
+    },
+    {
+      "slug": "ksl-2107",
+      "referencia": "KSL-2107",
+      "nombre": "Bieleta Estab. Mazda 2 07-02 / Ford Fiesta-Fusion",
+      "aplicacion": "Bieleta Estab. Mazda 2 07-02 / Ford Fiesta-Fusion",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 53318,
+      "stock": 2,
+      "marca": "Mazda/Ford"
+    },
+    {
+      "slug": "kre-3210",
+      "referencia": "KRE-3210",
+      "nombre": "Terminal Axial Mazda 2 15-07 / Kia Picanto ION Dir Mecánica M14x1.5",
+      "aplicacion": "Terminal Axial Mazda 2 15-07 / Kia Picanto ION Dir Mecánica M14x1.5",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 64852,
+      "stock": 2,
+      "marca": "Mazda/Kia"
+    },
+    {
+      "slug": "kbj-4053",
+      "referencia": "KBJ-4053",
+      "nombre": "Rótula D22 4x2-4x4 Frontier 4x4 SUP",
+      "aplicacion": "Rótula D22 4x2-4x4 Frontier 4x4 SUP",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 63387,
+      "stock": 2,
+      "marca": "Nissan"
+    },
+    {
+      "slug": "kbj-4051",
+      "referencia": "KBJ-4051",
+      "nombre": "Rótula D21 Frontier NP300 4x2 Gasol INF Urban INF",
+      "aplicacion": "Rótula D21 Frontier NP300 4x2 Gasol INF Urban INF",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 86107,
+      "stock": 2,
+      "marca": "Nissan"
+    },
+    {
+      "slug": "ktr-5129",
+      "referencia": "KTR-5129",
+      "nombre": "Terminal Dirección March IZQ",
+      "aplicacion": "Terminal Dirección March IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 68385,
+      "stock": 2,
+      "marca": "Nissan"
+    },
+    {
+      "slug": "ktr-5130",
+      "referencia": "KTR-5130",
+      "nombre": "Terminal Dirección March K11 Note DER",
+      "aplicacion": "Terminal Dirección March K11 Note DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 68385,
+      "stock": 2,
+      "marca": "Nissan"
+    },
+    {
+      "slug": "ksa-re047",
+      "referencia": "KSA-RE047",
+      "nombre": "AMORTIGUADOR RENAULT CLIO CAMPUS DEL Esp Largo - Plato Bajo peq",
+      "aplicacion": "AMORTIGUADOR RENAULT CLIO CAMPUS DEL Esp Largo - Plato Bajo peq",
+      "categoria": "Amortiguadores",
+      "precioLista": 252140,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "kbj-4068",
+      "referencia": "KBJ-4068",
+      "nombre": "Rótula Logan 15-06 Sandero 15-06 MG2 SC2",
+      "aplicacion": "Rótula Logan 15-06 Sandero 15-06 MG2 SC2",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 49382,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "kbj-4064",
+      "referencia": "KBJ-4064",
+      "nombre": "Rótula R9-19-21RC-CL-TW",
+      "aplicacion": "Rótula R9-19-21RC-CL-TW",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 57511,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "kbj-4065",
+      "referencia": "KBJ-4065",
+      "nombre": "Rótula Clio 2",
+      "aplicacion": "Rótula Clio 2",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 65969,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "kbj-4108",
+      "referencia": "KBJ-4108",
+      "nombre": "Rótula Logan 23-16 Sandero 23-16 STW 23-16",
+      "aplicacion": "Rótula Logan 23-16 Sandero 23-16 STW 23-16",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 55424,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ktr-6013",
+      "referencia": "KTR-6013",
+      "nombre": "Terminal Dirección Megane 2 IZQ",
+      "aplicacion": "Terminal Dirección Megane 2 IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 81366,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ktr-6014",
+      "referencia": "KTR-6014",
+      "nombre": "Terminal Dirección Megane 2 DER",
+      "aplicacion": "Terminal Dirección Megane 2 DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 81366,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "kbj-4066",
+      "referencia": "KBJ-4066",
+      "nombre": "Rótula Duster",
+      "aplicacion": "Rótula Duster",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 78784,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ktr-6007",
+      "referencia": "KTR-6007",
+      "nombre": "Terminal Dir Logan I IZQ",
+      "aplicacion": "Terminal Dir Logan I IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 64998,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ktr-6005",
+      "referencia": "KTR-6005",
+      "nombre": "Terminal Dir Duster 4x4 IZQ",
+      "aplicacion": "Terminal Dir Duster 4x4 IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 83782,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "kre-6215",
+      "referencia": "KRE-6215",
+      "nombre": "Terminal Axial Megane II - Scenic II",
+      "aplicacion": "Terminal Axial Megane II - Scenic II",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 63479,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ktr-6006",
+      "referencia": "KTR-6006",
+      "nombre": "Terminal Dir Duster 4x4 DER",
+      "aplicacion": "Terminal Dir Duster 4x4 DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 83782,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ksl-3008",
+      "referencia": "KSL-3008",
+      "nombre": "Bieleta Estab. Twingo 16V DER",
+      "aplicacion": "Bieleta Estab. Twingo 16V DER",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 56064,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "kre-6217",
+      "referencia": "KRE-6217",
+      "nombre": "Terminal Axial Logan II 20-11 Sandero II-Stepway II",
+      "aplicacion": "Terminal Axial Logan II 20-11 Sandero II-Stepway II",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 63479,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ksl-3007",
+      "referencia": "KSL-3007",
+      "nombre": "Bieleta Estab. Twingo 16V IZQ",
+      "aplicacion": "Bieleta Estab. Twingo 16V IZQ",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 56064,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "kre-6211",
+      "referencia": "KRE-6211",
+      "nombre": "Terminal Axial Logan I 10-06 Sandero I rosca delgada",
+      "aplicacion": "Terminal Axial Logan I 10-06 Sandero I rosca delgada",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 58481,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ksl-3002",
+      "referencia": "KSL-3002",
+      "nombre": "Bieleta Estab. Duster",
+      "aplicacion": "Bieleta Estab. Duster",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 52201,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ktr-6008",
+      "referencia": "KTR-6008",
+      "nombre": "Terminal Dir Logan I DER",
+      "aplicacion": "Terminal Dir Logan I DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 64998,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "kre-6209",
+      "referencia": "KRE-6209",
+      "nombre": "Terminal Axial Clio II-Megane I-Scenic I Larga 310mm",
+      "aplicacion": "Terminal Axial Clio II-Megane I-Scenic I Larga 310mm",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 58078,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "kre-6216",
+      "referencia": "KRE-6216",
+      "nombre": "Terminal Axial Twingo",
+      "aplicacion": "Terminal Axial Twingo",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 59213,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ksa-re018",
+      "referencia": "KSA-RE018",
+      "nombre": "AMORTIGUADOR RENAULT LOGAN 22-16 DELANTERO 277mm x2",
+      "aplicacion": "AMORTIGUADOR RENAULT LOGAN 22-16 DELANTERO 277mm x2",
+      "categoria": "Amortiguadores",
+      "precioLista": 207835,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ktr-6015",
+      "referencia": "KTR-6015",
+      "nombre": "Terminal Dir Clio II-SY-Megane I-Kangoo-TW II IZQ",
+      "aplicacion": "Terminal Dir Clio II-SY-Megane I-Kangoo-TW II IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 53483,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ktr-6016",
+      "referencia": "KTR-6016",
+      "nombre": "Terminal Dir Clio II-SY-Megane I-Kangoo-TW II DER",
+      "aplicacion": "Terminal Dir Clio II-SY-Megane I-Kangoo-TW II DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 53483,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ksa-re028",
+      "referencia": "KSA-RE028",
+      "nombre": "Amortiguador Renault Kwid DEL (x2)",
+      "aplicacion": "Amortiguador Renault Kwid DEL (x2)",
+      "categoria": "Amortiguadores",
+      "precioLista": 213218,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "ksa-re029",
+      "referencia": "KSA-RE029",
+      "nombre": "Amortiguador Renault Kwid TRAS (x2)",
+      "aplicacion": "Amortiguador Renault Kwid TRAS (x2)",
+      "categoria": "Amortiguadores",
+      "precioLista": 132828,
+      "stock": 2,
+      "marca": "Renault"
+    },
+    {
+      "slug": "kre-6401",
+      "referencia": "KRE-6401",
+      "nombre": "Terminal Axial Swift 1.2 1.4 18-13",
+      "aplicacion": "Terminal Axial Swift 1.2 1.4 18-13",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 62344,
+      "stock": 2,
+      "marca": "Suzuki"
+    },
+    {
+      "slug": "ksl-5151",
+      "referencia": "KSL-5151",
+      "nombre": "Bieleta Estab. Hilux Vigo 4x4 Fortuner-Prado Del IZQ",
+      "aplicacion": "Bieleta Estab. Hilux Vigo 4x4 Fortuner-Prado Del IZQ",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 59451,
+      "stock": 2,
+      "marca": "Toyota"
+    },
+    {
+      "slug": "ksl-5150",
+      "referencia": "KSL-5150",
+      "nombre": "Bieleta Estab. Hilux Vigo 4x4 Fortuner-Prado Del DER",
+      "aplicacion": "Bieleta Estab. Hilux Vigo 4x4 Fortuner-Prado Del DER",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 59451,
+      "stock": 2,
+      "marca": "Toyota"
+    },
+    {
+      "slug": "kre-5206",
+      "referencia": "KRE-5206",
+      "nombre": "Terminal Axial Hilux Vigo 4x4 05 Fortuner-Revo",
+      "aplicacion": "Terminal Axial Hilux Vigo 4x4 05 Fortuner-Revo",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 64852,
+      "stock": 2,
+      "marca": "Toyota"
+    },
+    {
+      "slug": "kbj-6108",
+      "referencia": "KBJ-6108",
+      "nombre": "Rótula VW Golf 1.6 Jetta 1.8-2.0 DER",
+      "aplicacion": "Rótula VW Golf 1.6 Jetta 1.8-2.0 DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 68385,
+      "stock": 2,
+      "marca": "Volkswagen"
+    },
+    {
+      "slug": "kbj-6109",
+      "referencia": "KBJ-6109",
+      "nombre": "Rótula VW Golf 1.6 Jetta 1.8-2.0 IZQ",
+      "aplicacion": "Rótula VW Golf 1.6 Jetta 1.8-2.0 IZQ",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 65090,
+      "stock": 2,
+      "marca": "Volkswagen"
+    },
+    {
+      "slug": "kre-6802",
+      "referencia": "KRE-6802",
+      "nombre": "Terminal Axial VW Golf IV DER",
+      "aplicacion": "Terminal Axial VW Golf IV DER",
+      "categoria": "Terminales y Rótulas",
+      "precioLista": 59524,
+      "stock": 2,
+      "marca": "Volkswagen"
+    },
+    {
+      "slug": "ksl-6022",
+      "referencia": "KSL-6022",
+      "nombre": "Bieleta Estab. VW Golf-Jetta 03-00",
+      "aplicacion": "Bieleta Estab. VW Golf-Jetta 03-00",
+      "categoria": "Bujes y Bieletas",
+      "precioLista": 54783,
+      "stock": 2,
+      "marca": "Volkswagen"
+    },
+    {
+      "slug": "7700820028",
+      "referencia": "7700820028",
+      "nombre": "TIJERA DEL LH TWINGO",
+      "aplicacion": "TIJERA DEL LH TWINGO",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 130770,
+      "stock": 1,
+      "marca": "Renault"
+    },
+    {
+      "slug": "7700820029",
+      "referencia": "7700820029",
+      "nombre": "TIJERA DEL LH TWINGO",
+      "aplicacion": "TIJERA DEL LH TWINGO",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 130770,
+      "stock": 1,
+      "marca": "Renault"
+    },
+    {
+      "slug": "54501-1697r",
+      "referencia": "54501-1697R",
+      "nombre": "TIJERA DELANTERA RH TWINGO",
+      "aplicacion": "TIJERA DELANTERA RH TWINGO",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 146154,
+      "stock": 1,
+      "marca": "Renault"
+    },
+    {
+      "slug": "545001138r",
+      "referencia": "545001138R",
+      "nombre": "TIJERA DELANTERA RH DUSTER/OROCH",
+      "aplicacion": "TIJERA DELANTERA RH DUSTER/OROCH",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 146154,
+      "stock": 1,
+      "marca": "Renault"
+    },
+    {
+      "slug": "54500a269r",
+      "referencia": "54500A269R",
+      "nombre": "TIJERA DEL LH DUSTER/OROCH",
+      "aplicacion": "TIJERA DEL LH DUSTER/OROCH",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 123078,
+      "stock": 1,
+      "marca": "Renault"
+    },
+    {
+      "slug": "54500a268r",
+      "referencia": "54500A268R",
+      "nombre": "TIJERA DEL RH LOGAN/SANDERO/2016",
+      "aplicacion": "TIJERA DEL RH LOGAN/SANDERO/2016",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 123078,
+      "stock": 1,
+      "marca": "Renault"
+    },
+    {
+      "slug": "545010294r",
+      "referencia": "545010294R",
+      "nombre": "TIJERA DEL LH LOGAN II/SANDERO II",
+      "aplicacion": "TIJERA DEL LH LOGAN II/SANDERO II",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 123078,
+      "stock": 1,
+      "marca": "Renault"
+    },
+    {
+      "slug": "545004529r",
+      "referencia": "545004529R",
+      "nombre": "TIJERA DEL LH LOGAN II/SANDERO II",
+      "aplicacion": "TIJERA DEL LH LOGAN II/SANDERO II",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 123078,
+      "stock": 1,
+      "marca": "Renault"
+    },
+    {
+      "slug": "54501-0000m",
+      "referencia": "54501-0000M",
+      "nombre": "TIJERA DEL LH CLIO II/SYMBOL",
+      "aplicacion": "TIJERA DEL LH CLIO II/SYMBOL",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 123078,
+      "stock": 1,
+      "marca": "Renault"
+    },
+    {
+      "slug": "5450-0000m",
+      "referencia": "5450-0000M",
+      "nombre": "TIJERA DEL RH CLIO II/SYMBOL",
+      "aplicacion": "TIJERA DEL RH CLIO II/SYMBOL",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 123078,
+      "stock": 1,
+      "marca": "Renault"
+    },
+    {
+      "slug": "96535081",
+      "referencia": "96535081",
+      "nombre": "TIJERA LH AVEO/SAIL",
+      "aplicacion": "TIJERA LH AVEO/SAIL",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 92307,
+      "stock": 1,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "96535082",
+      "referencia": "96535082",
+      "nombre": "TIJERA RH AVEO/SAIL",
+      "aplicacion": "TIJERA RH AVEO/SAIL",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 92307,
+      "stock": 1,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "2595128",
+      "referencia": "2595128",
+      "nombre": "TIJERA DEL RH CAPTIVA",
+      "aplicacion": "TIJERA DEL RH CAPTIVA",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 230769,
+      "stock": 1,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "96819162",
+      "referencia": "96819162",
+      "nombre": "TIJERA DEL LH CAPTIVA",
+      "aplicacion": "TIJERA DEL LH CAPTIVA",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 230769,
+      "stock": 1,
+      "marca": "Chevrolet"
+    },
+    {
+      "slug": "b32h-34-350",
+      "referencia": "B32H-34-350",
+      "nombre": "TIJERA DEL LH MAZDA 3",
+      "aplicacion": "TIJERA DEL LH MAZDA 3",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 200000,
+      "stock": 1,
+      "marca": "Mazda"
+    },
+    {
+      "slug": "b32h-34-300",
+      "referencia": "B32H-34-300",
+      "nombre": "TIJERA DEL RH MAZDA 3",
+      "aplicacion": "TIJERA DEL RH MAZDA 3",
+      "categoria": "Tijeras y Brazos",
+      "precioLista": 200000,
+      "stock": 1,
+      "marca": "Mazda"
+    }
+  ]
+}

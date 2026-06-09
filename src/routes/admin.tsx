@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
+import AdminCatalogoStatus from "@/components/AdminCatalogoStatus";
 import AdminDispatchPanel, { ActiveRouteBanner } from "@/components/AdminDispatchPanel";
+import AdminInventarioPanel from "@/components/AdminInventarioPanel";
 import AdminPushPanel from "@/components/AdminPushPanel";
 import AdminSoportePwaPanel from "@/components/AdminSoportePwaPanel";
 import AdminTalleresPanel from "@/components/AdminTalleresPanel";
@@ -14,6 +16,10 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  ADMIN_PREPARACION_EVENT,
+  isModoPreparacion,
+} from "@/lib/admin-preparacion";
 import { listarPedidosRecientes } from "@/lib/pedidos.functions";
 
 type Pedido = {
@@ -24,6 +30,7 @@ type Pedido = {
   direccion: string | null;
   notas: string | null;
   created_at: string;
+  es_prueba?: boolean;
 };
 
 const RATE_WINDOW_MS = 10 * 60_000;
@@ -181,23 +188,37 @@ function googleMapsRouteUrl(addresses: string[]) {
   return url.toString();
 }
 
-type AdminTab = "talleres" | "operacion" | "soporte";
+type AdminTab = "talleres" | "inventario" | "operacion" | "soporte";
 
 function AdminAuthed({ onLogout }: { onLogout: () => void }) {
   const adminPin =
     typeof window !== "undefined" ? (window.sessionStorage.getItem(PIN_STORAGE_KEY) ?? "") : "";
   const [tab, setTab] = useState<AdminTab>("talleres");
   const [minutes] = useState(120);
+  const [modoPreparacion, setModoPreparacion] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
 
+  useEffect(() => {
+    setModoPreparacion(isModoPreparacion());
+    const onChange = () => setModoPreparacion(isModoPreparacion());
+    window.addEventListener(ADMIN_PREPARACION_EVENT, onChange);
+    return () => window.removeEventListener(ADMIN_PREPARACION_EVENT, onChange);
+  }, []);
+
   async function refresh() {
     setLoading(true);
     setError(null);
     try {
-      const res = await listarPedidosRecientes({ data: { minutes } });
+      const res = await listarPedidosRecientes({
+        data: {
+          minutes,
+          soloPrueba: modoPreparacion,
+          soloProduccion: !modoPreparacion,
+        },
+      });
       if (!res.ok) {
         setError(res.reason);
         setPedidos([]);
@@ -216,7 +237,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [modoPreparacion]);
 
   const selectedPedidos = pedidos.filter((p) => selected[p.id]);
   const routeUrl = googleMapsRouteUrl(
@@ -233,6 +254,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
             <p className="text-xs text-gray-500 mt-1">
               Uso interno (despachos, rutas y operación). Ventana actual: {minutes} min.
             </p>
+            <AdminCatalogoStatus adminPin={adminPin} />
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -255,6 +277,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
           {(
             [
               ["talleres", "Talleres"],
+              ["inventario", "Inventario"],
               ["operacion", "Operación y pedidos"],
               ["soporte", "Soporte PWA"],
             ] as const
@@ -274,9 +297,25 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
           ))}
         </nav>
 
-        {tab === "talleres" && <AdminTalleresPanel adminPin={adminPin} />}
+        {modoPreparacion && (
+          <p className="mb-4 text-xs text-amber-200/90 rounded-lg border border-amber-500/30 bg-amber-950/30 px-3 py-2">
+            Modo preparación activo: talleres nuevos en borrador, pedidos de prueba separados. Publica
+            desde la pestaña Soporte PWA cuando vayas a operación real.
+          </p>
+        )}
 
-        {tab === "soporte" && <AdminSoportePwaPanel />}
+        {tab === "talleres" && (
+          <AdminTalleresPanel adminPin={adminPin} modoPreparacion={modoPreparacion} />
+        )}
+
+        {tab === "inventario" && <AdminInventarioPanel adminPin={adminPin} />}
+
+        {tab === "soporte" && (
+          <AdminSoportePwaPanel
+            adminPin={adminPin}
+            onPreparacionChange={() => setModoPreparacion(isModoPreparacion())}
+          />
+        )}
 
         {tab === "operacion" && (
           <>
@@ -287,7 +326,9 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
             <div>
               <p className="text-sm font-semibold text-white">Pedidos recientes</p>
               <p className="text-xs text-gray-500 mt-1">
-                Selecciona pedidos para crear una ruta en Google Maps (origen: tu ubicación actual).
+                {modoPreparacion
+                  ? "Solo pedidos de prueba (simulacros). No uses para rutas reales."
+                  : "Pedidos reales. Selecciona para ruta en Google Maps."}
               </p>
             </div>
             <Button
@@ -320,7 +361,12 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-white">{p.taller_nombre}</p>
+                      <p className="text-sm font-semibold text-white">
+                        {p.taller_nombre}
+                        {p.es_prueba && (
+                          <span className="ml-2 text-[10px] font-normal text-amber-400">prueba</span>
+                        )}
+                      </p>
                       <p className="text-xs text-gray-400 mt-0.5">
                         {p.direccion ?? "Sin dirección"}
                       </p>

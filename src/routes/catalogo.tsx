@@ -12,6 +12,7 @@ import type { PiezaInventario } from "@/lib/inventario";
 import { marcaInfo } from "@/lib/marcas";
 import { formatoPrecioCop } from "@/lib/formato-cop";
 import { agregarAlCarritoTaller } from "@/lib/taller-carrito";
+import { allowTallerBorradorEnCliente } from "@/lib/admin-preparacion";
 import { obtenerCatalogoTaller } from "@/lib/taller.portal.functions";
 import type { PiezaCatalogoTaller } from "@/lib/taller.types";
 import { enlaceWhatsApp, mensajeConfirmacionCotizacion } from "@/lib/whatsapp";
@@ -63,6 +64,7 @@ function CatalogoPage() {
   const { piezas: piezasPublicas, moneda } = Route.useLoaderData();
   const { taller, whatsappGuardado: whatsappTaller } = useTallerSession();
   const [piezasTaller, setPiezasTaller] = useState<PiezaCatalogoTaller[] | null>(null);
+  const [fuenteTaller, setFuenteTaller] = useState<"supabase" | "json" | null>(null);
   const [cargandoTaller, setCargandoTaller] = useState(false);
   const [q, setQ] = useState("");
   const [whatsappGuardado] = usePersistentState("apex.whatsapp", "");
@@ -74,15 +76,26 @@ function CatalogoPage() {
   useEffect(() => {
     if (!taller || !whatsappTaller) {
       setPiezasTaller(null);
+      setFuenteTaller(null);
       return;
     }
     let cancelled = false;
     setCargandoTaller(true);
-    obtenerCatalogoTaller({ data: { whatsapp: whatsappTaller } })
+    obtenerCatalogoTaller({
+      data: {
+        whatsapp: whatsappTaller,
+        allowNoPublicado: allowTallerBorradorEnCliente(),
+      },
+    })
       .then((res) => {
         if (cancelled) return;
-        if (res.ok) setPiezasTaller(res.piezas);
-        else setPiezasTaller(null);
+        if (res.ok) {
+          setPiezasTaller(res.piezas);
+          setFuenteTaller(res.fuente);
+        } else {
+          setPiezasTaller(null);
+          setFuenteTaller(null);
+        }
       })
       .finally(() => {
         if (!cancelled) setCargandoTaller(false);
@@ -93,9 +106,12 @@ function CatalogoPage() {
   }, [taller, whatsappTaller]);
 
   const piezasBase: PiezaVista[] = useMemo(() => {
-    if (piezasTaller) return piezasTaller;
+    if (taller) {
+      if (piezasTaller) return piezasTaller;
+      return [];
+    }
     return piezasPublicas;
-  }, [piezasPublicas, piezasTaller]);
+  }, [piezasPublicas, piezasTaller, taller]);
 
   const marcasOpts = useMemo(() => {
     const set = new Set(piezasBase.map((p) => p.marca));
@@ -143,8 +159,14 @@ function CatalogoPage() {
               Catálogo
             </h1>
             <p className="text-xs text-gray-500 mt-0.5">
-              Stock y precios actualizados · {moneda}
-              {cargandoTaller ? " · actualizando precio taller…" : ""}
+              Stock y precios · {moneda}
+              {taller && !cargandoTaller && fuenteTaller === "supabase" && (
+                <span className="text-emerald-400/90"> · catálogo en vivo (base de datos)</span>
+              )}
+              {taller && !cargandoTaller && fuenteTaller === "json" && (
+                <span className="text-amber-400/90"> · datos de ejemplo (sin Supabase en servidor)</span>
+              )}
+              {cargandoTaller ? " · cargando precio taller…" : ""}
             </p>
           </div>
           {!taller && (
@@ -244,6 +266,22 @@ function CatalogoPage() {
           </label>
         </div>
 
+        {taller && cargandoTaller && (
+          <p className="text-center text-sm text-emerald-200/80 py-12">
+            Cargando catálogo con tu precio de taller…
+          </p>
+        )}
+
+        {taller && !cargandoTaller && piezasTaller === null && (
+          <p className="text-center text-sm text-red-300/90 py-12">
+            No pudimos cargar tu catálogo de taller. Cierra sesión e ingresa de nuevo en{" "}
+            <Link to="/taller/acceso" className="text-emerald-400 underline">
+              acceso taller
+            </Link>
+            .
+          </p>
+        )}
+
         <ul className="space-y-3">
           {piezas.map((p) => (
             <li key={p.slug}>
@@ -327,7 +365,7 @@ function CatalogoPage() {
           ))}
         </ul>
 
-        {piezas.length === 0 && (
+        {piezas.length === 0 && !(taller && cargandoTaller) && !(taller && !cargandoTaller && piezasTaller === null) && (
           <p className="text-center text-gray-500 py-12">No hay resultados para esa búsqueda.</p>
         )}
 

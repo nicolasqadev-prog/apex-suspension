@@ -10,10 +10,12 @@ import {
   listarTalleresAdmin,
   reactivarTallerAdmin,
 } from "@/lib/admin-talleres.functions";
+import { setModoPreparacion } from "@/lib/admin-preparacion";
 import type { TallerFidelizadoAdmin } from "@/lib/talleres-admin.server";
 
 type Props = {
   adminPin: string;
+  modoPreparacion: boolean;
 };
 
 const emptyForm = {
@@ -23,7 +25,7 @@ const emptyForm = {
   contraEntregaHabilitada: true,
 };
 
-export default function AdminTalleresPanel({ adminPin }: Props) {
+export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props) {
   const [talleres, setTalleres] = useState<TallerFidelizadoAdmin[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -57,6 +59,9 @@ export default function AdminTalleresPanel({ adminPin }: Props) {
     e.preventDefault();
     if (!adminPin) return;
     setMessage(null);
+    const existing = editingWhatsapp
+      ? talleres.find((t) => t.whatsapp === editingWhatsapp)
+      : null;
     const res = await guardarTallerAdmin({
       data: {
         adminPin,
@@ -65,6 +70,7 @@ export default function AdminTalleresPanel({ adminPin }: Props) {
         descuentoPorcentaje: Number(form.descuentoPorcentaje) || 0,
         contraEntregaHabilitada: form.contraEntregaHabilitada,
         activo: true,
+        publicado: modoPreparacion ? (existing ? existing.publicado : false) : true,
       },
     });
     if (!res.ok) {
@@ -73,8 +79,12 @@ export default function AdminTalleresPanel({ adminPin }: Props) {
     }
     setMessage(
       editingWhatsapp
-        ? `Taller actualizado: ${res.taller.nombreTaller}`
-        : `Taller registrado: ${res.taller.nombreTaller}. Ya puede entrar con ese WhatsApp.`,
+        ? modoPreparacion
+          ? `Taller actualizado en borrador: ${res.taller.nombreTaller}`
+          : `Taller actualizado en vivo: ${res.taller.nombreTaller}`
+        : modoPreparacion
+          ? `Taller en borrador: ${res.taller.nombreTaller}. Publícalo desde Soporte cuando esté listo.`
+          : `Taller en operación: ${res.taller.nombreTaller}. Ya puede entrar en /taller/acceso.`,
     );
     setForm(emptyForm);
     setEditingWhatsapp(null);
@@ -132,6 +142,7 @@ export default function AdminTalleresPanel({ adminPin }: Props) {
   }
 
   function abrirCatalogoComo(t: TallerFidelizadoAdmin) {
+    setModoPreparacion(true);
     try {
       localStorage.setItem("apex.taller.whatsapp", JSON.stringify(t.whatsapp));
     } catch {
@@ -147,9 +158,9 @@ export default function AdminTalleresPanel({ adminPin }: Props) {
         <div>
           <p className="text-sm font-semibold text-white">Talleres fidelizados</p>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-            Alta y baja en tiempo real. Al guardar, el taller entra con su WhatsApp en{" "}
-            <strong className="text-gray-300">/taller/acceso</strong> y ve el catálogo con su
-            descuento.
+            {modoPreparacion
+              ? "Con modo preparación activo, los talleres quedan en borrador hasta publicar operación."
+              : "Al guardar, el taller queda en operación y puede entrar en /taller/acceso."}
           </p>
         </div>
       </div>
@@ -223,7 +234,7 @@ export default function AdminTalleresPanel({ adminPin }: Props) {
 
       <div className="flex items-center justify-between gap-2 mb-3">
         <p className="text-xs font-semibold text-gray-300">
-          Registrados ({talleres.length}) · {loading ? "actualizando…" : "en vivo"}
+          Registrados ({talleres.length}) · {loading ? "actualizando…" : modoPreparacion ? "borrador" : "operación"}
         </p>
         <Button
           type="button"
@@ -251,7 +262,12 @@ export default function AdminTalleresPanel({ adminPin }: Props) {
                 <p className="text-xs text-gray-400 font-mono mt-0.5">{t.whatsapp}</p>
                 <p className="text-xs text-emerald-300/90 mt-1">
                   {t.descuentoPorcentaje}% desc. · CE: {t.contraEntregaHabilitada ? "sí" : "no"} ·{" "}
-                  {t.activo ? "activo" : "inactivo"}
+                  {t.activo ? "activo" : "inactivo"} ·{" "}
+                  {t.publicado ? (
+                    <span className="text-emerald-400">en operación</span>
+                  ) : (
+                    <span className="text-amber-400">borrador</span>
+                  )}
                 </p>
               </div>
               <div className="flex flex-wrap gap-1.5 shrink-0">

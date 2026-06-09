@@ -21,15 +21,17 @@ export const crearPedidoDesdeWeb = createServerFn({ method: "POST" })
 
 export const listarPedidosRecientes = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => {
-    const minutes =
-      typeof data === "object" &&
-      data !== null &&
-      "minutes" in data &&
-      typeof (data as { minutes?: unknown }).minutes === "number"
-        ? (data as { minutes: number }).minutes
-        : 30;
-    return { minutes: Math.max(5, Math.min(240, minutes)) };
+    const d = typeof data === "object" && data !== null ? (data as Record<string, unknown>) : {};
+    const minutes = typeof d.minutes === "number" ? d.minutes : 30;
+    return {
+      minutes: Math.max(5, Math.min(240, minutes)),
+      soloPrueba: d.soloPrueba === true,
+      soloProduccion: d.soloProduccion === true,
+    };
   })
   .handler(async ({ data }) => {
-    return listPedidosRecientes(data.minutes);
+    return listPedidosRecientes(data.minutes, {
+      soloPrueba: data.soloPrueba,
+      soloProduccion: data.soloProduccion,
+    });
   });

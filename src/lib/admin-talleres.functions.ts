@@ -19,6 +19,7 @@ const TallerSchema = PinSchema.extend({
   descuentoPorcentaje: z.number().min(0).max(50),
   contraEntregaHabilitada: z.boolean(),
   activo: z.boolean().optional(),
+  publicado: z.boolean().optional(),
 });
 
 const WhatsappPinSchema = PinSchema.extend({
@@ -48,6 +49,7 @@ export const guardarTallerAdmin = createServerFn({ method: "POST" })
       descuentoPorcentaje: data.descuentoPorcentaje,
       contraEntregaHabilitada: data.contraEntregaHabilitada,
       activo: data.activo,
+      publicado: data.publicado,
     });
   });
 

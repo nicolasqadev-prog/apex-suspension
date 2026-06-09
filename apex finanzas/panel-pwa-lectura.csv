@@ -1,0 +1,125 @@
+﻿referencia,descripcion,stock_piezas,precio_publico_pwa,precio_taller_referencia,marca,activo
+KTR-4016,Terminal Dirección Optra DER,2,65731,54776,Chevrolet,True
+KSL-1005,Bieleta Estab. Luv Dmax 4x4 RT50 Del IZQ,2,58646,48871,Chevrolet,True
+KBJ-4013,Rótula Luv 2300 SUP,2,72651,60543,Chevrolet,True
+KTR-4035,Terminal Dirección Sail IZQ,2,64046,53372,Chevrolet,True
+KBJ-4001,Rótula Aveo-Sail,2,58243,48536,Chevrolet,True
+KTR-4034,Terminal Dirección Sail DER,2,64046,53372,Chevrolet,True
+KBJ-4008,Rótula Luv 2300 4x4 D-Max 4x2-4x4 Trooper INF (x2),2,102786,85655,Chevrolet,True
+KTR-4019,Terminal Dir Spark GT 1.2,2,66060,55050,Chevrolet,True
+KTR-4015,Terminal Dir Optra IZQ,2,65731,54776,Chevrolet,True
+KTR-4002,Terminal Dir Aveo DER,2,60824,50687,Chevrolet,True
+KTR-4003,Terminal Dir Aveo IZQ,2,60824,50687,Chevrolet,True
+KSL-1006,Bieleta Estab. Luv D-Max 4x4 RT-50 Del DER,2,58646,48871,Chevrolet,True
+KSL-1004,Bieleta Estab. Spark GT,2,48412,40343,Chevrolet,True
+KRE-3015,Terminal Axial Spark Chronos-Matiz,2,53812,44844,Chevrolet,True
+KRE-3002,Terminal Axial Aveo DER,2,55497,46247,Chevrolet,True
+KSL-1010,Bieleta Estab. Optra Del DER,2,56064,46720,Chevrolet,True
+KSL-1011,Bieleta Estab. Optra Del IZQ,2,56064,46720,Chevrolet,True
+KRE-3013,Terminal Axial Sail,2,54691,45576,Chevrolet,True
+KRE-3026,Terminal Axial Captiva 3.2 Tracker II 368mm-M14,2,62747,52289,Chevrolet,True
+KSA-CH043,Amortiguador Captiva 18-08 2.4 Del IZQ,1,294504,245420,Chevrolet,True
+KSA-CH042,Amortiguador Captiva 18-08 2.4 Del DER,1,294504,245420,Chevrolet,True
+KBJ-4091,Rótula Cobalt-Tracker-Sonic-Onix,2,67415,56179,Chevrolet,True
+KTR-4018,Terminal Dir Spark Chronos / Daewoo Matiz-Tico,2,47039,39199,Chevrolet/Daewoo,True
+KSA-DA001,Amortiguador Spark 7.24 / Daewoo Matiz II Del DER,1,159649,133041,Chevrolet/Daewoo,True
+KSA-DA002,Amortiguador Spark 7.24 / Daewoo Matiz II Del IZQ,1,159649,133041,Chevrolet/Daewoo,True
+KSL-1001,Bieleta Estab. Aveo / Allegro,2,48741,40618,Chevrolet/Mazda,True
+KSL-1013,Bieleta Estab. Swift-Esteem-Vitara / Nissan Sentra,2,46874,39062,Chevrolet/Nissan,True
+KTR-4333,Terminal Dirección Fiesta 18-12 IZQ,2,50023,41686,Ford,True
+KTR-4332,Terminal Dir Ford Fiesta 18-12 DER,2,50023,41686,Ford,True
+KRE-3024,Terminal Axial Ford Fiesta 18-12 SE,2,53318,44432,Ford,True
+KSA-FO001,Amortiguador Ford Fiesta Del IZQ,1,242217,201847,Ford,True
+KSA-FO002,Amortiguador Ford Fiesta Del DER,1,242217,201847,Ford,True
+KRE-3103,Terminal Axial Atos-Santro,2,49290,41075,Hyundai,True
+KBJ-4021,Rótula Hyundai Atos-Santro,2,51963,43303,Hyundai,True
+KBJ-4020,ROTULA HYUNDAI ACCENT VISION-KIA SEPHIA,2,57675,48063,Hyundai/Kia,True
+KTR-4204,Terminal Dir H Atos-Santro-i10 / Kia Picanto-Stylus,2,45922,38268,Hyundai/Kia,True
+KTR-4213,Terminal Dir Accent Vision IZQ / Kia Rio Xcite IZQ,2,66939,55783,Hyundai/Kia,True
+KTR-4212,Terminal Dir Accent Vision DER / Kia Rio Xcite DER,2,66939,55783,Hyundai/Kia,True
+KSL-2014,Bieleta Estab. Hyundai i10 Del DER / Grand i10 / Elantra / Kia Picanto Morning,2,49052,40877,Hyundai/Kia,True
+KRE-3102,Terminal Axial Accent Vision / Kia Rio Xcite,2,63882,53235,Hyundai/Kia,True
+KSL-2003,Bieleta Estab. Accent Vision / Kia Rio Xcite IZQ,2,52037,43364,Hyundai/Kia,True
+KSL-2002,Bieleta Estab. Accent Vision / Kia Rio Xcite DER,2,52037,43364,Hyundai/Kia,True
+KSL-2013,Bieleta Estab. Hyundai i10 Del IZQ / Grand i10 / Elantra / Kia Picanto Morning,2,49052,40877,Hyundai/Kia,True
+KSA-HY014,Amortiguador Accent Vision / Kia Rio Xcite DEL DER,1,230061,191717,Hyundai/Kia,True
+KSA-HY015,Amortiguador Accent Vision / Kia Rio Xcite DEL IZQ,1,230061,191717,Hyundai/Kia,True
+KBJ-4023,Rótula Hyundai i10 EON / Kia Picanto Morning Presión,2,51963,43303,Hyundai/Kia,True
+KSA-HY016,Amortiguador Accent Vision / Kia Rio Xcite TRAS (x2),2,131144,109287,Hyundai/Kia,True
+KSA-KI024,Amortiguador Picanto ION Delantero Der GAS,1,181326,151105,Kia,True
+KTR-4217,Terminal Dirección Picanto 17-12 ION Xtreme 1.2 IZQ,2,72651,60543,Kia,True
+KTR-4223,Terminal Dirección Picanto 20-18 ION IZQ,2,67507,56256,Kia,True
+KTR-4222,Terminal Dir Kia Picanto 20-18 ION DER,2,67507,56256,Kia,True
+KSA-KI025,Amortiguador Kia Picanto 17-13 ION Del IZQ GAS,1,181326,151105,Kia,True
+KRE-3114,Terminal Axial Kia Picanto ION / Hyundai i10 Hidráulico,2,55735,46446,Kia/Hyundai,True
+KBJ-4030,Rótula Kia Picanto ION-Spice 1 Soul / Hyundai i10 Grand Presión,2,51707,43089,Kia/Hyundai,True
+KBJ-4042,Rótula BT-50 4x2 4x4 SUP Gasol B2000-2200 SUP,2,63644,53036,Mazda,True
+KTR-4302,Terminal Dirección Mazda 2 15-08 IZQ,2,79663,66386,Mazda,True
+KBJ-4033,ROTULA MAZDA 3 BK3P-34-300,2,61136,50946,Mazda,True
+KTR-4301,Terminal Dir Mazda 2 15-08 DER,2,77082,64235,Mazda,True
+KSL-2108,Bieleta Estab. Mazda 3 13-03 DEL,2,52275,43562,Mazda,True
+KSL-2103,Bieleta Estab. Mazda 2 22-08 Skyactive / CX30-CX3 Skyactive Del,2,54526,45439,Mazda,True
+KRE-3202,Terminal Axial Mazda 3 10-02,2,61941,51618,Mazda,True
+KTR-4304,Terminal Dir Mazda 3 14-03 DER,2,58481,48734,Mazda,True
+KTR-4303,Terminal Dir Mazda 3 14-03 IZQ,2,58481,48734,Mazda,True
+KSA-MA001,Amortiguador Mazda 2 13-08 Del DER GAS ,1,233850,194875,Mazda 2,True
+KSA-MA002,Amortiguador Mazda 2 13-08 Del IZQ GAS ,1,233850,194875,Mazda 2,True
+KBJ-4085,Rótula Mazda 2 15-08 Skyactive 19-16 / Ford Fiesta 17-11,2,60824,50687,Mazda/Ford,True
+KBJ-4043,Rótula BT-50 4x4 INF Cono 19.5mm / Ford Ranger 4x4 INF,2,86034,71695,Mazda/Ford,True
+KTR-4308,Terminal Dirección M6 / Ford Edge-Fusion DER,2,80706,67255,Mazda/Ford,True
+KTR-4309,Terminal Dir M6 / Ford Edge-Fusion IZQ,2,79095,65913,Mazda/Ford,True
+KSL-2107,Bieleta Estab. Mazda 2 07-02 / Ford Fiesta-Fusion,2,53318,44432,Mazda/Ford,True
+KRE-3210,Terminal Axial Mazda 2 15-07 / Kia Picanto ION Dir Mecánica M14x1.5,2,64852,54043,Mazda/Kia,True
+KBJ-4053,Rótula D22 4x2-4x4 Frontier 4x4 SUP,2,63387,52823,Nissan,True
+KBJ-4051,Rótula D21 Frontier NP300 4x2 Gasol INF Urban INF,2,86107,71756,Nissan,True
+KTR-5129,Terminal Dirección March IZQ,2,68385,56988,Nissan,True
+KTR-5130,Terminal Dirección March K11 Note DER,2,68385,56988,Nissan,True
+KSA-RE047,AMORTIGUADOR RENAULT CLIO CAMPUS DEL Esp Largo - Plato Bajo peq,2,252140,210116,Renault,True
+KBJ-4068,Rótula Logan 15-06 Sandero 15-06 MG2 SC2,2,49382,41152,Renault,True
+KBJ-4064,Rótula R9-19-21RC-CL-TW,2,57511,47926,Renault,True
+KBJ-4065,Rótula Clio 2,2,65969,54974,Renault,True
+KBJ-4108,Rótula Logan 23-16 Sandero 23-16 STW 23-16,2,55424,46186,Renault,True
+KTR-6013,Terminal Dirección Megane 2 IZQ,2,81366,67805,Renault,True
+KTR-6014,Terminal Dirección Megane 2 DER,2,81366,67805,Renault,True
+KBJ-4066,Rótula Duster,2,78784,65653,Renault,True
+KTR-6007,Terminal Dir Logan I IZQ,2,64998,54165,Renault,True
+KTR-6005,Terminal Dir Duster 4x4 IZQ,2,83782,69818,Renault,True
+KRE-6215,Terminal Axial Megane II - Scenic II,2,63479,52899,Renault,True
+KTR-6006,Terminal Dir Duster 4x4 DER,2,83782,69818,Renault,True
+KSL-3008,Bieleta Estab. Twingo 16V DER,2,56064,46720,Renault,True
+KRE-6217,Terminal Axial Logan II 20-11 Sandero II-Stepway II,2,63479,52899,Renault,True
+KSL-3007,Bieleta Estab. Twingo 16V IZQ,2,56064,46720,Renault,True
+KRE-6211,Terminal Axial Logan I 10-06 Sandero I rosca delgada,2,58481,48734,Renault,True
+KSL-3002,Bieleta Estab. Duster,2,52201,43501,Renault,True
+KTR-6008,Terminal Dir Logan I DER,2,64998,54165,Renault,True
+KRE-6209,Terminal Axial Clio II-Megane I-Scenic I Larga 310mm,2,58078,48398,Renault,True
+KRE-6216,Terminal Axial Twingo,2,59213,49344,Renault,True
+KSA-RE018,AMORTIGUADOR RENAULT LOGAN 22-16 DELANTERO 277mm x2,2,207835,173196,Renault,True
+KTR-6015,Terminal Dir Clio II-SY-Megane I-Kangoo-TW II IZQ,2,53483,44569,Renault,True
+KTR-6016,Terminal Dir Clio II-SY-Megane I-Kangoo-TW II DER,2,53483,44569,Renault,True
+KSA-RE028,Amortiguador Renault Kwid DEL (x2),2,213218,177681,Renault,True
+KSA-RE029,Amortiguador Renault Kwid TRAS (x2),2,132828,110690,Renault,True
+KRE-6401,Terminal Axial Swift 1.2 1.4 18-13,2,62344,51953,Suzuki,True
+KSL-5151,Bieleta Estab. Hilux Vigo 4x4 Fortuner-Prado Del IZQ,2,59451,49543,Toyota,True
+KSL-5150,Bieleta Estab. Hilux Vigo 4x4 Fortuner-Prado Del DER,2,59451,49543,Toyota,True
+KRE-5206,Terminal Axial Hilux Vigo 4x4 05 Fortuner-Revo,2,64852,54043,Toyota,True
+KBJ-6108,Rótula VW Golf 1.6 Jetta 1.8-2.0 DER,2,68385,56988,Volkswagen,True
+KBJ-6109,Rótula VW Golf 1.6 Jetta 1.8-2.0 IZQ,2,65090,54242,Volkswagen,True
+KRE-6802,Terminal Axial VW Golf IV DER,2,59524,49604,Volkswagen,True
+KSL-6022,Bieleta Estab. VW Golf-Jetta 03-00,2,54783,45652,Volkswagen,True
+7700820028,TIJERA DEL LH TWINGO,1,130770,108975,Renault,True
+7700820029,TIJERA DEL LH TWINGO,1,130770,108975,Renault,True
+54501-1697R,TIJERA DELANTERA RH TWINGO,1,146154,121795,Renault,True
+545001138R,TIJERA DELANTERA RH DUSTER/OROCH,1,146154,121795,Renault,True
+54500A269R,TIJERA DEL LH DUSTER/OROCH,1,123078,102565,Renault,True
+54500A268R,TIJERA DEL RH LOGAN/SANDERO/2016,1,123078,102565,Renault,True
+545010294R,TIJERA DEL LH LOGAN II/SANDERO II,1,123078,102565,Renault,True
+545004529R,TIJERA DEL LH LOGAN II/SANDERO II,1,123078,102565,Renault,True
+54501-0000M,TIJERA DEL LH CLIO II/SYMBOL,1,123078,102565,Renault,True
+5450-0000M,TIJERA DEL RH CLIO II/SYMBOL,1,123078,102565,Renault,True
+96535081,TIJERA LH AVEO/SAIL,1,92307,76923,Chevrolet,True
+96535082,TIJERA RH AVEO/SAIL,1,92307,76923,Chevrolet,True
+2595128,TIJERA DEL RH CAPTIVA,1,230769,192307,Chevrolet,True
+96819162,TIJERA DEL LH CAPTIVA,1,230769,192307,Chevrolet,True
+B32H-34-350,TIJERA DEL LH MAZDA 3,1,200000,166667,Mazda,True
+B32H-34-300,TIJERA DEL RH MAZDA 3,1,200000,166667,Mazda,True

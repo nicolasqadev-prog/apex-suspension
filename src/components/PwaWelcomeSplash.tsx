@@ -27,6 +27,16 @@ export default function PwaWelcomeSplash() {
 
   useEffect(() => {
     if (isAdminPreviewMode()) return;
+    if (typeof window !== "undefined") {
+      const path = window.location.pathname;
+      if (path.startsWith("/taller")) return;
+      try {
+        const raw = localStorage.getItem("apex.taller.whatsapp");
+        if (raw && raw.replace(/\D/g, "").length >= 10) return;
+      } catch {
+        // ignore
+      }
+    }
     const esPwa = isPwaStandalone() || shouldShowPwaWelcomePreview();
     if (!esPwa) return;
 

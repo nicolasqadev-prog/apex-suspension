@@ -6,16 +6,19 @@ insert into talleres_fidelizados (
   nombre_taller,
   descuento_porcentaje,
   contra_entrega_habilitada,
-  activo
+  activo,
+  publicado
 ) values (
   '573001234567',
   'Taller Demo Apex',
   12,
   false,
+  true,
   true
 )
 on conflict (whatsapp) do update set
   nombre_taller = excluded.nombre_taller,
   descuento_porcentaje = excluded.descuento_porcentaje,
   contra_entrega_habilitada = excluded.contra_entrega_habilitada,
-  activo = excluded.activo;
+  activo = excluded.activo,
+  publicado = true;

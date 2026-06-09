@@ -80,7 +80,7 @@ function TallerAccesoPage() {
               type="tel"
               inputMode="tel"
               autoComplete="tel"
-              placeholder="Ej. 300 123 4567"
+              placeholder="Ej. 300 123 4567 (con o sin 57 al inicio)"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
               className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white"

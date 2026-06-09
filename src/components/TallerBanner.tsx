@@ -33,7 +33,8 @@ export default function TallerBanner() {
         <div>
           <p className="text-sm font-semibold text-emerald-100">Modo taller · {taller.nombreTaller}</p>
           <p className="text-xs text-emerald-200/80 mt-0.5">
-            Ves inventario y precio acordado para tu taller. Los precios se calculan en servidor.
+            Precio taller con {taller.descuentoPorcentaje}% de descuento sobre lista · stock y
+            referencias desde la base de datos.
           </p>
         </div>
       </div>

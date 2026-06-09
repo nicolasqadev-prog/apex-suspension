@@ -1,0 +1,131 @@
+﻿referencia,nombre,descripcion,precio_unitario_cop,cantidad_pedido,subtotal_cop,proveedor,dias_reposicion,stock_actual
+KSA-CH009-O,Amortiguador Del,Chevrolet Spark Cronos Der ,78450.0,1.0,78450,KTC,,1
+KSA-CH010-O,Amortiguador Del,Chevrolet Spark Cronos Izq,78450.0,1.0,78450,KTC,,1
+KSA-CH042,Amortiguador Del,Chevrolet captiva Der ,152460.0,50.0,7623000,KTC,13,1
+KSA-CH043,Amortiguador Del,Chevrolet captiva Izq,152460.0,50.0,7623000,KTC,4,1
+KSA-DA001,Amortiguador Del,Chevrolet spark Der,78800.0,150.0,11820000,KTC,8,1
+KSA-DA002,Amortiguador Del,Chevrolet Spark Izq ,78800.0,100.0,7880000,KTC,1,1
+KSA-FO001,Amortiguador Del,Ford Fiesta SE Izq ,123900.0,100.0,12390000,KTC,9,1
+KSA-FO002,Amortiguador Del,Ford Fiesta SE Der ,123900.0,50.0,6195000,KTC,12,1
+KSA-HY014,Amortiguador Del,Hyundai accent vision Der gas,117260.0,100.0,11726000,KTC,2,1
+KSA-HY015,Amortiguador Del,Hyundai accent vision Izq gas ,117260.0,50.0,5863000,KTC,15,1
+KSA-HY016,Amortiguador Del,Hyundai accent vision tr gas ,63230.0,50.0,3161500,KTC,3,2
+KSA-KI024-O,Amortiguador Del,Kia Picanto ion Der,90640.0,50.0,4532000,KTC,11,1
+KSA-KI025-O,Amortiguador Del,Kia Picanto ion Izq,90640.0,150.0,13596000,KTC,15,1
+KSA-MA001,Amortiguador Del,Mazda 2 Der gas,119330.0,100.0,11933000,KTC,9,1
+KSA-MA002,Amortiguador Del,Mazda 2 Izq  gas,119330.0,50.0,5966500,KTC,8,1
+KSA-MA003,Amortiguador Del,Mazda 3\5 Der,131160.0,1.0,131160,KTC,,1
+KSA-MA004,Amortiguador Del,Mazda 3\5 Izq,131160.0,1.0,131160,KTC,,1
+KSA-MA018,Amortiguador Del,Ford Fiesta SE (Mazda 2) TR,73260.0,1.0,73260,KTC,,
+KSA-RE002,Amortiguador Del,Renault Twingo 16v Der,101900.0,1.0,101900,KTC,,1
+KSA-RE003,Amortiguador Del,Renault Twingo 16v Izq,101900.0,1.0,101900,KTC,,1
+KSA-RE010,Amortiguador Del,Renault Sandero\Logan ,86500.0,1.0,86500,KTC,,2
+KSA-RE028,Amortiguador Del,Renault Kwid ,108060.0,1.0,108060,KTC,,2
+KSA-RE041,Amortiguador Del,Renault Kangoo 09-18,132400.0,1.0,132400,KTC,,0
+KSA-RE047,Amortiguador Del,Renault clio campus ,129320.0,1.0,129320,KTC,,2
+KSA-RE004,Amortiguador TR,Renault Twingo Tr,82500.0,1.0,82500,KTC,,2
+KSA-RE009,Amortiguador TR,Renault Sandero\Logan Tr ,78190.0,1.0,78190,KTC,,2
+KSA-RE029,Amortiguador TR,Renault Kwid Tr,64150.0,1.0,64150,KTC,,2
+KSA-RE049,Amortiguador TR,Renault Kangoo Tr,73920.0,1.0,73920,KTC,,0
+KPA-1104,Biela de direccion ,Mazda bt 50/2200 X2,42940.0,1.0,42940,KTC,,
+KSL-1001,Bieleta estabilizadora (muneco),Chevrolet aveo X2,18220.0,1.0,18220,KTC,,2
+KSL-1004,Bieleta estabilizadora (muneco) Del,Chevrolet Spark Gt X2,18040.0,1.0,18040,KTC,,1
+KSL-1005,Bieleta estabilizadora (muneco) Del,Chevrolet D-Max 4x4 Izq X2,23630.0,1.0,23630,KTC,,1
+KSL-1006,Bieleta estabilizadora (muneco) Del,Chevrolet D-Max 4x4 Der X2,23630.0,1.0,23630,KTC,,1
+KSL-1010,Bieleta estabilizadora (muneco) Del,Chevrolet Optra Der X2,22220.0,1.0,22220,KTC,,1
+KSL-1011,Bieleta estabilizadora (muneco) Del,Chevrolet Optra Izq X2,22220.0,1.0,22220,KTC,,1
+KSL-1013,Bieleta estabilizadora (muneco) Del,Chevrolet swift/ Nissan sentra X2,17200.0,1.0,17200,KTC,,1
+KSL-2002,Bieleta estabilizadora (muneco) Del,Hyundai Accent/Kia Rio Xcite Der X2,20020.0,1.0,20020,KTC,,1
+KSL-2003,Bieleta estabilizadora (muneco) Del,Hyundai Accent/Kia Rio Xcite Izq X2,20020.0,1.0,20020,KTC,,1
+KSL-2013,Bieleta estabilizadora (muneco) Del,Hyundai i10/Kia Picanto Izq X2,18390.0,1.0,18390,KTC,,1
+KSL-2014,Bieleta estabilizadora (muneco) Del,Hyundai i10/Kia Picanto Der X2,18390.0,1.0,18390,KTC,,1
+KSL-2103,Bieleta estabilizadora (muneco) Del,Mazda 2 08-22/ F Fiesta 12-18 x2 ,21380.0,1.0,21380,KTC,,1
+KSL-2107,Bieleta estabilizadora (muneco) Del,"Mazda 2/ F Fiesta, Fusion 02-07 x2",20720.0,1.0,20720,KTC,,1
+KSL-2108,Bieleta estabilizadora (muneco) Del,Mazda 3\5 03-13 x2,20150.0,1.0,20150,KTC,,1
+KSL-3002,Bieleta estabilizadora (muneco) Del,Renault Duster x2,20110.0,1.0,20110,KTC,,1
+KSL-3003,Bieleta estabilizadora (muneco) Del,Renault Logan x2,14560.0,1.0,14560,KTC,,1
+KSL-3007,Bieleta estabilizadora (muneco) Del,Renault Twingo 16v Der x2,22220.0,1.0,22220,KTC,,1
+KSL-3008,Bieleta estabilizadora (muneco) Del,Renault Twingo 16v Izq x2,22220.0,1.0,22220,KTC,,1
+KSL-5150,Bieleta estabilizadora (muneco) Del,Toyota Hilux Vigo 4x4 Der,24070.0,1.0,24070,KTC,,1
+KSL-5151,Bieleta estabilizadora (muneco) Del,Toyota Hilux Vigo 4x4 Izq ,24070.0,1.0,24070,KTC,,1
+KSL-6023,Bieleta estabilizadora (muneco) Del,"Volskwagen Jetta, Bora, Tiguan.",20590.0,1.0,20590,KTC,,1
+KSL-1012,Bieleta estabilizadora (muneco) TR,Chevrolet Optra X2,22130.0,1.0,22130,KTC,,
+KSL-2116,Bieleta estabilizadora (muneco) Tr,Mazda 3\5 03-14,18000.0,1.0,18000,KTC,,1
+KSL-6022,Bieleta estabilizadora (muneco) Tr ,"Volskwagen Jetta, Golf ",21520.0,1.0,21520,KTC,,1
+KIA-3107,Caja Articulada ,Toyota Hilux 4x4 ,89520.0,1.0,89520,KTC,,
+KBJ-4001,Rotula,"Chevrolet Aveo, Sail X2",23410.0,1.0,23410,KTC,,1
+KBJ-4008,Rotula,Chevrolet Luv 2300 Inf,40080.0,1.0,40080,KTC,,1
+KBJ-4013,Rotula,Chevrolet Luv 2300 Sup X2,31280.0,1.0,31280,KTC,,1
+KBJ-4020,Rotula,Hyundai Accent vision/Kia sephia X2,23100.0,1.0,23100,KTC,,1
+KBJ-4021,Rotula,"Hyundai Atos, Santro X2",19980.0,1.0,19980,KTC,,1
+KBJ-4023,Rotula,Hyundai i10/ Kia Picanto X2,19980.0,1.0,19980,KTC,,1
+KBJ-4030,Rotula,"Kia Picanto Ion, Spice, Soul X2",19840.0,1.0,19840,KTC,,1
+KBJ-4033,Rotula,Mazda 3 X2,24990.0,1.0,24990,KTC,,1
+KBJ-4042,Rotula,Mazda bt 50 4X2 4X4/2200Sup ,26360.0,1.0,26360,KTC,,1
+KBJ-4043,Rotula,Mazda bt 50 4X2 4X4/2200 Inf x2,38590.0,1.0,38590,KTC,,1
+KBJ-4052,Rotula,Nissan Frontier 4x4-4x2 Inf,35680.0,1.0,35680,KTC,,1
+KBJ-4053,Rotula,Nissan Frontier Sup 4x4-4x2,26220.0,1.0,26220,KTC,,1
+KBJ-4064,Rotula,Renault Clio-twingo-9-19-21rs x2,23010.0,1.0,23010,KTC,,1
+KBJ-4065,Rotula,Renault Clio II ,27630.0,1.0,27630,KTC,,1
+KBJ-4066,Rotula,Renault Duster ,34630.0,1.0,34630,KTC,,1
+KBJ-4068,Rotula,"Renault Logan, Sandero, Megane II, Scenic II x2",18570.0,1.0,18570,KTC,,1
+KBJ-4085,Rotula,Mazda 2/ Ford Fiesta X2,24820.0,1.0,24820,KTC,,1
+KBJ-4091,Rotula,"Chevrolet Tracker, Onix, Sonic Inf X2",28420.0,1.0,28420,KTC,,1
+KBJ-4108,Rotula,"Renault Logan, Sandero modelo nuevo x2",21870.0,1.0,21870,KTC,,1
+KBJ-6108,Rotula,"Vw Golf 1.6-Jetta 1.8,2.0 Der x2",28950.0,1.0,28950,KTC,,1
+KBJ-6109,Rotula,"Vw Golf 1.6-Jetta 1.8,2.0 Izq x2",27150.0,1.0,27150,KTC,,1
+KRE-3001,Terminal Axial ,Chevrolet Aveo Der x2,21910.0,1.0,21910,KTC,,1
+KRE-3002,Terminal Axial ,Chevrolet Aveo Izq,21910.0,1.0,21910,KTC,,
+KRE-3013,Terminal Axial ,Chevrolet Sail x2,21470.0,1.0,21470,KTC,,1
+KRE-3015,Terminal Axial ,Chevrolet Spark Cronos x2 ,20990.0,1.0,20990,KTC,,1
+KRE-3024,Terminal Axial ,Ford Fiesta SE X2,20720.0,1.0,20720,KTC,,1
+KRE-3026,Terminal Axial ,Chevrolet Captiva 3.2- Tracker II 368mm x2,25870.0,1.0,25870,KTC,,1
+KRE-3102,Terminal Axial ,Hyundai Accent vision x2,26490.0,1.0,26490,KTC,,1
+KRE-3103,Terminal Axial ,Hyundai Atos-Santro x2,18520.0,1.0,18520,KTC,,1
+KRE-3114,Terminal Axial ,Kia picanto ION Extreme 1.0 rosca gruesa x2,22040.0,1.0,22040,KTC,,1
+KRE-3202,Terminal Axial ,Mazda 3 02-10 x2,25430.0,1.0,25430,KTC,,1
+KRE-3208,Terminal Axial ,Mazda Allegro-Ford Laser x2,25700.0,1.0,25700,KTC,,1
+KRE-3210,Terminal Axial ,Mazda 2-Kia picanto ION Dir Mec x2,27020.0,1.0,27020,KTC,,1
+KRE-5206,Terminal Axial ,Toyota Hilux Vigo 04-08 x2 ,27020.0,1.0,27020,KTC,,1
+KRE-6209,Terminal Axial ,Renaut ClioII-Mg II-ScII- rosca fina x2,23320.0,1.0,23320,KTC,,1
+KRE-6211,Terminal Axial ,Renault Logan I-Sandero I- Stepway I rosca fina x2,23540.0,1.0,23540,KTC,,1
+KRE-6215,Terminal Axial ,Renault Megane II- Scenic II corta x2 ,26270.0,1.0,26270,KTC,,1
+KRE-6216,Terminal Axial ,Renaut Twingo larga x2,23940.0,1.0,23940,KTC,,1
+KRE-6217,Terminal Axial ,Renault LoganII-SanderoII- Stepway II x2,26270.0,1.0,26270,KTC,,1
+KRE-6401,Terminal Axial ,"Suzuki Swift 13-18 1.2,1.4",25650.0,1.0,25650,KTC,,1
+KRE-6801,Terminal Axial ,Vw Golf-Jetta Izq,24110.0,1.0,24110,KTC,,1
+KRE-6802,Terminal Axial ,Vw Golf-Jetta Der ,24110.0,1.0,24110,KTC,,1
+KTR-4002,Terminal de direccion ,Chevrolet Aveo Der x2,24820.0,1.0,24820,KTC,,1
+KTR-4003,Terminal de direccion ,Chevrolet Aveo Izq x2,24820.0,1.0,24820,KTC,,1
+KTR-4015,Terminal de direccion ,Chevrolet Optra Izq x2,27500.0,1.0,27500,KTC,,1
+KTR-4016,Terminal de direccion ,Chevrolet Optra Der x2 ,27500.0,1.0,27500,KTC,,1
+KTR-4018,Terminal de direccion ,Chevrolet Spark Cronos x2 ,17290.0,1.0,17290,KTC,,1
+KTR-4019,Terminal de direccion ,Chevrolet Spark Gt X2,27680.0,1.0,27680,KTC,,1
+KTR-4034,Terminal de direccion ,Chevrolet Sail Der x2,26580.0,1.0,26580,KTC,,1
+KTR-4035,Terminal de direccion ,Chevrolet Sail Izq x2,26580.0,1.0,26580,KTC,,1
+KTR-4204,Terminal de direccion ,Hyundai Atos Santro x2,16680.0,1.0,16680,KTC,,1
+KTR-4212,Terminal de direccion ,Hyundai Accent vision Der x2 ,28160.0,1.0,28160,KTC,,1
+KTR-4213,Terminal de direccion ,Hyundai Accent vision Izq x2 ,28160.0,1.0,28160,KTC,,1
+KTR-4216,Terminal de direccion ,Kia Picanto ION Extreme Der larga x2,31280.0,1.0,31280,KTC,,1
+KTR-4217,Terminal de direccion ,Kia Picanto ION Extreme Izq larga x2,31280.0,1.0,31280,KTC,,1
+KTR-4222,Terminal de direccion ,KiaPicanto ION All New Der corta x2,28470.0,1.0,28470,KTC,,1
+KTR-4223,Terminal de direccion ,KiaPicanto ION All New Izq corta x2,28470.0,1.0,28470,KTC,,1
+KTR-4301,Terminal de direccion ,Mazda 2 Der x2,33700.0,1.0,33700,KTC,,1
+KTR-4302,Terminal de direccion ,Mazda 2 Izq x2,35110.0,1.0,35110,KTC,,1
+KTR-4303,Terminal de direccion ,Mazda 3 Izq x2 ,23540.0,1.0,23540,KTC,,1
+KTR-4304,Terminal de direccion ,Mazda 3 Der x2,23540.0,1.0,23540,KTC,,1
+KTR-4308,Terminal de direccion ,"Mazda 6 -Ford Fusion, Edge Der x2 ",35680.0,1.0,35680,KTC,,1
+KTR-4309,Terminal de direccion ,"Mazda 6 -Ford Fusion, Edge Izq x2 ",34800.0,1.0,34800,KTC,,1
+KTR-4332,Terminal de direccion ,Ford Fiesta SE Der x2 ,18920.0,1.0,18920,KTC,,1
+KTR-4333,Terminal de direccion ,Ford Fiesta SE Izq x2 ,18920.0,1.0,18920,KTC,,1
+KTR-5129,Terminal de direccion ,"Nissan March, Mikra Izq x2 ",28950.0,1.0,28950,KTC,,1
+KTR-5130,Terminal de direccion ,"Nissan March, Mikra Der x2 ",28950.0,1.0,28950,KTC,,1
+KTR-5206,Terminal de direccion ,"Toyota Hilux Vigo, Fortuner 4x4 x2",22840.0,1.0,22840,KTC,,1
+KTR-6005,Terminal de direccion ,Renault Duster 4x4 Izq x2 ,37360.0,1.0,37360,KTC,,1
+KTR-6006,Terminal de direccion ,Renault Duster 4x4 Der x2 ,37360.0,1.0,37360,KTC,,1
+KTR-6007,Terminal de direccion ,Renault Logan Izq x2,27100.0,1.0,27100,KTC,,1
+KTR-6008,Terminal de direccion ,Renault Logan Der x2,27100.0,1.0,27100,KTC,,1
+KTR-6013,Terminal de direccion ,Renault Megane II- Scenic II Izq x2 ,36040.0,1.0,36040,KTC,,1
+KTR-6014,Terminal de direccion ,Renault Megane II- Scenic II Der x2 ,36040.0,1.0,36040,KTC,,1
+KTR-6015,Terminal de direccion ,"Renault Clio, Symbol, Kangoo, Megane, Twingo II Izq x2",20810.0,1.0,20810,KTC,,1
+KTR-6016,Terminal de direccion ,"Renault Clio, Symbol, Kangoo, Megane, Twingo II Der x2",20810.0,1.0,20810,KTC,,1

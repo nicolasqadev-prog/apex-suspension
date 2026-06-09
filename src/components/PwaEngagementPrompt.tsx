@@ -37,8 +37,13 @@ export default function PwaEngagementPrompt() {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
+    const enFlujoTaller =
+      pathname.startsWith("/taller") ||
+      (typeof window !== "undefined" &&
+        Boolean(localStorage.getItem("apex.taller.whatsapp")?.replace(/\D/g, "").length));
     const show =
       !isAdminPreviewMode() &&
+      !enFlujoTaller &&
       shouldShowEngagementPrompt() &&
       (canSuggestPwaInstall() || canSuggestNotifications()) &&
       !pathname.startsWith("/admin");

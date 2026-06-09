@@ -13,18 +13,53 @@
  *   node scripts/sync-inventario-json-to-supabase.mjs path/al/inventario.json
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 
+function loadEnvLocal() {
+  const p = join(root, ".env.local");
+  if (!existsSync(p)) return;
+  for (const line of readFileSync(p, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let val = trimmed.slice(eq + 1).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    if (!process.env[key]) process.env[key] = val;
+  }
+}
+
+loadEnvLocal();
+
 // URL debe ser solo el origen: https://xxxx.supabase.co (sin /rest/v1 al final).
 let url = process.env.SUPABASE_URL?.trim().replace(/\/$/, "") ?? "";
 url = url.replace(/\/rest\/v1\/?$/i, "").replace(/\/$/, "");
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-const jsonPath = process.argv[2] ?? join(root, "data", "inventario.ejemplo.json");
+
+let jsonPath = join(root, "data", "inventario.ejemplo.json");
+let desde = 0;
+let cantidad = Infinity;
+
+for (const arg of process.argv.slice(2)) {
+  if (arg.startsWith("--desde=")) {
+    desde = Math.max(0, Number(arg.slice(8)) || 0);
+  } else if (arg.startsWith("--cantidad=")) {
+    cantidad = Math.max(1, Number(arg.slice(11)) || 1);
+  } else if (!arg.startsWith("-")) {
+    jsonPath = arg.includes("/") || arg.includes("\\") ? arg : join(root, arg);
+  }
+}
 
 if (!url || !key) {
   console.error("Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en el entorno.");
@@ -43,7 +78,7 @@ function rest(path, init = {}) {
 
 async function findProductBySlug(slug) {
   const res = await rest(
-    `/productos?slug=eq.${encodeURIComponent(slug)}&select=id,slug,referencia&limit=1`,
+    `/productos?slug=eq.${encodeURIComponent(slug)}&select=id,slug,referencia,stock_actual&limit=1`,
   );
   if (!res.ok) throw new Error(`GET productos: ${res.status} ${await res.text()}`);
   const rows = await res.json();
@@ -81,17 +116,32 @@ async function insertStockMovement(productoId, delta, motivo) {
 
 const raw = readFileSync(jsonPath, "utf8");
 const data = JSON.parse(raw);
-const piezas = data.piezas;
-if (!Array.isArray(piezas)) {
+const todas = data.piezas;
+if (!Array.isArray(todas)) {
   console.error("JSON inválido: falta array piezas");
   process.exit(1);
 }
 
+const hasta = Math.min(desde + cantidad, todas.length);
+const piezas = todas.slice(desde, hasta);
+const total = todas.length;
+
+console.error(
+  `Lote: indices ${desde}-${hasta - 1} de ${total} (${piezas.length} piezas en este paso)`,
+);
+
 let created = 0;
 let updated = 0;
-let skippedStock = 0;
+let stockAjustado = 0;
+let omitidos = 0;
 
-for (const p of piezas) {
+for (let i = 0; i < piezas.length; i++) {
+  const p = piezas[i];
+  if (i > 0 && i % 100 === 0) {
+    console.error(
+      `Progreso lote: ${i}/${piezas.length} (creados ${created}, actualizados ${updated})`,
+    );
+  }
   const slug = p.slug;
   const referencia = p.referencia;
   const nombre = p.nombre;
@@ -103,6 +153,7 @@ for (const p of piezas) {
 
   if (!slug || !referencia || !nombre || Number.isNaN(precio_lista)) {
     console.warn("Fila omitida (datos incompletos):", p);
+    omitidos += 1;
     continue;
   }
 
@@ -119,7 +170,12 @@ for (const p of piezas) {
       activo: true,
     });
     updated += 1;
-    skippedStock += 1;
+    const actual = Math.max(0, Math.floor(Number(existing.stock_actual ?? 0)));
+    const delta = stock - actual;
+    if (delta !== 0) {
+      await insertStockMovement(existing.id, delta, "Sync catálogo — ajuste stock");
+      stockAjustado += 1;
+    }
     continue;
   }
 
@@ -142,14 +198,19 @@ for (const p of piezas) {
   created += 1;
 }
 
+const siguiente = hasta < total ? hasta : null;
 console.log(
   JSON.stringify(
     {
       archivo: jsonPath,
+      lote: { desde, hasta: hasta - 1, total },
       creados: created,
       actualizadosMetadatos: updated,
-      existentesSinMovimientoExtra: skippedStock,
-      nota: "Stock solo se cargó por movimiento en productos nuevos. Para ajustar stock de existentes usá movimientos o un flujo interno.",
+      omitidos,
+      stockAjustadoEnExistentes: stockAjustado,
+      siguiente_desde: siguiente,
+      completado: siguiente === null,
+      nota: "Siguiente paso: --desde=siguiente_desde --cantidad=N",
     },
     null,
     2,

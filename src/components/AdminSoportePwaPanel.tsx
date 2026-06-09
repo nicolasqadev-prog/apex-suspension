@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, ExternalLink, Smartphone } from "lucide-react";
+import { Eye, EyeOff, ExternalLink, Rocket, Smartphone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,14 +10,29 @@ import {
   savePreviewBannerDraft,
   setAdminPreviewMode,
 } from "@/lib/admin-preview";
+import {
+  ADMIN_PREPARACION_EVENT,
+  isModoPreparacion,
+  setModoPreparacion,
+} from "@/lib/admin-preparacion";
+import { publicarOperacionVivoAdmin } from "@/lib/admin-operacion.functions";
 
-export default function AdminSoportePwaPanel() {
+type Props = {
+  adminPin: string;
+  onPreparacionChange?: () => void;
+};
+
+export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: Props) {
+  const [preparacionOn, setPreparacionOn] = useState(false);
   const [previewOn, setPreviewOn] = useState(false);
   const [bannerActivo, setBannerActivo] = useState(false);
   const [bannerMensaje, setBannerMensaje] = useState("");
   const [whatsappPrueba, setWhatsappPrueba] = useState("");
+  const [publicando, setPublicando] = useState(false);
+  const [mensaje, setMensaje] = useState<string | null>(null);
 
   useEffect(() => {
+    setPreparacionOn(isModoPreparacion());
     setPreviewOn(isAdminPreviewMode());
     const draft = readPreviewBannerDraft();
     if (draft) {
@@ -25,6 +40,55 @@ export default function AdminSoportePwaPanel() {
       setBannerMensaje(draft.mensaje);
     }
   }, []);
+
+  function togglePreparacion() {
+    const next = !preparacionOn;
+    setModoPreparacion(next);
+    setPreparacionOn(next);
+    if (next) setAdminPreviewMode(true);
+    setPreviewOn(next || isAdminPreviewMode());
+    notifyAdminPreviewChange();
+    onPreparacionChange?.();
+    window.dispatchEvent(new Event(ADMIN_PREPARACION_EVENT));
+    setMensaje(
+      next
+        ? "Modo preparación activo: talleres nuevos quedan en borrador y los pedidos de talleres no publicados son de prueba."
+        : "Modo preparación apagado. Los cambios de talleres se guardan en vivo si los publicas al guardar.",
+    );
+  }
+
+  async function onPublicarOperacion() {
+    if (!adminPin) return;
+    if (
+      !window.confirm(
+        "¿Publicar a operación en vivo?\n\n· Los talleres en borrador podrán entrar en /taller/acceso.\n· Se borrarán los pedidos marcados como prueba.\n\nLos clientes reales no verán esos pedidos de prueba.",
+      )
+    ) {
+      return;
+    }
+    setPublicando(true);
+    setMensaje(null);
+    try {
+      const res = await publicarOperacionVivoAdmin({
+        data: { adminPin, limpiarPedidosPrueba: true },
+      });
+      if (!res.ok) {
+        setMensaje(res.reason);
+        return;
+      }
+      setModoPreparacion(false);
+      setPreparacionOn(false);
+      onPreparacionChange?.();
+      window.dispatchEvent(new Event(ADMIN_PREPARACION_EVENT));
+      setMensaje(
+        `Operación en vivo: ${res.talleresPublicados} taller(es) publicado(s), ${res.pedidosPruebaEliminados} pedido(s) de prueba eliminado(s).`,
+      );
+    } catch (e) {
+      setMensaje(e instanceof Error ? e.message : "No se pudo publicar");
+    } finally {
+      setPublicando(false);
+    }
+  }
 
   function togglePreview() {
     const next = !previewOn;
@@ -44,6 +108,9 @@ export default function AdminSoportePwaPanel() {
   function abrirComoTaller() {
     const w = whatsappPrueba.replace(/\D/g, "");
     if (w.length < 10) return;
+    setModoPreparacion(true);
+    setPreparacionOn(true);
+    onPreparacionChange?.();
     try {
       localStorage.setItem("apex.taller.whatsapp", JSON.stringify(w));
     } catch {
@@ -53,24 +120,55 @@ export default function AdminSoportePwaPanel() {
   }
 
   return (
-    <section className="rounded-xl border border-violet-500/35 bg-violet-950/20 p-5 mb-6">
-      <div className="flex items-start gap-2 mb-4">
+    <section className="rounded-xl border border-violet-500/35 bg-violet-950/20 p-5 mb-6 space-y-4">
+      <div className="flex items-start gap-2">
         <Smartphone className="h-5 w-5 text-violet-300 shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-semibold text-white">Soporte técnico PWA (vista previa)</p>
+          <p className="text-sm font-semibold text-white">Soporte y preparación antes de operación</p>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-            Prueba cambios en <strong className="text-gray-300">tu navegador</strong> sin que los
-            clientes vean banners de prueba ni avisos de instalación. Los talleres reales sí ven lo
-            que registres arriba en cuanto guardes.
+            Configura talleres, haz pedidos de prueba y revisa la PWA{" "}
+            <strong className="text-gray-300">sin afectar clientes reales</strong>. Cuando todo esté
+            listo, publica a operación en vivo.
           </p>
         </div>
       </div>
 
-      <div className="rounded-lg border border-white/10 bg-black/25 p-4 space-y-3 mb-4">
-        <p className="text-xs font-semibold text-violet-200">Modo vista previa</p>
+      <div className="rounded-lg border border-amber-500/40 bg-amber-950/25 p-4 space-y-3">
+        <p className="text-xs font-semibold text-amber-200">Modo preparación (borrador operativo)</p>
+        <ul className="text-[11px] text-gray-400 space-y-1 list-disc pl-4">
+          <li>Talleres que registres quedan en <strong className="text-gray-300">borrador</strong> (no entran en /taller/acceso).</li>
+          <li>Pedidos desde talleres en borrador se guardan como <strong className="text-gray-300">prueba</strong> (sin push al cliente).</li>
+          <li>En el panel solo verás pedidos de prueba mientras esté activo.</li>
+        </ul>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            onClick={togglePreparacion}
+            className={
+              preparacionOn
+                ? "bg-amber-600 hover:bg-amber-500 text-white"
+                : "bg-gray-700 hover:bg-gray-600 text-white"
+            }
+          >
+            {preparacionOn ? "Preparación activa (tocar para apagar)" : "Activar modo preparación"}
+          </Button>
+          <Button
+            type="button"
+            onClick={() => void onPublicarOperacion()}
+            disabled={publicando || !adminPin}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white"
+          >
+            <Rocket className="h-4 w-4 mr-1.5" />
+            {publicando ? "Publicando…" : "Publicar a operación en vivo"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-white/10 bg-black/25 p-4 space-y-3">
+        <p className="text-xs font-semibold text-violet-200">Vista previa visual (solo tu navegador)</p>
         <p className="text-[11px] text-gray-500 leading-relaxed">
-          Actívalo en el mismo celular o PC donde revisas la web. Verás una franja morada arriba; los
-          visitantes normales no la ven.
+          Franja morada, ocultar avisos de instalar/notificaciones y banner de prueba. No cambia lo que
+          ven los clientes.
         </p>
         <Button
           type="button"
@@ -84,18 +182,18 @@ export default function AdminSoportePwaPanel() {
           {previewOn ? (
             <>
               <Eye className="h-4 w-4 mr-1.5" />
-              Vista previa activa (tocar para apagar)
+              Vista previa activa
             </>
           ) : (
             <>
               <EyeOff className="h-4 w-4 mr-1.5" />
-              Activar vista previa en este dispositivo
+              Activar vista previa visual
             </>
           )}
         </Button>
       </div>
 
-      <div className="rounded-lg border border-white/10 bg-black/25 p-4 space-y-3 mb-4">
+      <div className="rounded-lg border border-white/10 bg-black/25 p-4 space-y-3">
         <p className="text-xs font-semibold text-violet-200">Banner de prueba (solo vista previa)</p>
         <label className="flex items-center gap-2 text-xs text-gray-400">
           <input
@@ -103,12 +201,12 @@ export default function AdminSoportePwaPanel() {
             checked={bannerActivo}
             onChange={(e) => setBannerActivo(e.target.checked)}
           />
-          Mostrar banner de prueba cuando la vista previa esté activa
+          Mostrar banner cuando la vista previa esté activa
         </label>
         <Input
           value={bannerMensaje}
           onChange={(e) => setBannerMensaje(e.target.value)}
-          placeholder="Ej. Mensaje de mantenimiento o promo (solo tú lo ves en previa)"
+          placeholder="Ej. Mensaje de mantenimiento (solo tú lo ves)"
           className="bg-[oklch(0.14_0.04_250)] border-gray-700 text-white text-sm"
         />
         <Button
@@ -123,12 +221,12 @@ export default function AdminSoportePwaPanel() {
       </div>
 
       <div className="rounded-lg border border-white/10 bg-black/25 p-4 space-y-3">
-        <p className="text-xs font-semibold text-violet-200">Probar como taller</p>
+        <p className="text-xs font-semibold text-violet-200">Probar catálogo como taller (borrador)</p>
         <div className="flex flex-col sm:flex-row gap-2">
           <Input
             value={whatsappPrueba}
             onChange={(e) => setWhatsappPrueba(e.target.value)}
-            placeholder="WhatsApp del taller registrado"
+            placeholder="WhatsApp del taller (activo, puede estar en borrador)"
             className="bg-[oklch(0.14_0.04_250)] border-gray-700 text-white"
           />
           <Button
@@ -141,25 +239,19 @@ export default function AdminSoportePwaPanel() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild size="sm" variant="outline" className="border-gray-600 text-gray-300">
-            <a href="/" target="_blank" rel="noreferrer">
-              <ExternalLink className="h-3.5 w-3.5 mr-1" />
-              Inicio público
-            </a>
-          </Button>
-          <Button asChild size="sm" variant="outline" className="border-gray-600 text-gray-300">
             <a href="/taller/acceso" target="_blank" rel="noreferrer">
               <ExternalLink className="h-3.5 w-3.5 mr-1" />
-              Login taller
-            </a>
-          </Button>
-          <Button asChild size="sm" variant="outline" className="border-gray-600 text-gray-300">
-            <a href="/catalogo" target="_blank" rel="noreferrer">
-              <ExternalLink className="h-3.5 w-3.5 mr-1" />
-              Catálogo
+              Login taller (solo publicados)
             </a>
           </Button>
         </div>
       </div>
+
+      {mensaje && (
+        <p className="text-xs text-gray-300 leading-relaxed" role="status">
+          {mensaje}
+        </p>
+      )}
     </section>
   );
 }

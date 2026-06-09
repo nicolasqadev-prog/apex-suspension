@@ -6,27 +6,33 @@ import { createPedido } from "./pedidos.server";
 import { getTallerFidelizadoByWhatsapp } from "./talleres.server";
 import type { LineaCarritoTaller } from "./taller.types";
 
+const AllowBorradorSchema = z.object({
+  allowNoPublicado: z.boolean().optional(),
+});
+
 const WhatsappSchema = z.object({
   whatsapp: z.string().min(7).max(20),
-});
+}).merge(AllowBorradorSchema);
 
 const SlugSchema = z.object({
   whatsapp: z.string().min(7).max(20),
   slug: z.string().min(1).max(120),
-});
+}).merge(AllowBorradorSchema);
 
 const LineaPedidoSchema = z.object({
   slug: z.string().min(1).max(120),
   cantidad: z.number().int().min(1).max(999),
 });
 
-const PedidoTallerSchema = z.object({
-  whatsapp: z.string().min(7).max(20),
-  lineas: z.array(LineaPedidoSchema).min(1).max(80),
-  municipio: z.string().max(80).optional(),
-  direccion: z.string().max(200).optional(),
-  notas: z.string().max(500).optional(),
-});
+const PedidoTallerSchema = z
+  .object({
+    whatsapp: z.string().min(7).max(20),
+    lineas: z.array(LineaPedidoSchema).min(1).max(80),
+    municipio: z.string().max(80).optional(),
+    direccion: z.string().max(200).optional(),
+    notas: z.string().max(500).optional(),
+  })
+  .merge(AllowBorradorSchema);
 
 const RATE_WINDOW_MS = 10 * 60_000;
 const RATE_MAX_LOGIN = 25;
@@ -68,7 +74,9 @@ export const iniciarSesionTaller = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "rate_limit" as const };
     }
 
-    const taller = await getTallerFidelizadoByWhatsapp(data.whatsapp);
+    const taller = await getTallerFidelizadoByWhatsapp(data.whatsapp, {
+      allowNoPublicado: data.allowNoPublicado,
+    });
     if (!taller) {
       return { ok: false as const, reason: "no_autorizado" as const };
     }
@@ -87,20 +95,25 @@ export const iniciarSesionTaller = createServerFn({ method: "POST" })
 export const obtenerCatalogoTaller = createServerFn({ method: "POST" })
   .inputValidator(WhatsappSchema)
   .handler(async ({ data }) => {
-    const result = await loadCatalogoTaller(data.whatsapp);
+    const result = await loadCatalogoTaller(data.whatsapp, {
+      allowNoPublicado: data.allowNoPublicado,
+    });
     if (!result.ok) return { ok: false as const, reason: result.reason };
     return {
       ok: true as const,
       taller: result.taller,
       piezas: result.piezas,
       moneda: result.moneda,
+      fuente: result.fuente,
     };
   });
 
 export const obtenerPiezaTaller = createServerFn({ method: "POST" })
   .inputValidator(SlugSchema)
   .handler(async ({ data }) => {
-    const result = await loadPiezaTaller(data.whatsapp, data.slug);
+    const result = await loadPiezaTaller(data.whatsapp, data.slug, {
+      allowNoPublicado: data.allowNoPublicado,
+    });
     if (!result.ok) return { ok: false as const, reason: result.reason };
     return {
       ok: true as const,
@@ -113,7 +126,9 @@ export const obtenerPiezaTaller = createServerFn({ method: "POST" })
 export const enviarPedidoTaller = createServerFn({ method: "POST" })
   .inputValidator(PedidoTallerSchema)
   .handler(async ({ data }) => {
-    const catalogo = await loadCatalogoTaller(data.whatsapp);
+    const catalogo = await loadCatalogoTaller(data.whatsapp, {
+      allowNoPublicado: data.allowNoPublicado,
+    });
     if (!catalogo.ok) {
       return { ok: false as const, reason: catalogo.reason };
     }
@@ -148,8 +163,10 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
       )
       .join("\n");
 
+    const esPrueba = !catalogo.taller.publicado;
+
     const notasPedido = [
-      "Portal taller fidelizado",
+      esPrueba ? "[PRUEBA — no operación]" : "Portal taller fidelizado",
       `Total referencia: ${formatoCop(total)}`,
       "Líneas:",
       resumenLineas,
@@ -158,14 +175,24 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
       .filter(Boolean)
       .join("\n");
 
-    const pedido = await createPedido({
-      tallerNombre: catalogo.taller.nombreTaller,
-      whatsapp: catalogo.taller.whatsapp,
-      municipio: data.municipio?.trim() || "Por confirmar",
-      direccion: data.direccion?.trim() || "Por confirmar en WhatsApp",
-      notas: notasPedido,
-      requerimiento: "Pedido portal taller",
-    });
+    const pedido = await createPedido(
+      {
+        tallerNombre: catalogo.taller.nombreTaller,
+        whatsapp: catalogo.taller.whatsapp,
+        municipio: data.municipio?.trim() || "Por confirmar",
+        direccion: data.direccion?.trim() || "Por confirmar en WhatsApp",
+        notas: notasPedido,
+        requerimiento: esPrueba ? "Pedido de prueba (preparación)" : "Pedido portal taller",
+      },
+      {
+        esPrueba,
+        lineas: lineasValidadas.map((l) => ({
+          slug: l.slug,
+          cantidad: l.cantidad,
+          precioUnitario: l.precioUnitarioCop,
+        })),
+      },
+    );
 
     if (!pedido.ok) {
       return { ok: false as const, reason: "pedido_fallo" as const };

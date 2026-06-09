@@ -13,6 +13,7 @@ export type TallerFidelizadoAdmin = {
   descuentoPorcentaje: number;
   contraEntregaHabilitada: boolean;
   activo: boolean;
+  publicado: boolean;
   createdAt: string;
 };
 
@@ -39,6 +40,7 @@ type DbRow = {
   descuento_porcentaje: number;
   contra_entrega_habilitada: boolean;
   activo: boolean;
+  publicado?: boolean;
   created_at: string;
 };
 
@@ -50,6 +52,7 @@ function mapRow(row: DbRow): TallerFidelizadoAdmin {
     descuentoPorcentaje: Number(row.descuento_porcentaje ?? 0),
     contraEntregaHabilitada: Boolean(row.contra_entrega_habilitada),
     activo: Boolean(row.activo),
+    publicado: row.publicado !== false,
     createdAt: row.created_at,
   };
 }
@@ -63,9 +66,9 @@ export async function listTalleresFidelizadosAdmin(): Promise<
   const url = new URL(`${env.url}/rest/v1/talleres_fidelizados`);
   url.searchParams.set(
     "select",
-    "id,whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo,created_at",
+    "id,whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo,publicado,created_at",
   );
-  url.searchParams.set("order", "activo.desc,nombre_taller.asc");
+  url.searchParams.set("order", "publicado.asc,activo.desc,nombre_taller.asc");
 
   const res = await fetch(url.toString(), { headers: headers(env) });
   if (!res.ok) {
@@ -83,6 +86,7 @@ export type UpsertTallerInput = {
   descuentoPorcentaje: number;
   contraEntregaHabilitada: boolean;
   activo?: boolean;
+  publicado?: boolean;
 };
 
 export async function upsertTallerFidelizado(
@@ -101,6 +105,7 @@ export async function upsertTallerFidelizado(
     descuento_porcentaje: descuento,
     contra_entrega_habilitada: input.contraEntregaHabilitada,
     activo: input.activo ?? true,
+    publicado: input.publicado ?? true,
   };
 
   const res = await fetch(
@@ -169,4 +174,58 @@ export async function deleteTallerFidelizado(
     return { ok: false, reason: `Eliminar taller falló (${res.status}) ${text}`.slice(0, 200) };
   }
   return { ok: true };
+}
+
+/** Pasa talleres en borrador a operación en vivo. */
+export async function publicarTalleresBorrador(): Promise<
+  { ok: true; publicados: number } | { ok: false; reason: string }
+> {
+  const env = getSupabaseEnv();
+  if (!env) return { ok: false, reason: "Supabase no configurado" };
+
+  const url = new URL(`${env.url}/rest/v1/talleres_fidelizados`);
+  url.searchParams.set("publicado", "eq.false");
+  url.searchParams.set("activo", "eq.true");
+
+  const res = await fetch(url.toString(), {
+    method: "PATCH",
+    headers: headers(env, { Prefer: "return=representation" }),
+    body: JSON.stringify({ publicado: true }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return { ok: false, reason: `Publicar talleres falló (${res.status}) ${text}`.slice(0, 200) };
+  }
+
+  const rows = (await res.json()) as DbRow[];
+  return { ok: true, publicados: rows.length };
+}
+
+export async function eliminarPedidosPrueba(): Promise<
+  { ok: true; eliminados: number } | { ok: false; reason: string }
+> {
+  const env = getSupabaseEnv();
+  if (!env) return { ok: false, reason: "Supabase no configurado" };
+
+  const url = new URL(`${env.url}/rest/v1/pedidos`);
+  url.searchParams.set("es_prueba", "eq.true");
+  url.searchParams.set("select", "id");
+
+  const list = await fetch(url.toString(), { headers: headers(env) });
+  if (!list.ok) {
+    return { ok: false, reason: "No se pudieron listar pedidos de prueba" };
+  }
+  const rows = (await list.json()) as { id: string }[];
+
+  if (rows.length === 0) return { ok: true, eliminados: 0 };
+
+  const del = await fetch(`${env.url}/rest/v1/pedidos?es_prueba=eq.true`, {
+    method: "DELETE",
+    headers: headers(env),
+  });
+  if (!del.ok) {
+    return { ok: false, reason: "No se pudieron borrar pedidos de prueba" };
+  }
+  return { ok: true, eliminados: rows.length };
 }

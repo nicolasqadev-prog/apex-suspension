@@ -9,6 +9,7 @@ import { loadPiezaBySlug } from "@/lib/inventario.server";
 import { canonicalHref } from "@/lib/site-url";
 import { formatoPrecioCop } from "@/lib/formato-cop";
 import { agregarAlCarritoTaller } from "@/lib/taller-carrito";
+import { allowTallerBorradorEnCliente } from "@/lib/admin-preparacion";
 import { obtenerPiezaTaller } from "@/lib/taller.portal.functions";
 import type { PiezaCatalogoTaller } from "@/lib/taller.types";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
@@ -45,7 +46,13 @@ function RepuestoDetallePage() {
       return;
     }
     let cancelled = false;
-    obtenerPiezaTaller({ data: { whatsapp: whatsappGuardado, slug } }).then((res) => {
+    obtenerPiezaTaller({
+      data: {
+        whatsapp: whatsappGuardado,
+        slug,
+        allowNoPublicado: allowTallerBorradorEnCliente(),
+      },
+    }).then((res) => {
       if (cancelled) return;
       if (res.ok) setPiezaTaller(res.pieza);
       else setPiezaTaller(null);
