@@ -1,3 +1,6 @@
+/**
+ * Auditoría QA post-saneamiento: coherencia PWA ↔ Supabase ↔ JSON.
+ */
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,7 +25,6 @@ if (existsSync(envPath)) {
 let url = process.env.SUPABASE_URL?.trim().replace(/\/$/, "") ?? "";
 url = url.replace(/\/rest\/v1\/?$/i, "").replace(/\/$/, "");
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-
 const headers = { apikey: key, Authorization: `Bearer ${key}` };
 
 const catalogo = JSON.parse(
@@ -31,75 +33,102 @@ const catalogo = JSON.parse(
 const ejemplo = JSON.parse(readFileSync(join(root, "data/inventario.ejemplo.json"), "utf8"));
 const vivo = JSON.parse(readFileSync(join(root, "data/inventario-vivo.json"), "utf8"));
 
-const ejSlugs = new Set(ejemplo.piezas.map((p) => p.slug));
+const ejSlugs = ejemplo.piezas.map((p) => p.slug);
 const catByRef = new Map(catalogo.piezas.map((p) => [p.referencia, p]));
+const DESCUENTO = 16.67;
 
-async function rest(path, opts = {}) {
-  const res = await fetch(`${url}/rest/v1${path}`, { headers: { ...headers, ...opts.headers }, ...opts });
+async function rest(path, extraHeaders = {}) {
+  const res = await fetch(`${url}/rest/v1${path}`, {
+    headers: { ...headers, ...extraHeaders },
+  });
   const text = await res.text();
-  return { ok: res.ok, status: res.status, text, range: res.headers.get("content-range") };
-}
-
-const total = await rest("/productos?select=id&limit=1", { headers: { Prefer: "count=exact" } });
-const conStock = await rest("/productos?stock_actual=gt.0&select=referencia,stock_actual&limit=1", {
-  headers: { Prefer: "count=exact" },
-});
-const ktr = await rest(
-  "/productos?referencia=eq.KTR-4015&select=referencia,precio_lista,stock_actual,marca,categoria",
-);
-const ejInDb = await rest(
-  `/productos?slug=in.(${[...ejSlugs].map((s) => `"${s}"`).join(",")})&select=slug,referencia,stock_actual`,
-);
-const marcas = await rest("/productos?select=marca&limit=1000");
-const talleres = await rest(
-  "/talleres_fidelizados?select=whatsapp,nombre_taller,descuento_porcentaje,activo,publicado",
-);
-
-const marcaCounts = {};
-if (marcas.ok) {
-  for (const r of JSON.parse(marcas.text)) {
-    marcaCounts[r.marca] = (marcaCounts[r.marca] || 0) + 1;
+  let json = null;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    json = text;
   }
+  return { ok: res.ok, status: res.status, json, range: res.headers.get("content-range") };
 }
 
-const vivoStock = vivo.piezas.filter((p) => p.stock > 0).length;
-const catStock = catalogo.piezas.filter((p) => p.stock > 0).length;
+const totalActivos = await rest("/productos?activo=eq.true&select=id&limit=1", {
+  Prefer: "count=exact",
+});
+const totalTodos = await rest("/productos?select=id&limit=1", { Prefer: "count=exact" });
+const stockActivo = await rest(
+  "/productos?stock_actual=gt.0&activo=eq.true&select=referencia,stock_actual&limit=1",
+  { Prefer: "count=exact" },
+);
+const ktr = await rest(
+  "/productos?referencia=eq.KTR-4015&activo=eq.true&select=referencia,precio_lista,stock_actual,marca",
+);
+const demosActivos = await rest(
+  `/productos?slug=in.(${ejSlugs.map((s) => `"${s}"`).join(",")})&activo=eq.true&select=slug`,
+);
+const demosInactivos = await rest(
+  `/productos?slug=in.(${ejSlugs.map((s) => `"${s}"`).join(",")})&activo=eq.false&select=slug`,
+);
+const talleres = await rest(
+  "/talleres_fidelizados?activo=eq.true&select=whatsapp,nombre_taller,descuento_porcentaje",
+);
 
-// Price coherence KTR-4015
 const catKtr = catByRef.get("KTR-4015");
-const descuento = 16.67;
-const precioTallerCalc = catKtr
-  ? Math.round(catKtr.precioLista * (1 - descuento / 100))
+const ktrDb = ktr.ok && Array.isArray(ktr.json) ? ktr.json[0] : null;
+const precioTallerEsperado = catKtr
+  ? Math.round(catKtr.precioLista * (1 - DESCUENTO / 100))
   : null;
+
+const talleresList = talleres.ok && Array.isArray(talleres.json) ? talleres.json : [];
+const talleresOk = talleresList.every(
+  (t) => Math.abs(Number(t.descuento_porcentaje) - DESCUENTO) < 0.02,
+);
+
+const parseCount = (range) => {
+  if (!range) return null;
+  const m = range.match(/\/(\d+)$/);
+  return m ? Number(m[1]) : null;
+};
+
+const checks = {
+  supabaseConectado: !!url && !!key,
+  productosActivos: parseCount(totalActivos.range),
+  productosTotales: parseCount(totalTodos.range),
+  stockActivoBodega: parseCount(stockActivo.range),
+  stockEsperadoVivo: vivo.piezas.filter((p) => p.stock > 0).length,
+  demoVisiblesEnCatalogo: demosActivos.ok ? demosActivos.json?.length ?? 0 : -1,
+  demoDesactivados: demosInactivos.ok ? demosInactivos.json?.length ?? 0 : -1,
+  ktrPrecioCoincide: ktrDb?.precio_lista === catKtr?.precioLista,
+  ktrStockCoincide: ktrDb?.stock_actual === catKtr?.stock,
+  precioTaller16_67: precioTallerEsperado,
+  talleresDescuentoOk: talleresOk,
+  talleres: talleresList,
+};
+
+const fallos = [];
+if (checks.demoVisiblesEnCatalogo > 0) fallos.push("Demo activo en catálogo");
+if (checks.demoDesactivados !== ejSlugs.length) fallos.push("Demo no desactivado por completo");
+if (checks.stockActivoBodega !== checks.stockEsperadoVivo)
+  fallos.push(`Stock activo ${checks.stockActivoBodega} != vivo ${checks.stockEsperadoVivo}`);
+if (!checks.ktrPrecioCoincide) fallos.push("KTR-4015 precio no coincide JSON/BD");
+if (!checks.ktrStockCoincide) fallos.push("KTR-4015 stock no coincide JSON/BD");
+if (!checks.talleresDescuentoOk && talleresList.length) fallos.push("Taller sin 16.67%");
+if (checks.productosActivos < 5900) fallos.push("Pocos productos activos en BD");
+
+const veredicto =
+  fallos.length === 0 ? "APROBADO" : fallos.length <= 2 ? "APROBADO_CON_OBSERVACIONES" : "REVISAR";
 
 console.log(
   JSON.stringify(
     {
-      supabase: {
-        totalProductos: total.range,
-        conStock: conStock.range,
-        ktr4015: ktr.ok ? JSON.parse(ktr.text)[0] : ktr.text,
-        productosEjemploEnDb: ejInDb.ok ? JSON.parse(ejInDb.text).length : 0,
-        ejemploDetalle: ejInDb.ok ? JSON.parse(ejInDb.text).slice(0, 3) : null,
-        topMarcas: Object.entries(marcaCounts)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 8),
-        talleres: talleres.ok ? JSON.parse(talleres.text) : null,
-      },
-      json: {
-        catalogoPiezas: catalogo.piezas.length,
-        catalogoConStock: catStock,
-        vivoPiezas: vivo.piezas.length,
-        vivoConStock: vivoStock,
-        ejemploPiezas: ejemplo.piezas.length,
-        ktr4015Catalogo: catKtr
-          ? { precioLista: catKtr.precioLista, stock: catKtr.stock, marca: catKtr.marca }
-          : null,
-        precioTallerEsperado16_67: precioTallerCalc,
-      },
-      checks: {
-        ktrPrecioOk: ktr.ok && JSON.parse(ktr.text)[0]?.precio_lista === catKtr?.precioLista,
-        ejemploMezcladoEnDb: ejInDb.ok && JSON.parse(ejInDb.text).length > 0,
+      veredicto,
+      fallos,
+      checks,
+      flujo: {
+        runtime: "Supabase productos activos → loadCatalogo()",
+        catalogoJson: catalogo.piezas.length,
+        fallback: "inventario.ejemplo.json (10 SKUs, solo sin Supabase)",
+        syncCatalogo: "inventario-catalogo-completo.json — NO pisa stock existente",
+        syncStock: "inventario-vivo.json — ajusta stock",
       },
     },
     null,
