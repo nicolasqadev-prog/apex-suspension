@@ -1,3 +1,6 @@
+/**
+ * Desactiva en Supabase los productos demo de inventario.ejemplo.json.
+ */
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,17 +25,36 @@ if (existsSync(envPath)) {
 let url = process.env.SUPABASE_URL?.trim().replace(/\/$/, "") ?? "";
 url = url.replace(/\/rest\/v1\/?$/i, "").replace(/\/$/, "");
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+if (!url || !key) {
+  console.error("Faltan credenciales Supabase");
+  process.exit(1);
+}
 
-const res = await fetch(
-  `${url}/rest/v1/productos?stock_actual=gt.0&activo=eq.true&select=referencia,stock_actual&limit=5`,
-  {
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      Prefer: "count=exact",
-    },
-  },
+const ejemplo = JSON.parse(
+  readFileSync(join(root, "data/inventario.ejemplo.json"), "utf8"),
 );
-console.log("con_stock", res.headers.get("content-range"));
-const rows = await res.json();
-console.log("muestra", rows.slice(0, 3));
+const slugs = ejemplo.piezas.map((p) => p.slug);
+const headers = {
+  apikey: key,
+  Authorization: `Bearer ${key}`,
+  "Content-Type": "application/json",
+  Prefer: "return=representation",
+};
+
+let desactivados = 0;
+for (const slug of slugs) {
+  const res = await fetch(
+    `${url}/rest/v1/productos?slug=eq.${encodeURIComponent(slug)}`,
+    {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ activo: false }),
+    },
+  );
+  if (res.ok) {
+    const rows = await res.json();
+    if (rows.length) desactivados += 1;
+  }
+}
+
+console.log(JSON.stringify({ slugsDemo: slugs.length, desactivados }, null, 2));

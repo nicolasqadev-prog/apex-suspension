@@ -11,7 +11,7 @@ insert into talleres_fidelizados (
 ) values (
   '573001234567',
   'Taller Demo Apex',
-  12,
+  16.67,
   false,
   true,
   true

@@ -91,6 +91,7 @@ export async function loadPiezaBySlug(slug: string): Promise<PiezaLoaderData> {
       "slug,referencia,nombre,aplicacion,categoria,marca,precio_lista,stock_actual,activo",
     );
     u.searchParams.set("slug", `eq.${slug}`);
+    u.searchParams.set("activo", "eq.true");
     u.searchParams.set("limit", "1");
 
     const res = await fetch(u.toString(), {

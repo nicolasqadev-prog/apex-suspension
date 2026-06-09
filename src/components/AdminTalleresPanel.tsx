@@ -21,7 +21,7 @@ type Props = {
 const emptyForm = {
   whatsapp: "",
   nombreTaller: "",
-  descuentoPorcentaje: "10",
+  descuentoPorcentaje: "16.67",
   contraEntregaHabilitada: true,
 };
 

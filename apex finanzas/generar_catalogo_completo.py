@@ -20,6 +20,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from inventario_config import PEDIDOS_DIR
 from generar_lista_precios_pedido import (
     COSTO_OCULTO,
     DESCUENTO_TALLER_PWA_PCT,
@@ -30,7 +31,8 @@ from generar_lista_precios_pedido import (
 )
 
 BASE = Path(__file__).parent
-LISTA_PERSONA_XLSX = Path(r"c:\Users\Usuario\Downloads\lista_persona (1).xlsx")
+LISTA_PERSONA_XLSX = PEDIDOS_DIR / "lista_persona.xlsx"
+LISTA_PERSONA_FALLBACK = Path(r"c:\Users\Usuario\Downloads\lista_persona (1).xlsx")
 OUTPUT_JSON = BASE.parent / "data" / "inventario-catalogo-completo.json"
 OUTPUT_PWA_LOCAL = BASE / "carga-pwa-catalogo.json"
 VIVO_JSON = BASE.parent / "data" / "inventario-vivo.json"
@@ -79,8 +81,8 @@ def marca_desde_nombre(nombre: str) -> str:
     return "Varios"
 
 
-def cargar_lista_persona() -> pd.DataFrame:
-    df = pd.read_excel(LISTA_PERSONA_XLSX, sheet_name="Persona")
+def cargar_lista_persona(path: Path) -> pd.DataFrame:
+    df = pd.read_excel(path, sheet_name="Persona")
     df = df.dropna(subset=["REFERENCIA/MODELO", "PRECIO BASE (COP)"])
     df["REFERENCIA/MODELO"] = df["REFERENCIA/MODELO"].astype(str).str.strip().str.upper()
     df["PRECIO BASE (COP)"] = pd.to_numeric(df["PRECIO BASE (COP)"], errors="coerce")
@@ -205,11 +207,20 @@ def payload_pwa(piezas: list[dict]) -> dict:
     }
 
 
-def main() -> None:
-    if not LISTA_PERSONA_XLSX.exists():
-        raise SystemExit(f"No existe: {LISTA_PERSONA_XLSX}")
+def resolver_lista_persona() -> Path:
+    if LISTA_PERSONA_XLSX.exists():
+        return LISTA_PERSONA_XLSX
+    if LISTA_PERSONA_FALLBACK.exists():
+        return LISTA_PERSONA_FALLBACK
+    raise SystemExit(
+        f"Copia lista_persona.xlsx a {LISTA_PERSONA_XLSX} "
+        f"o deja el archivo en Downloads como lista_persona (1).xlsx"
+    )
 
-    df = cargar_lista_persona()
+
+def main() -> None:
+    lista_path = resolver_lista_persona()
+    df = cargar_lista_persona(lista_path)
     overlay = cargar_overlay_vivo()
     piezas = construir_piezas(df, overlay)
     data = payload_pwa(piezas)

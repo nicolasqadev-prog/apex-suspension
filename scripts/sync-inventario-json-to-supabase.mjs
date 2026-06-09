@@ -3,8 +3,9 @@
  *
  * - Producto nuevo: inserta en `productos` (stock_actual=0) + movimiento en `stock_movimientos`
  *   para respetar el trigger del esquema.
- * - Producto existente (mismo slug): actualiza datos de catálogo (precio, nombre, etc.)
- *   sin tocar stock ni insertar movimientos otra vez (evita duplicar entradas).
+ * - Producto existente: actualiza catálogo (precio, nombre, etc.).
+ * - Stock en existentes: solo si el JSON es inventario-vivo o pasas --stock.
+ *   El catálogo completo (stock 0 masivo) NO debe pisar stock de bodega.
  *
  * Uso (con variables en el entorno o en `.env.local` cargadas manualmente):
  *   set SUPABASE_URL=... && set SUPABASE_SERVICE_ROLE_KEY=... && node scripts/sync-inventario-json-to-supabase.mjs
@@ -51,15 +52,22 @@ let jsonPath = join(root, "data", "inventario.ejemplo.json");
 let desde = 0;
 let cantidad = Infinity;
 
+let forzarStock = false;
+
 for (const arg of process.argv.slice(2)) {
   if (arg.startsWith("--desde=")) {
     desde = Math.max(0, Number(arg.slice(8)) || 0);
   } else if (arg.startsWith("--cantidad=")) {
     cantidad = Math.max(1, Number(arg.slice(11)) || 1);
+  } else if (arg === "--stock") {
+    forzarStock = true;
   } else if (!arg.startsWith("-")) {
     jsonPath = arg.includes("/") || arg.includes("\\") ? arg : join(root, arg);
   }
 }
+
+const jsonNorm = jsonPath.replace(/\\/g, "/");
+const sincronizarStock = forzarStock || jsonNorm.includes("inventario-vivo");
 
 if (!url || !key) {
   console.error("Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en el entorno.");
@@ -127,7 +135,7 @@ const piezas = todas.slice(desde, hasta);
 const total = todas.length;
 
 console.error(
-  `Lote: indices ${desde}-${hasta - 1} de ${total} (${piezas.length} piezas en este paso)`,
+  `Lote: indices ${desde}-${hasta - 1} de ${total} (${piezas.length} piezas) | stock=${sincronizarStock ? "si" : "no"}`,
 );
 
 let created = 0;
@@ -170,11 +178,13 @@ for (let i = 0; i < piezas.length; i++) {
       activo: true,
     });
     updated += 1;
-    const actual = Math.max(0, Math.floor(Number(existing.stock_actual ?? 0)));
-    const delta = stock - actual;
-    if (delta !== 0) {
-      await insertStockMovement(existing.id, delta, "Sync catálogo — ajuste stock");
-      stockAjustado += 1;
+    if (sincronizarStock) {
+      const actual = Math.max(0, Math.floor(Number(existing.stock_actual ?? 0)));
+      const delta = stock - actual;
+      if (delta !== 0) {
+        await insertStockMovement(existing.id, delta, "Sync inventario vivo — ajuste stock");
+        stockAjustado += 1;
+      }
     }
     continue;
   }
@@ -210,7 +220,8 @@ console.log(
       stockAjustadoEnExistentes: stockAjustado,
       siguiente_desde: siguiente,
       completado: siguiente === null,
-      nota: "Siguiente paso: --desde=siguiente_desde --cantidad=N",
+      sincronizarStock,
+      nota: "Catálogo completo: precios/nombres sin tocar stock. Stock: inventario-vivo.json o --stock",
     },
     null,
     2,

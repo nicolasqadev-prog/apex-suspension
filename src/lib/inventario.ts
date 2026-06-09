@@ -1,3 +1,4 @@
+/** Fallback local (10 SKUs demo). En producción el catálogo viene de Supabase. */
 import inventarioEjemplo from "../../data/inventario.ejemplo.json";
 
 export type PiezaInventario = {

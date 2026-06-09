@@ -211,7 +211,7 @@ function CatalogoPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 text-xs">
           <label className="flex flex-col gap-1 text-gray-500">
-            <span className="font-medium text-gray-400">Marca</span>
+            <span className="font-medium text-gray-400">Vehículo</span>
             <select
               value={marca}
               onChange={(e) => setMarca(e.target.value)}
@@ -293,7 +293,9 @@ function CatalogoPage() {
                         {p.marca}
                         {marcaInfo(p.marca)?.descripcionCorta
                           ? ` · ${marcaInfo(p.marca)!.descripcionCorta}`
-                          : ""}
+                          : p.categoria
+                            ? ` · ${p.categoria}`
+                            : ""}
                       </p>
                       <p className="text-xs font-mono text-[oklch(0.7_0.2_40)]">{p.referencia}</p>
                       <p className="font-semibold text-white">{p.nombre}</p>
