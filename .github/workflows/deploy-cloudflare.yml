@@ -32,6 +32,7 @@ jobs:
         env:
           VITE_WHATSAPP_APEX: ${{ secrets.VITE_WHATSAPP_APEX }}
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
         run: npm run build
 
       - name: Deploy Worker
@@ -50,7 +51,9 @@ jobs:
           VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
           VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
         run: |
+          printf '%s' "$VITE_SITE_URL" | npx wrangler secret put VITE_SITE_URL --config dist/server/wrangler.json
           printf '%s' "$SUPABASE_URL" | npx wrangler secret put SUPABASE_URL --config dist/server/wrangler.json
           printf '%s' "$SUPABASE_SERVICE_ROLE_KEY" | npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config dist/server/wrangler.json
           printf '%s' "$ADMIN_PIN" | npx wrangler secret put ADMIN_PIN --config dist/server/wrangler.json

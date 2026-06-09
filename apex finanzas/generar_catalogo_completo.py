@@ -20,6 +20,13 @@ from pathlib import Path
 
 import pandas as pd
 
+from catalogo_clasificacion import (
+    clasificar_marca_producto,
+    grupo_categoria,
+    inferir_linea_vehiculo,
+    normalizar_categoria_raw,
+    resolver_marca_vehiculo,
+)
 from inventario_config import PEDIDOS_DIR
 from generar_lista_precios_pedido import (
     COSTO_OCULTO,
@@ -37,48 +44,9 @@ OUTPUT_JSON = BASE.parent / "data" / "inventario-catalogo-completo.json"
 OUTPUT_PWA_LOCAL = BASE / "carga-pwa-catalogo.json"
 VIVO_JSON = BASE.parent / "data" / "inventario-vivo.json"
 
-MARCAS_VEHICULO = [
-    "MERCEDES BENZ",
-    "MERCEDES-BENZ",
-    "CHEVROLET",
-    "VOLKSWAGEN",
-    "MITSUBISHI",
-    "CHRYSLER",
-    "DAEWOO",
-    "RENAULT",
-    "HYUNDAI",
-    "TOYOTA",
-    "NISSAN",
-    "MAZDA",
-    "DODGE",
-    "HONDA",
-    "FORD",
-    "SUZUKI",
-    "BMW",
-    "KIA",
-]
-
-
 def calcular_precios(precio_base: float) -> tuple[float, float, float]:
     cr = precio_base * (1 + IVA) + COSTO_OCULTO
     return cr / MARGEN_TALLER, cr / MARGEN_PUBLICO, cr
-
-
-def normalizar_categoria(cat: str) -> str:
-    c = str(cat or "").strip()
-    if not c:
-        return "Suspensión"
-    return c[:1].upper() + c[1:].lower() if c.isupper() else c
-
-
-def marca_desde_nombre(nombre: str) -> str:
-    upper = nombre.upper()
-    for marca in MARCAS_VEHICULO:
-        if marca in upper:
-            if marca.startswith("MERCEDES"):
-                return "Mercedes Benz"
-            return marca.title()
-    return "Varios"
 
 
 def cargar_lista_persona(path: Path) -> pd.DataFrame:
@@ -107,9 +75,20 @@ def construir_piezas(df: pd.DataFrame, overlay: dict[str, dict]) -> list[dict]:
     for _, row in df.iterrows():
         ref = row["REFERENCIA/MODELO"]
         nombre = str(row["NOMBRE PRODUCTO"]).strip()
-        categoria = normalizar_categoria(row.get("CATEGORÍA", ""))
+        categoria = normalizar_categoria_raw(row.get("CATEGORÍA", ""))
+        cat_grupo = grupo_categoria(categoria)
         base = float(row["PRECIO BASE (COP)"])
         taller, publico, _ = calcular_precios(base)
+        mp_raw = str(row.get("MARCA PRODUCTO", "KTC")).strip() or "KTC"
+        marca_producto, _ = clasificar_marca_producto(mp_raw)
+        marca_veh = resolver_marca_vehiculo(nombre, mp_raw)
+        linea = inferir_linea_vehiculo(
+            marca_producto=marca_producto,
+            nombre=nombre,
+            aplicacion=nombre,
+            categoria=categoria,
+            marca_vehiculo=marca_veh,
+        )
 
         item = {
             "slug": slug_desde_referencia(ref),
@@ -117,12 +96,14 @@ def construir_piezas(df: pd.DataFrame, overlay: dict[str, dict]) -> list[dict]:
             "nombre": nombre[:80],
             "aplicacion": nombre,
             "categoria": categoria,
+            "categoriaGrupo": cat_grupo,
             "precioLista": int(round(publico)),
             "precioTaller": int(round(taller)),
             "precioBase": int(round(base)),
             "stock": 0,
-            "marca": marca_desde_nombre(nombre),
-            "marcaProducto": str(row.get("MARCA PRODUCTO", "KTC")).strip() or "KTC",
+            "marca": marca_veh,
+            "marcaProducto": marca_producto,
+            "lineaVehiculo": linea,
             "enBodega": False,
         }
 
@@ -135,12 +116,26 @@ def construir_piezas(df: pd.DataFrame, overlay: dict[str, dict]) -> list[dict]:
                 item["precioTaller"] = int(round(item["precioLista"] * (1 - DESCUENTO_TALLER_PWA_PCT / 100)))
             if v.get("marca"):
                 item["marca"] = v["marca"]
+            if v.get("marcaProducto"):
+                item["marcaProducto"] = v["marcaProducto"]
+            if v.get("lineaVehiculo"):
+                item["lineaVehiculo"] = v["lineaVehiculo"]
             if v.get("categoria"):
                 item["categoria"] = v["categoria"]
+                item["categoriaGrupo"] = grupo_categoria(item["categoria"])
+            if v.get("categoriaGrupo"):
+                item["categoriaGrupo"] = v["categoriaGrupo"]
             if v.get("nombre"):
                 item["nombre"] = str(v["nombre"])[:80]
             if v.get("aplicacion"):
                 item["aplicacion"] = v["aplicacion"]
+            item["lineaVehiculo"] = inferir_linea_vehiculo(
+                marca_producto=item["marcaProducto"],
+                nombre=item["nombre"],
+                aplicacion=item["aplicacion"],
+                categoria=item["categoria"],
+                marca_vehiculo=item["marca"],
+            )
 
         piezas.append(item)
 
@@ -149,21 +144,35 @@ def construir_piezas(df: pd.DataFrame, overlay: dict[str, dict]) -> list[dict]:
     for ref, v in overlay.items():
         if ref in refs_en_catalogo:
             continue
+        cat = v.get("categoria") or "Suspensión"
+        nombre_b = str(v.get("nombre", ref))[:80]
+        aplic = v.get("aplicacion") or nombre_b
+        marca_v = v.get("marca") or "Varios"
+        mp = v.get("marcaProducto") or "DMB"
         piezas.append(
             {
                 "slug": slug_desde_referencia(ref),
                 "referencia": ref,
-                "nombre": str(v.get("nombre", ref))[:80],
-                "aplicacion": v.get("aplicacion") or v.get("nombre", ref),
-                "categoria": v.get("categoria") or "Suspensión",
+                "nombre": nombre_b,
+                "aplicacion": aplic,
+                "categoria": cat,
+                "categoriaGrupo": v.get("categoriaGrupo") or grupo_categoria(cat),
                 "precioLista": int(v.get("precioLista", 0)),
                 "precioTaller": int(
                     round(int(v.get("precioLista", 0)) * (1 - DESCUENTO_TALLER_PWA_PCT / 100))
                 ),
                 "precioBase": 0,
                 "stock": int(v.get("stock", 0)),
-                "marca": v.get("marca") or "Varios",
-                "marcaProducto": v.get("marca") or "DMB",
+                "marca": marca_v,
+                "marcaProducto": mp,
+                "lineaVehiculo": v.get("lineaVehiculo")
+                or inferir_linea_vehiculo(
+                    marca_producto=mp,
+                    nombre=nombre_b,
+                    aplicacion=aplic,
+                    categoria=cat,
+                    marca_vehiculo=marca_v,
+                ),
                 "enBodega": int(v.get("stock", 0)) > 0,
             }
         )
@@ -182,9 +191,13 @@ def payload_pwa(piezas: list[dict]) -> dict:
                 "nombre": p["nombre"],
                 "aplicacion": p["aplicacion"],
                 "categoria": p["categoria"],
+                "categoriaGrupo": p["categoriaGrupo"],
                 "precioLista": p["precioLista"],
+                "precioTaller": p["precioTaller"],
                 "stock": p["stock"],
                 "marca": p["marca"],
+                "marcaProducto": p["marcaProducto"],
+                "lineaVehiculo": p["lineaVehiculo"],
             }
         )
     con_stock = sum(1 for p in piezas if p["stock"] > 0)

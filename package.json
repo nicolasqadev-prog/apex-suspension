@@ -16,7 +16,11 @@
     "assets:logo": "node scripts/optimize-logo.mjs",
     "icons:pwa": "node scripts/generate-pwa-assets.mjs",
     "vapid:keys": "node scripts/generate-vapid-keys.mjs",
-    "sync:inventory": "node scripts/sync-inventario-json-to-supabase.mjs"
+    "sync:inventory": "node scripts/sync-inventario-json-to-supabase.mjs",
+    "qa:audit": "node scripts/qa-audit.mjs",
+    "qa:datos": "node scripts/qa-datos-maestros.mjs",
+    "db:migrate:datos": "node scripts/apply-migration-sql.mjs",
+    "secrets:cloudflare": "node scripts/sync-cloudflare-secrets.mjs"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",

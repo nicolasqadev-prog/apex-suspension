@@ -1,3 +1,14 @@
+const SITE_URL = "https://apex-suspension.com.co";
+
+/** Build (Vite) o runtime Worker (`wrangler secret put VITE_SITE_URL`). */
+function readConfiguredSiteOrigin(): string {
+  const fromImport = (import.meta.env.VITE_SITE_URL as string | undefined)?.trim();
+  const fromProcess =
+    typeof process !== "undefined" ? process.env.VITE_SITE_URL?.trim() : undefined;
+  const v = fromImport || fromProcess || (import.meta.env.DEV ? "" : SITE_URL);
+  return v ? v.replace(/\/$/, "") : "";
+}
+
 /**
  * URL pública del sitio (sin barra final).
  *
@@ -6,15 +17,15 @@
  * `tu_dominio` no existe y verás errores DNS (DNS_PROBE_*).
  */
 export function siteOriginForHead(): string {
-  const v = (import.meta.env.VITE_SITE_URL as string | undefined)?.trim();
-  if (v) return v.replace(/\/$/, "");
+  const v = readConfiguredSiteOrigin();
+  if (v) return v;
   if (import.meta.env.DEV) return "http://localhost:8080";
   return "";
 }
 
 /** Origen para sitemap/robots: env primero; si no, el host de la petición. */
 export function resolvePublicOrigin(request: Request): string {
-  const v = (import.meta.env.VITE_SITE_URL as string | undefined)?.trim().replace(/\/$/, "");
+  const v = readConfiguredSiteOrigin();
   if (v) return v;
   return new URL(request.url).origin;
 }

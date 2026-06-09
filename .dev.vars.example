@@ -1,6 +1,9 @@
 # Variables SOLO servidor (Wrangler / Cloudflare Worker)
 # Copia este archivo como `.dev.vars` para desarrollo local con Wrangler.
 #
+# URL canónica (también en .env.local como VITE_SITE_URL para el build)
+# VITE_SITE_URL=https://apex-suspension.com.co
+#
 # PIN del panel /admin (no usar VITE_*)
 # Pruebas locales: Panel1234 (cámbialo en .dev.vars y en producción en Cloudflare)
 ADMIN_PIN=Panel1234

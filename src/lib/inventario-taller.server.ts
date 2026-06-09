@@ -7,9 +7,13 @@ function mapPiezaTaller(
   pieza: import("./inventario").PiezaInventario,
   descuentoPorcentaje: number,
 ): PiezaCatalogoTaller {
+  const precioTaller =
+    pieza.precioTallerRef != null && pieza.precioTallerRef > 0
+      ? Math.round(pieza.precioTallerRef)
+      : aplicarDescuento(pieza.precioLista, descuentoPorcentaje);
   return {
     ...pieza,
-    precioTaller: aplicarDescuento(pieza.precioLista, descuentoPorcentaje),
+    precioTaller,
   };
 }
 

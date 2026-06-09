@@ -1,5 +1,8 @@
 /** Fallback local (10 SKUs demo). En producción el catálogo viene de Supabase. */
 import inventarioEjemplo from "../../data/inventario.ejemplo.json";
+import { completarPieza } from "./inventario-normalizar";
+
+export type LineaVehiculo = "liviano" | "camion" | "utilitario";
 
 export type PiezaInventario = {
   slug: string;
@@ -7,9 +10,17 @@ export type PiezaInventario = {
   nombre: string;
   aplicacion: string;
   categoria: string;
+  /** Categoría agrupada para filtros (Amortiguadores, etc.). */
+  categoriaGrupo: string;
   precioLista: number;
+  /** Precio taller de referencia en BD (si existe). */
+  precioTallerRef?: number;
   stock: number;
+  /** Marca del vehículo. */
   marca: string;
+  /** Marca proveedor del repuesto (KTC, Districamiones…). */
+  marcaProducto: string;
+  lineaVehiculo: LineaVehiculo;
 };
 
 type InventarioJson = {
@@ -24,7 +35,9 @@ export function monedaInventario(): string {
 }
 
 export function listarPiezas(): PiezaInventario[] {
-  return [...data.piezas].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  return [...data.piezas]
+    .map((p) => completarPieza(p as Parameters<typeof completarPieza>[0]))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 }
 
 export function piezaPorSlug(slug: string): PiezaInventario | undefined {

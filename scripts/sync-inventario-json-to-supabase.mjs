@@ -84,6 +84,20 @@ function rest(path, init = {}) {
   return fetch(`${url}/rest/v1${path}`, { ...init, headers: { ...headers, ...init.headers } });
 }
 
+let datosMaestrosEnBd = null;
+
+async function columnasDatosMaestrosDisponibles() {
+  if (datosMaestrosEnBd != null) return datosMaestrosEnBd;
+  const res = await rest("/productos?select=marca_producto,linea_vehiculo&limit=1");
+  datosMaestrosEnBd = res.ok;
+  if (!datosMaestrosEnBd) {
+    console.error(
+      "Aviso: columnas datos maestros no existen en BD. Sincronizando solo campos legacy. Ejecutá: npm run db:migrate:datos",
+    );
+  }
+  return datosMaestrosEnBd;
+}
+
 async function findProductBySlug(slug) {
   const res = await rest(
     `/productos?slug=eq.${encodeURIComponent(slug)}&select=id,slug,referencia,stock_actual&limit=1`,
@@ -138,6 +152,8 @@ console.error(
   `Lote: indices ${desde}-${hasta - 1} de ${total} (${piezas.length} piezas) | stock=${sincronizarStock ? "si" : "no"}`,
 );
 
+const syncDatosMaestros = await columnasDatosMaestrosDisponibles();
+
 let created = 0;
 let updated = 0;
 let stockAjustado = 0;
@@ -156,7 +172,14 @@ for (let i = 0; i < piezas.length; i++) {
   const aplicacion = p.aplicacion ?? null;
   const categoria = p.categoria ?? null;
   const marca = p.marca ?? "KTC";
+  const marca_producto = p.marcaProducto ?? null;
+  const linea_vehiculo = p.lineaVehiculo ?? "liviano";
+  const categoria_grupo = p.categoriaGrupo ?? null;
   const precio_lista = Number(p.precioLista);
+  const precio_taller =
+    p.precioTaller != null && !Number.isNaN(Number(p.precioTaller))
+      ? Number(p.precioTaller)
+      : null;
   const stock = Math.max(0, Math.floor(Number(p.stock ?? 0)));
 
   if (!slug || !referencia || !nombre || Number.isNaN(precio_lista)) {
@@ -168,7 +191,7 @@ for (let i = 0; i < piezas.length; i++) {
   const existing = await findProductBySlug(slug);
 
   if (existing) {
-    await patchProduct(existing.id, {
+    const patch = {
       referencia,
       nombre,
       aplicacion,
@@ -176,7 +199,16 @@ for (let i = 0; i < piezas.length; i++) {
       marca,
       precio_lista,
       activo: true,
-    });
+    };
+    if (syncDatosMaestros) {
+      Object.assign(patch, {
+        categoria_grupo,
+        marca_producto,
+        linea_vehiculo,
+        precio_taller,
+      });
+    }
+    await patchProduct(existing.id, patch);
     updated += 1;
     if (sincronizarStock) {
       const actual = Math.max(0, Math.floor(Number(existing.stock_actual ?? 0)));
@@ -200,6 +232,14 @@ for (let i = 0; i < piezas.length; i++) {
     activo: true,
     stock_actual: 0,
   };
+  if (syncDatosMaestros) {
+    Object.assign(row, {
+      categoria_grupo,
+      marca_producto,
+      linea_vehiculo,
+      precio_taller,
+    });
+  }
 
   const inserted = await insertProduct(row);
   if (stock > 0) {

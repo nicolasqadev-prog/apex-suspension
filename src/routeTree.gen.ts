@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SitemapStaticDotxmlRouteImport } from './routes/sitemap-static[.]xml'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
@@ -17,11 +18,17 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TallerPedidoRouteImport } from './routes/taller.pedido'
 import { Route as TallerAccesoRouteImport } from './routes/taller.acceso'
+import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-products.$page'
 import { Route as RepuestoSlugRouteImport } from './routes/repuesto.$slug'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapStaticDotxmlRoute = SitemapStaticDotxmlRouteImport.update({
+  id: '/sitemap-static.xml',
+  path: '/sitemap-static.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
@@ -59,6 +66,11 @@ const TallerAccesoRoute = TallerAccesoRouteImport.update({
   path: '/taller/acceso',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapProductsPageRoute = SitemapProductsPageRouteImport.update({
+  id: '/sitemap-products/$page',
+  path: '/sitemap-products/$page',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RepuestoSlugRoute = RepuestoSlugRouteImport.update({
   id: '/repuesto/$slug',
   path: '/repuesto/$slug',
@@ -71,8 +83,10 @@ export interface FileRoutesByFullPath {
   '/catalogo': typeof CatalogoRoute
   '/legal': typeof LegalRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap-static.xml': typeof SitemapStaticDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
+  '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/taller/acceso': typeof TallerAccesoRoute
   '/taller/pedido': typeof TallerPedidoRoute
 }
@@ -82,8 +96,10 @@ export interface FileRoutesByTo {
   '/catalogo': typeof CatalogoRoute
   '/legal': typeof LegalRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap-static.xml': typeof SitemapStaticDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
+  '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/taller/acceso': typeof TallerAccesoRoute
   '/taller/pedido': typeof TallerPedidoRoute
 }
@@ -94,8 +110,10 @@ export interface FileRoutesById {
   '/catalogo': typeof CatalogoRoute
   '/legal': typeof LegalRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap-static.xml': typeof SitemapStaticDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
+  '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/taller/acceso': typeof TallerAccesoRoute
   '/taller/pedido': typeof TallerPedidoRoute
 }
@@ -107,8 +125,10 @@ export interface FileRouteTypes {
     | '/catalogo'
     | '/legal'
     | '/robots.txt'
+    | '/sitemap-static.xml'
     | '/sitemap.xml'
     | '/repuesto/$slug'
+    | '/sitemap-products/$page'
     | '/taller/acceso'
     | '/taller/pedido'
   fileRoutesByTo: FileRoutesByTo
@@ -118,8 +138,10 @@ export interface FileRouteTypes {
     | '/catalogo'
     | '/legal'
     | '/robots.txt'
+    | '/sitemap-static.xml'
     | '/sitemap.xml'
     | '/repuesto/$slug'
+    | '/sitemap-products/$page'
     | '/taller/acceso'
     | '/taller/pedido'
   id:
@@ -129,8 +151,10 @@ export interface FileRouteTypes {
     | '/catalogo'
     | '/legal'
     | '/robots.txt'
+    | '/sitemap-static.xml'
     | '/sitemap.xml'
     | '/repuesto/$slug'
+    | '/sitemap-products/$page'
     | '/taller/acceso'
     | '/taller/pedido'
   fileRoutesById: FileRoutesById
@@ -141,8 +165,10 @@ export interface RootRouteChildren {
   CatalogoRoute: typeof CatalogoRoute
   LegalRoute: typeof LegalRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapStaticDotxmlRoute: typeof SitemapStaticDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   RepuestoSlugRoute: typeof RepuestoSlugRoute
+  SitemapProductsPageRoute: typeof SitemapProductsPageRoute
   TallerAccesoRoute: typeof TallerAccesoRoute
   TallerPedidoRoute: typeof TallerPedidoRoute
 }
@@ -154,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap-static.xml': {
+      id: '/sitemap-static.xml'
+      path: '/sitemap-static.xml'
+      fullPath: '/sitemap-static.xml'
+      preLoaderRoute: typeof SitemapStaticDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -205,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TallerAccesoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap-products/$page': {
+      id: '/sitemap-products/$page'
+      path: '/sitemap-products/$page'
+      fullPath: '/sitemap-products/$page'
+      preLoaderRoute: typeof SitemapProductsPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/repuesto/$slug': {
       id: '/repuesto/$slug'
       path: '/repuesto/$slug'
@@ -221,8 +261,10 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogoRoute: CatalogoRoute,
   LegalRoute: LegalRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapStaticDotxmlRoute: SitemapStaticDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   RepuestoSlugRoute: RepuestoSlugRoute,
+  SitemapProductsPageRoute: SitemapProductsPageRoute,
   TallerAccesoRoute: TallerAccesoRoute,
   TallerPedidoRoute: TallerPedidoRoute,
 }

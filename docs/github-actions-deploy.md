@@ -11,6 +11,7 @@ En el repo: **Settings → Secrets and variables → Actions → New repository 
 | `CLOUDFLARE_API_TOKEN`      | Token con permiso de editar Workers (y lectura de cuenta si hace falta). [Crear token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) (plantilla “Edit Cloudflare Workers” o equivalente). |
 | `CLOUDFLARE_ACCOUNT_ID`     | En Cloudflare: **Overview** de tu cuenta, columna derecha, **Account ID**.                                                                                                                                                |
 | `VITE_WHATSAPP_APEX`        | Mismo valor que en `.env.example` (número WhatsApp; se inyecta en el **build**).                                                                                                                                          |
+| `VITE_SITE_URL`             | URL pública con HTTPS, sin barra final (p. ej. `https://apex-suspension.com.co`). **Build** (canonical/OG) y secreto del Worker (sitemap/robots).                                                                       |
 | `SUPABASE_URL`              | URL del proyecto Supabase (podés normalizarla como en local).                                                                                                                                                             |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role de Supabase (solo servidor).                                                                                                                                                                                 |
 | `ADMIN_PIN`                 | PIN fuerte para `/admin` en producción.                                                                                                                                                                                   |
@@ -25,7 +26,7 @@ Este flujo asume que **el deploy lo hace solo GitHub Actions**.
 
 ## 3. Primer deploy
 
-1. Creá los 6 secretos.
+1. Creá los 7 secretos.
 2. Hacé `push` a `main` (o en GitHub: **Actions → Deploy Cloudflare → Run workflow**).
 3. En Cloudflare, abrí el Worker **`apex-suspension`** (nombre de `wrangler.jsonc`) y comprobá la URL `*.workers.dev` o el dominio que asignes después.
 

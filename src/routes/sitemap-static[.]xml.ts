@@ -1,15 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { buildSitemapIndexXml, sitemapXmlResponse } from "@/lib/sitemap.server";
+import { buildStaticSitemapXml, sitemapXmlResponse } from "@/lib/sitemap.server";
 import { resolvePublicOrigin } from "@/lib/site-url";
 
-export const Route = createFileRoute("/sitemap.xml")({
+export const Route = createFileRoute("/sitemap-static.xml")({
   server: {
     handlers: {
       GET: async ({ request }) => {
         const origin = resolvePublicOrigin(request);
-        const xml = await buildSitemapIndexXml(origin);
-        return sitemapXmlResponse(xml);
+        return sitemapXmlResponse(buildStaticSitemapXml(origin));
       },
     },
   },
