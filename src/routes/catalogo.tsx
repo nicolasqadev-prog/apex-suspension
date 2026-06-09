@@ -28,6 +28,7 @@ import { obtenerCatalogoTaller } from "@/lib/taller.portal.functions";
 import type { PiezaCatalogoTaller } from "@/lib/taller.types";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 import StudioFooterSignature from "@/components/StudioFooterSignature";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/catalogo")({
   loader: () => loadCatalogo(),
@@ -50,9 +51,10 @@ export const Route = createFileRoute("/catalogo")({
 
 type PiezaVista = PiezaInventario & { precioTaller?: number };
 
-const POR_PAGINA = 10;
+const POR_PAGINA_MOVIL = 6;
+const POR_PAGINA_ESCRITORIO = 12;
 
-function paginar<T>(items: T[], pagina: number, porPagina = POR_PAGINA) {
+function paginar<T>(items: T[], pagina: number, porPagina: number) {
   const totalPaginas = Math.max(1, Math.ceil(items.length / porPagina));
   const paginaSegura = Math.min(Math.max(1, pagina), totalPaginas);
   const inicio = (paginaSegura - 1) * porPagina;
@@ -84,6 +86,8 @@ function mensajeConsultaStock(p: PiezaInventario, moneda: string): string {
 
 function CatalogoPage() {
   const { piezas: piezasPublicas, moneda } = Route.useLoaderData();
+  const isMobile = useIsMobile();
+  const porPagina = isMobile ? POR_PAGINA_MOVIL : POR_PAGINA_ESCRITORIO;
   const { taller, whatsappGuardado: whatsappTaller } = useTallerSession();
   const [piezasTaller, setPiezasTaller] = useState<PiezaCatalogoTaller[] | null>(null);
   const [fuenteTaller, setFuenteTaller] = useState<"supabase" | "json" | null>(null);
@@ -167,12 +171,15 @@ function CatalogoPage() {
   useEffect(() => {
     setPaginaBodega(1);
     setPaginaBajoPedido(1);
-  }, [q, marcaVehiculo, categoria, orden]);
+  }, [q, marcaVehiculo, categoria, orden, porPagina]);
 
-  const bodegaPag = useMemo(() => paginar(bodega, paginaBodega), [bodega, paginaBodega]);
+  const bodegaPag = useMemo(
+    () => paginar(bodega, paginaBodega, porPagina),
+    [bodega, paginaBodega, porPagina],
+  );
   const bajoPedidoPag = useMemo(
-    () => paginar(bajoPedido, paginaBajoPedido),
-    [bajoPedido, paginaBajoPedido],
+    () => paginar(bajoPedido, paginaBajoPedido, porPagina),
+    [bajoPedido, paginaBajoPedido, porPagina],
   );
 
   useEffect(() => {
@@ -314,12 +321,13 @@ function CatalogoPage() {
               </div>
               {bodega.length > 0 ? (
                 <>
-                  <ul className="space-y-3">
+                  <ul className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
                     {bodegaPag.items.map((p) => (
                       <PiezaCard key={p.slug} p={p} moneda={moneda} taller={!!taller} />
                     ))}
                   </ul>
                   <CatalogoPaginacion
+                    compacto={isMobile}
                     pagina={bodegaPag.pagina}
                     totalPaginas={bodegaPag.totalPaginas}
                     onAnterior={() => {
@@ -328,6 +336,10 @@ function CatalogoPage() {
                     }}
                     onSiguiente={() => {
                       setPaginaBodega((p) => Math.min(bodegaPag.totalPaginas, p + 1));
+                      seccionBodegaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    onIrAPagina={(n) => {
+                      setPaginaBodega(n);
                       seccionBodegaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                     }}
                   />
@@ -374,12 +386,13 @@ function CatalogoPage() {
 
               {mostrarBajoPedido && bajoPedido.length > 0 && (
                 <>
-                  <ul className="space-y-3">
+                  <ul className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
                     {bajoPedidoPag.items.map((p) => (
                       <PiezaCard key={p.slug} p={p} moneda={moneda} taller={!!taller} bajoPedido />
                     ))}
                   </ul>
                   <CatalogoPaginacion
+                    compacto={isMobile}
                     pagina={bajoPedidoPag.pagina}
                     totalPaginas={bajoPedidoPag.totalPaginas}
                     onAnterior={() => {
@@ -391,6 +404,13 @@ function CatalogoPage() {
                     }}
                     onSiguiente={() => {
                       setPaginaBajoPedido((p) => Math.min(bajoPedidoPag.totalPaginas, p + 1));
+                      seccionBajoPedidoRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }}
+                    onIrAPagina={(n) => {
+                      setPaginaBajoPedido(n);
                       seccionBajoPedidoRef.current?.scrollIntoView({
                         behavior: "smooth",
                         block: "start",
@@ -430,44 +450,125 @@ function CatalogoPage() {
   );
 }
 
+type PaginaMarcador = number | "ellipsis";
+
+function marcasPaginacion(pagina: number, totalPaginas: number): PaginaMarcador[] {
+  if (totalPaginas <= 7) {
+    return Array.from({ length: totalPaginas }, (_, i) => i + 1);
+  }
+  const set = new Set<number>([1, totalPaginas, pagina, pagina - 1, pagina + 1]);
+  const nums = [...set].filter((n) => n >= 1 && n <= totalPaginas).sort((a, b) => a - b);
+  const out: PaginaMarcador[] = [];
+  for (let i = 0; i < nums.length; i++) {
+    if (i > 0 && nums[i] - nums[i - 1] > 1) out.push("ellipsis");
+    out.push(nums[i]);
+  }
+  return out;
+}
+
 function CatalogoPaginacion({
+  compacto,
   pagina,
   totalPaginas,
   onAnterior,
   onSiguiente,
+  onIrAPagina,
 }: {
+  compacto: boolean;
   pagina: number;
   totalPaginas: number;
   onAnterior: () => void;
   onSiguiente: () => void;
+  onIrAPagina: (pagina: number) => void;
 }) {
   if (totalPaginas <= 1) return null;
+
+  if (compacto) {
+    return (
+      <nav
+        aria-label="Paginación del catálogo"
+        className="mt-5 flex flex-col gap-3 rounded-lg border border-white/10 bg-black/20 px-3 py-3"
+      >
+        <p className="text-xs text-gray-400 text-center">
+          Página <span className="font-semibold text-white">{pagina}</span> de{" "}
+          <span className="font-semibold text-white">{totalPaginas}</span>
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="border-gray-600 text-gray-300 h-11"
+            disabled={pagina <= 1}
+            onClick={onAnterior}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Anterior
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="border-gray-600 text-gray-300 h-11"
+            disabled={pagina >= totalPaginas}
+            onClick={onSiguiente}
+          >
+            Siguiente
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      </nav>
+    );
+  }
+
+  const marcas = marcasPaginacion(pagina, totalPaginas);
 
   return (
     <nav
       aria-label="Paginación del catálogo"
-      className="mt-5 flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/20 px-3 py-3"
+      className="mt-5 flex flex-wrap items-center justify-center gap-2 rounded-lg border border-white/10 bg-black/20 px-4 py-3"
     >
       <Button
         type="button"
         variant="outline"
         size="sm"
-        className="border-gray-600 text-gray-300 shrink-0"
+        className="border-gray-600 text-gray-300"
         disabled={pagina <= 1}
         onClick={onAnterior}
       >
         <ChevronLeft className="h-4 w-4 mr-0.5" />
         Anterior
       </Button>
-      <p className="text-xs text-gray-400 text-center">
-        Página <span className="font-semibold text-white">{pagina}</span> de{" "}
-        <span className="font-semibold text-white">{totalPaginas}</span>
-      </p>
+
+      <div className="flex items-center gap-1">
+        {marcas.map((marca, idx) =>
+          marca === "ellipsis" ? (
+            <span key={`e-${idx}`} className="px-1 text-gray-500 select-none">
+              …
+            </span>
+          ) : (
+            <Button
+              key={marca}
+              type="button"
+              size="sm"
+              variant={marca === pagina ? "default" : "ghost"}
+              className={
+                marca === pagina
+                  ? "min-w-9 bg-[oklch(0.7_0.2_40)] hover:bg-orange-600 text-white"
+                  : "min-w-9 text-gray-400 hover:text-white"
+              }
+              onClick={() => marca !== pagina && onIrAPagina(marca)}
+              aria-current={marca === pagina ? "page" : undefined}
+            >
+              {marca}
+            </Button>
+          ),
+        )}
+      </div>
+
       <Button
         type="button"
         variant="outline"
         size="sm"
-        className="border-gray-600 text-gray-300 shrink-0"
+        className="border-gray-600 text-gray-300"
         disabled={pagina >= totalPaginas}
         onClick={onSiguiente}
       >
@@ -492,9 +593,9 @@ function PiezaCard({
   const catGrupo = categoriaDePieza(p);
 
   return (
-    <li>
+    <li className="min-h-0">
       <div
-        className={`rounded-lg border bg-[oklch(0.14_0.04_250)] overflow-hidden hover:border-[oklch(0.7_0.2_40)]/50 transition-colors ${
+        className={`h-full rounded-lg border bg-[oklch(0.14_0.04_250)] overflow-hidden hover:border-[oklch(0.7_0.2_40)]/50 transition-colors ${
           bajoPedido ? "border-gray-800/80 opacity-95" : "border-emerald-900/40"
         }`}
       >
