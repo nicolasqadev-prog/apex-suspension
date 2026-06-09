@@ -68,8 +68,25 @@ const demosActivos = await rest(
 const demosInactivos = await rest(
   `/productos?slug=in.(${ejSlugs.map((s) => `"${s}"`).join(",")})&activo=eq.false&select=slug`,
 );
+const columnaPublicado = await rest(
+  "/talleres_fidelizados?select=publicado&limit=1",
+);
+const tieneColumnaPublicado = columnaPublicado.ok;
 const talleres = await rest(
-  "/talleres_fidelizados?activo=eq.true&select=whatsapp,nombre_taller,descuento_porcentaje",
+  "/talleres_fidelizados?activo=eq.true&select=whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo",
+);
+const talleresPublicados = tieneColumnaPublicado
+  ? await rest(
+      "/talleres_fidelizados?activo=eq.true&publicado=eq.true&select=whatsapp,nombre_taller&limit=1",
+      { Prefer: "count=exact" },
+    )
+  : { ok: false, range: null };
+const tallerDemo = await rest(
+  `/talleres_fidelizados?whatsapp=eq.573001234567&select=whatsapp,nombre_taller,activo,descuento_porcentaje,contra_entrega_habilitada${tieneColumnaPublicado ? ",publicado" : ""}`,
+);
+const pedidosTotal = await rest("/pedidos?select=id&limit=1", { Prefer: "count=exact" });
+const ksaHy016 = await rest(
+  "/productos?referencia=eq.KSA-HY016&activo=eq.true&select=referencia,precio_lista,precio_taller,stock_actual",
 );
 
 const catKtr = catByRef.get("KTR-4015");
@@ -80,6 +97,12 @@ const talleresList = talleres.ok && Array.isArray(talleres.json) ? talleres.json
 const talleresOk = talleresList.every(
   (t) => Math.abs(Number(t.descuento_porcentaje) - DESCUENTO) < 0.02,
 );
+const demoRow = tallerDemo.ok && Array.isArray(tallerDemo.json) ? tallerDemo.json[0] : null;
+const ksaRow = ksaHy016.ok && Array.isArray(ksaHy016.json) ? ksaHy016.json[0] : null;
+const ksaPrecioTaller =
+  ksaRow?.precio_lista != null
+    ? Math.round(Number(ksaRow.precio_lista) * (1 - DESCUENTO / 100))
+    : null;
 
 const parseCount = (range) => {
   if (!range) return null;
@@ -100,6 +123,22 @@ const checks = {
   precioTaller16_67: precioTallerEsperado,
   talleresDescuentoOk: talleresOk,
   talleres: talleresList,
+  talleresPublicados: parseCount(talleresPublicados.range),
+  pedidosEnBd: parseCount(pedidosTotal.range),
+  migracionPublicadoTaller: tieneColumnaPublicado,
+  tallerDemoListo: Boolean(
+    demoRow?.activo && (tieneColumnaPublicado ? demoRow?.publicado !== false : true),
+  ),
+  tallerDemo: demoRow,
+  ejemploPrecioTaller: ksaRow
+    ? {
+        referencia: ksaRow.referencia,
+        precioPublico: ksaRow.precio_lista,
+        precioTallerEsperado: ksaPrecioTaller,
+        precioTallerBd: ksaRow.precio_taller,
+        stock: ksaRow.stock_actual,
+      }
+    : null,
 };
 
 const fallos = [];
@@ -111,6 +150,11 @@ if (!checks.ktrPrecioCoincide) fallos.push("KTR-4015 precio no coincide JSON/BD"
 if (!checks.ktrStockCoincide) fallos.push("KTR-4015 stock no coincide JSON/BD");
 if (!checks.talleresDescuentoOk && talleresList.length) fallos.push("Taller sin 16.67%");
 if (checks.productosActivos < 5900) fallos.push("Pocos productos activos en BD");
+if (!checks.migracionPublicadoTaller)
+  fallos.push("Migración pendiente: columna talleres_fidelizados.publicado (bloquea login taller)");
+if (!checks.tallerDemoListo) fallos.push("Taller demo 573001234567 no activo");
+if (checks.migracionPublicadoTaller && (checks.talleresPublicados ?? 0) < 1)
+  fallos.push("Sin talleres publicados para /taller/acceso");
 
 const veredicto =
   fallos.length === 0 ? "APROBADO" : fallos.length <= 2 ? "APROBADO_CON_OBSERVACIONES" : "REVISAR";
@@ -127,6 +171,25 @@ console.log(
         fallback: "inventario.ejemplo.json (10 SKUs, solo sin Supabase)",
         syncCatalogo: "inventario-catalogo-completo.json — NO pisa stock existente",
         syncStock: "inventario-vivo.json — ajusta stock",
+      },
+      flujoTaller: {
+        rutasPwa: ["/taller/acceso", "/catalogo", "/taller/pedido", "/repuesto/$slug"],
+        login: "TallerSessionProvider → iniciarSesionTaller → talleres_fidelizados",
+        catalogoTaller: "obtenerCatalogoTaller → loadCatalogoTaller → precio −16,67%",
+        carrito: "localStorage apex.taller.carrito + TallerBanner",
+        pedido: "enviarPedidoTaller → pedidos + pedido_lineas + enlace WhatsApp",
+        tallerPrueba: {
+          whatsapp: "573001234567",
+          alternativoCorto: "3001234567",
+          nombre: "Taller Demo Apex",
+        },
+        guiaValidacionUi: [
+          "1. Ir a /taller/acceso e ingresar 3001234567",
+          "2. Debe redirigir a /catalogo con banner verde Modo taller",
+          "3. Precios en verde (taller); botón Agregar al pedido en fichas",
+          "4. TallerBanner → Pedido: revisar carrito en /taller/pedido",
+          "5. Enviar pedido: crea registro en BD y abre WhatsApp con resumen",
+        ],
       },
     },
     null,

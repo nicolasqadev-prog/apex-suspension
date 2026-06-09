@@ -58,6 +58,7 @@ const CAMPOS_BD_DATOS_MAESTROS = [
   "precio_taller",
   "categoria_grupo",
 ];
+const CAMPOS_BD = [...CAMPOS_BD_LEGACY, ...CAMPOS_BD_DATOS_MAESTROS];
 
 const CAMPOS_JSON_SYNC = [
   "slug",
@@ -296,8 +297,8 @@ const paso42 = {
     piezasConMarcaProducto: bdConMarcaProducto,
   },
   enPwa: {
-    filtroPorProveedor: true,
-    nota: "/catalogo → filtro Proveedor (KTC, Districamiones, Wurtex…)",
+    filtroPorProveedor: false,
+    nota: "Orden bajo pedido usa marcaProducto (KTC/DMB/Districamiones); filtro proveedor quitado de UI",
   },
   veredicto:
     jsonConMarcaProducto > 5000 && columnasDatosMaestros && bdConMarcaProducto > 5000
@@ -344,9 +345,11 @@ const paso43 = {
     muestrasBodega: muestrasPrecio,
   },
   veredicto:
-    "PARCIAL — precio taller funciona en sesión taller (descuento); no guardado por SKU en BD",
+    bdConPrecioTaller > 3000
+      ? "OK — precio_taller en BD y descuento en sesión taller"
+      : "PARCIAL — precio taller calculado en PWA; falta sync en BD",
   comoValidarVos:
-    "Entrá como taller en /taller/acceso. KTR-4015: público $65.731 → taller $54.774. En Supabase solo verás precio_lista.",
+    "Entrá como taller en /taller/acceso. KTR-4015: público $65.731 → taller $54.774.",
 };
 
 const catsBd = contarPor(bd, (p) => p.categoria ?? "(vacío)");
@@ -379,11 +382,15 @@ const paso44 = {
 };
 
 const camionBd = bd.filter(esPosibleCamion);
+const bdConLinea = columnasDatosMaestros
+  ? bd.filter((p) => p.linea_vehiculo != null && p.linea_vehiculo !== "").length
+  : 0;
 const paso45 = {
   titulo: "4.5 Línea liviano vs camión / pesado",
   queDeberiaSer: "Campo linea_vehiculo o exclusión Districamiones/camión del catálogo liviano",
   enSupabase: {
-    columnaLineaVehiculo: false,
+    columnaLineaVehiculo: columnasDatosMaestros,
+    piezasConLineaVehiculo: bdConLinea,
     detectadosPorPalabraClave: camionBd.length,
     pct: bd.length ? ((camionBd.length / bd.length) * 100).toFixed(2) + "%" : "0%",
     topCategoriasCamion: contarPor(camionBd, (p) => p.categoria ?? "(vacío)"),
@@ -395,9 +402,13 @@ const paso45 = {
     })),
   },
   enPwa: {
-    separacionLivianoCamion: false,
+    separacionLivianoCamion: "parcial",
+    nota: "ordenarBajoPedido prioriza livianos/KTC/DMB; sin filtro UI de línea",
   },
-  veredicto: "NO_CONECTADO — mezclado con livianos; sin filtro de línea",
+  veredicto:
+    bdConLinea > 3000
+      ? "PARCIAL — columna en BD; orden UI en bajo pedido"
+      : "PENDIENTE_SYNC — re-sync datos maestros",
   comoValidarVos:
     "Buscá HINO o CABINA en catálogo bajo pedido: aparecen mezclados. No hay toggle liviano/camión.",
 };
@@ -443,23 +454,30 @@ const pipeline = {
 const resumen = {
   conectado: [
     "precio_lista (público) en BD y PWA",
-    "stock_actual bodega en BD y PWA",
-    "marca vehículo en BD (calidad mejorable)",
-    "precio taller en sesión taller (calculado −16,67%)",
-    "jerarquía bodega / bajo pedido en UI",
-    "filtros vehículo/categoría/stock en UI",
-  ],
-  noConectado: [
-    "marca_producto (proveedor) Excel → BD",
-    "precio_taller por SKU en BD",
-    "linea_vehiculo (liviano/camión)",
-    "limpieza masiva de nombres crudos en Excel",
+    "stock_actual bodega en BD y PWA (124 refs)",
+    "marca vehículo en BD — bodega 100% con marca real",
+    "precio taller en sesión taller (−16,67%)",
+    "jerarquía bodega / bajo pedido + paginación responsive",
+    "filtros marca vehículo / categoría / orden",
+    "portal taller: acceso, catálogo, carrito, pedido",
+    "Mostrador IA (Te orientamos) global",
   ],
   parcial: [
-    "marca vehículo: 83% Varios en catálogo general",
-    "categorías: raw inconsistente, UI agrupa",
-    "precio taller: PWA descuento ≠ fórmula CR÷0,78 del Excel",
+    "marca_producto: JSON 5910; BD ~3850 — re-sync pendiente",
+    "precio_taller / linea_vehiculo: columnas OK; sync incompleto",
+    "categorías: raw inconsistente; UI agrupa con categoriaGrupo",
+    "24.8% catálogo con marca Varios (bajo pedido)",
   ],
+  noConectado: [
+    "filtro UI proveedor (removido a propósito)",
+    "toggle liviano/camión en filtros",
+    "limpieza masiva nombres crudos Excel (11.8% en JSON)",
+  ],
+  flujoTaller: {
+    rutas: ["/taller/acceso", "/catalogo", "/taller/pedido"],
+    tallerPrueba: "3001234567 → Taller Demo Apex",
+    validar: "banner verde, precio taller, carrito, enviar pedido",
+  },
 };
 
 const informe = {

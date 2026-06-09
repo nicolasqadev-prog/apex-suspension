@@ -49,26 +49,33 @@ export async function getTallerFidelizadoByWhatsapp(
   const whatsapp = normalizeWhatsapp(rawWhatsapp);
   if (!whatsapp) return null;
 
-  const url = new URL(`${env.url}/rest/v1/talleres_fidelizados`);
-  url.searchParams.set(
-    "select",
-    "whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo,publicado",
-  );
-  url.searchParams.set("whatsapp", `eq.${whatsapp}`);
-  url.searchParams.set("activo", "eq.true");
-  if (!opts?.allowNoPublicado) {
-    url.searchParams.set("publicado", "eq.true");
+  async function fetchTaller(conPublicado: boolean) {
+    const url = new URL(`${env.url}/rest/v1/talleres_fidelizados`);
+    url.searchParams.set(
+      "select",
+      conPublicado
+        ? "whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo,publicado"
+        : "whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo",
+    );
+    url.searchParams.set("whatsapp", `eq.${whatsapp}`);
+    url.searchParams.set("activo", "eq.true");
+    if (conPublicado && !opts?.allowNoPublicado) {
+      url.searchParams.set("publicado", "eq.true");
+    }
+    url.searchParams.set("limit", "1");
+    return fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        apikey: env.serviceRoleKey,
+        Authorization: `Bearer ${env.serviceRoleKey}`,
+      },
+    });
   }
-  url.searchParams.set("limit", "1");
 
-  const res = await fetch(url.toString(), {
-    method: "GET",
-    headers: {
-      apikey: env.serviceRoleKey,
-      Authorization: `Bearer ${env.serviceRoleKey}`,
-    },
-  });
-
+  let res = await fetchTaller(true);
+  if (!res.ok && res.status === 400) {
+    res = await fetchTaller(false);
+  }
   if (!res.ok) return null;
   const rows = (await res.json()) as TallerRow[];
   const row = rows[0];
