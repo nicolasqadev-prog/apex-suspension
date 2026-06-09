@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, Package, Plus, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Package, Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,20 @@ export const Route = createFileRoute("/catalogo")({
 
 type PiezaVista = PiezaInventario & { precioTaller?: number };
 
+const POR_PAGINA = 10;
+
+function paginar<T>(items: T[], pagina: number, porPagina = POR_PAGINA) {
+  const totalPaginas = Math.max(1, Math.ceil(items.length / porPagina));
+  const paginaSegura = Math.min(Math.max(1, pagina), totalPaginas);
+  const inicio = (paginaSegura - 1) * porPagina;
+  return {
+    items: items.slice(inicio, inicio + porPagina),
+    pagina: paginaSegura,
+    totalPaginas,
+    total: items.length,
+  };
+}
+
 function precioMostrar(p: PiezaVista): number {
   return p.precioTaller ?? p.precioLista;
 }
@@ -79,6 +93,10 @@ function CatalogoPage() {
   const [categoria, setCategoria] = useState("");
   const [orden, setOrden] = useState<OrdenCatalogo>("stock-desc");
   const [verBajoPedido, setVerBajoPedido] = useState(false);
+  const [paginaBodega, setPaginaBodega] = useState(1);
+  const [paginaBajoPedido, setPaginaBajoPedido] = useState(1);
+  const seccionBodegaRef = useRef<HTMLElement | null>(null);
+  const seccionBajoPedidoRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!taller || !whatsappTaller) {
@@ -145,6 +163,25 @@ function CatalogoPage() {
       bajoPedido: ordenarBajoPedido(partes.bajoPedido, orden, q, precioMostrar),
     };
   }, [piezasBase, filtros, orden, q]);
+
+  useEffect(() => {
+    setPaginaBodega(1);
+    setPaginaBajoPedido(1);
+  }, [q, marcaVehiculo, categoria, orden]);
+
+  const bodegaPag = useMemo(() => paginar(bodega, paginaBodega), [bodega, paginaBodega]);
+  const bajoPedidoPag = useMemo(
+    () => paginar(bajoPedido, paginaBajoPedido),
+    [bajoPedido, paginaBajoPedido],
+  );
+
+  useEffect(() => {
+    if (paginaBodega !== bodegaPag.pagina) setPaginaBodega(bodegaPag.pagina);
+  }, [paginaBodega, bodegaPag.pagina]);
+
+  useEffect(() => {
+    if (paginaBajoPedido !== bajoPedidoPag.pagina) setPaginaBajoPedido(bajoPedidoPag.pagina);
+  }, [paginaBajoPedido, bajoPedidoPag.pagina]);
 
   /** Colapsado por defecto; se abre al buscar/filtrar o al pulsar "Ver bajo pedido". */
   const mostrarBajoPedido = verBajoPedido || filtrosActivos;
@@ -269,18 +306,32 @@ function CatalogoPage() {
 
         {!listaCargando && !listaError && (
           <>
-            <section className="mb-8">
+            <section ref={seccionBodegaRef} className="mb-8">
               <div className="mb-3">
                 <h2 className="text-sm font-bold uppercase tracking-wide text-emerald-400">
                   En bodega · despacho inmediato
                 </h2>
               </div>
               {bodega.length > 0 ? (
-                <ul className="space-y-3">
-                  {bodega.map((p) => (
-                    <PiezaCard key={p.slug} p={p} moneda={moneda} taller={!!taller} />
-                  ))}
-                </ul>
+                <>
+                  <ul className="space-y-3">
+                    {bodegaPag.items.map((p) => (
+                      <PiezaCard key={p.slug} p={p} moneda={moneda} taller={!!taller} />
+                    ))}
+                  </ul>
+                  <CatalogoPaginacion
+                    pagina={bodegaPag.pagina}
+                    totalPaginas={bodegaPag.totalPaginas}
+                    onAnterior={() => {
+                      setPaginaBodega((p) => Math.max(1, p - 1));
+                      seccionBodegaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    onSiguiente={() => {
+                      setPaginaBodega((p) => Math.min(bodegaPag.totalPaginas, p + 1));
+                      seccionBodegaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                  />
+                </>
               ) : (
                 <p className="text-sm text-gray-500 rounded-lg border border-dashed border-gray-700 px-4 py-6 text-center">
                   {filtrosActivos
@@ -290,7 +341,7 @@ function CatalogoPage() {
               )}
             </section>
 
-            <section>
+            <section ref={seccionBajoPedidoRef}>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                 <div>
                   <h2 className="text-sm font-bold uppercase tracking-wide text-gray-400">
@@ -322,11 +373,31 @@ function CatalogoPage() {
               </div>
 
               {mostrarBajoPedido && bajoPedido.length > 0 && (
-                <ul className="space-y-3">
-                  {bajoPedido.map((p) => (
-                    <PiezaCard key={p.slug} p={p} moneda={moneda} taller={!!taller} bajoPedido />
-                  ))}
-                </ul>
+                <>
+                  <ul className="space-y-3">
+                    {bajoPedidoPag.items.map((p) => (
+                      <PiezaCard key={p.slug} p={p} moneda={moneda} taller={!!taller} bajoPedido />
+                    ))}
+                  </ul>
+                  <CatalogoPaginacion
+                    pagina={bajoPedidoPag.pagina}
+                    totalPaginas={bajoPedidoPag.totalPaginas}
+                    onAnterior={() => {
+                      setPaginaBajoPedido((p) => Math.max(1, p - 1));
+                      seccionBajoPedidoRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }}
+                    onSiguiente={() => {
+                      setPaginaBajoPedido((p) => Math.min(bajoPedidoPag.totalPaginas, p + 1));
+                      seccionBajoPedidoRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }}
+                  />
+                </>
               )}
 
               {mostrarBajoPedido && bajoPedido.length === 0 && (
@@ -356,6 +427,54 @@ function CatalogoPage() {
 
       <StudioFooterSignature pinBottom spacious />
     </div>
+  );
+}
+
+function CatalogoPaginacion({
+  pagina,
+  totalPaginas,
+  onAnterior,
+  onSiguiente,
+}: {
+  pagina: number;
+  totalPaginas: number;
+  onAnterior: () => void;
+  onSiguiente: () => void;
+}) {
+  if (totalPaginas <= 1) return null;
+
+  return (
+    <nav
+      aria-label="Paginación del catálogo"
+      className="mt-5 flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/20 px-3 py-3"
+    >
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="border-gray-600 text-gray-300 shrink-0"
+        disabled={pagina <= 1}
+        onClick={onAnterior}
+      >
+        <ChevronLeft className="h-4 w-4 mr-0.5" />
+        Anterior
+      </Button>
+      <p className="text-xs text-gray-400 text-center">
+        Página <span className="font-semibold text-white">{pagina}</span> de{" "}
+        <span className="font-semibold text-white">{totalPaginas}</span>
+      </p>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="border-gray-600 text-gray-300 shrink-0"
+        disabled={pagina >= totalPaginas}
+        onClick={onSiguiente}
+      >
+        Siguiente
+        <ChevronRight className="h-4 w-4 ml-0.5" />
+      </Button>
+    </nav>
   );
 }
 
