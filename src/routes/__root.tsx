@@ -3,6 +3,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 
 import appCss from "../styles.css?url";
 import AdminPreviewBanner from "@/components/AdminPreviewBanner";
+import MostradorChat from "@/components/MostradorChat";
 import { TallerSessionProvider } from "@/components/TallerSessionProvider";
 import { siteOriginForHead } from "@/lib/site-url";
 
@@ -149,6 +150,7 @@ function RootComponent() {
       <RootErrorBoundary>
         <TallerSessionProvider>
           <Outlet />
+          <MostradorChat />
         </TallerSessionProvider>
       </RootErrorBoundary>
     </>

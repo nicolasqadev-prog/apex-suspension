@@ -406,7 +406,7 @@ export default function MostradorChat() {
                     Siguiente paso — cotizar por WhatsApp
                   </p>
                   <p className="mt-2 text-xs text-gray-300 leading-relaxed">
-                    Cerramos la orientación automática. Usá el botón naranja para enviar síntoma,
+                    Cerramos la orientación automática. Use el botón naranja para enviar síntoma,
                     carro y datos al equipo Apex y que confirmen referencia y precio.
                   </p>
                   {primarySuggestion.trim() ? (

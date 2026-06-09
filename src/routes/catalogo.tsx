@@ -26,8 +26,7 @@ import { agregarAlCarritoTaller } from "@/lib/taller-carrito";
 import { allowTallerBorradorEnCliente } from "@/lib/admin-preparacion";
 import { obtenerCatalogoTaller } from "@/lib/taller.portal.functions";
 import type { PiezaCatalogoTaller } from "@/lib/taller.types";
-import { enlaceWhatsApp, mensajeConfirmacionCotizacion } from "@/lib/whatsapp";
-import { usePersistentState } from "@/lib/usePersistentState";
+import { enlaceWhatsApp } from "@/lib/whatsapp";
 import StudioFooterSignature from "@/components/StudioFooterSignature";
 
 export const Route = createFileRoute("/catalogo")({
@@ -197,23 +196,16 @@ function CatalogoPage() {
           />
         </div>
 
-        <a
-          href={enlaceWhatsApp(
-            mensajeConfirmacionCotizacion({
-              pieza:
-                "Estoy en el catálogo y no encuentro la pieza. ¿Me pueden orientar para cotizar? Yo confirmo el diagnóstico con mi mecánico.",
-              whatsapp: whatsappGuardado,
-            }),
-          )}
-          target="_blank"
-          rel="noreferrer"
-          className="mb-6 inline-flex text-xs text-gray-500"
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new Event("apex:mostrador:open"))}
+          className="mb-6 inline-flex text-xs text-gray-500 text-left"
         >
           ¿No encuentras lo que buscas o no sabes qué pieza es?
           <span className="ml-1 font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300">
-            → Escríbenos y te orientamos
+            → Te orientamos con el asistente
           </span>
-        </a>
+        </button>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 text-xs">
           <label className="flex flex-col gap-1 text-gray-500 sm:col-span-1">
