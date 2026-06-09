@@ -223,7 +223,7 @@ function CatalogoPage() {
               onChange={(e) => setMarcaVehiculo(e.target.value)}
               className="rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2"
             >
-              <option value="">Todas ({marcasOpts.length})</option>
+              <option value="">Todas</option>
               {marcasOpts.map((m) => (
                 <option key={m} value={m}>
                   {m}
@@ -425,7 +425,7 @@ function PiezaCard({
               <p
                 className={`text-xs mt-1 font-medium ${p.stock > 0 ? "text-emerald-400" : "text-amber-500/90"}`}
               >
-                {p.stock > 0 ? `${p.stock} en bodega` : "Bajo pedido"}
+                {p.stock > 0 ? "Disponible" : "Bajo pedido"}
               </p>
             </div>
           </div>
