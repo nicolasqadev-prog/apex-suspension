@@ -16,6 +16,7 @@ import {
   hayFiltrosActivos,
   marcasVehiculoOpciones,
   marcaVehiculoDePieza,
+  ordenarBajoPedido,
   ordenarPiezas,
   particionarPorBodega,
   type OrdenCatalogo,
@@ -69,7 +70,7 @@ function mensajeConsultaStock(p: PiezaInventario, moneda: string): string {
 }
 
 function CatalogoPage() {
-  const { piezas: piezasPublicas, moneda, fuente } = Route.useLoaderData();
+  const { piezas: piezasPublicas, moneda } = Route.useLoaderData();
   const { taller, whatsappGuardado: whatsappTaller } = useTallerSession();
   const [piezasTaller, setPiezasTaller] = useState<PiezaCatalogoTaller[] | null>(null);
   const [fuenteTaller, setFuenteTaller] = useState<"supabase" | "json" | null>(null);
@@ -121,8 +122,6 @@ function CatalogoPage() {
     return piezasPublicas;
   }, [piezasPublicas, piezasTaller, taller]);
 
-  const totalBodega = useMemo(() => piezasBase.filter((p) => p.stock > 0).length, [piezasBase]);
-
   const marcasOpts = useMemo(() => marcasVehiculoOpciones(piezasBase), [piezasBase]);
   const categoriasOpts = useMemo(() => categoriasOpciones(piezasBase), [piezasBase]);
 
@@ -142,11 +141,10 @@ function CatalogoPage() {
 
   const { bodega, bajoPedido } = useMemo(() => {
     const filtradas = filtrarPiezas(piezasBase, filtros);
-    const ordenar = (lista: PiezaVista[]) => ordenarPiezas(lista, orden, q, precioMostrar);
     const partes = particionarPorBodega(filtradas);
     return {
-      bodega: ordenar(partes.bodega),
-      bajoPedido: ordenar(partes.bajoPedido),
+      bodega: ordenarPiezas(partes.bodega, orden, q, precioMostrar),
+      bajoPedido: ordenarBajoPedido(partes.bajoPedido, orden, q, precioMostrar),
     };
   }, [piezasBase, filtros, orden, q]);
 
@@ -171,16 +169,6 @@ function CatalogoPage() {
               {taller ? "Precio taller" : "Precio público"} · {moneda}
               {taller && !cargandoTaller && fuenteTaller === "supabase" && (
                 <span className="text-emerald-400/90"> · sesión taller activa</span>
-              )}
-              {!taller && (
-                <span className="text-gray-400">
-                  {" "}
-                  · {totalBodega} en bodega · {piezasBase.length.toLocaleString("es-CO")}{" "}
-                  referencias
-                  {fuente === "json" ? (
-                    <span className="text-amber-500/90"> · modo demo (sin Supabase)</span>
-                  ) : null}
-                </span>
               )}
               {cargandoTaller ? " · cargando precio taller…" : ""}
             </p>
@@ -272,11 +260,6 @@ function CatalogoPage() {
             </select>
           </label>
         </div>
-        <p className="text-[10px] text-gray-600 mb-6">
-          Primero ves lo que hay <span className="text-gray-500">en bodega</span>. El catálogo bajo
-          pedido solo aparece si buscás o abrís esa sección.
-        </p>
-
         {listaCargando && (
           <p className="text-center text-sm text-emerald-200/80 py-12">
             Cargando catálogo con tu precio de taller…
@@ -296,13 +279,10 @@ function CatalogoPage() {
         {!listaCargando && !listaError && (
           <>
             <section className="mb-8">
-              <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="mb-3">
                 <h2 className="text-sm font-bold uppercase tracking-wide text-emerald-400">
                   En bodega · despacho inmediato
                 </h2>
-                <span className="text-xs text-gray-500">
-                  {bodega.length} resultado{bodega.length === 1 ? "" : "s"}
-                </span>
               </div>
               {bodega.length > 0 ? (
                 <ul className="space-y-3">
@@ -339,12 +319,12 @@ function CatalogoPage() {
                   {mostrarBajoPedido ? (
                     <>
                       <ChevronUp className="h-4 w-4 mr-1" />
-                      Ocultar ({bajoPedido.length})
+                      Ocultar
                     </>
                   ) : (
                     <>
                       <ChevronDown className="h-4 w-4 mr-1" />
-                      Ver bajo pedido ({bajoPedido.length})
+                      Ver bajo pedido
                     </>
                   )}
                 </Button>

@@ -1,5 +1,5 @@
 // Increment this when shipping a new release to force cache refresh.
-const CACHE_NAME = "apex-suspension-pwa-v35";
+const CACHE_NAME = "apex-suspension-pwa-v36";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -128,13 +128,16 @@ self.addEventListener("fetch", (event) => {
         /\.(?:css|js|mjs|png|jpg|jpeg|webp|gif|svg|ico|woff2?)$/i.test(url.pathname);
 
       if (isAsset) {
-        const cached = await caches.match(event.request);
-        if (cached) return cached;
-
-        const response = await fetch(event.request);
-        const copy = response.clone();
-        void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        return response;
+        try {
+          const response = await fetch(event.request);
+          if (response.ok) {
+            const copy = response.clone();
+            void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        } catch {
+          return (await caches.match(event.request)) || Response.error();
+        }
       }
 
       // Default: network-first, fallback to cache if available.

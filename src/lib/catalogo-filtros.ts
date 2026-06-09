@@ -161,6 +161,54 @@ export function filtrarPiezas(
   return list;
 }
 
+/** KTC/DMB primero; Districamiones al final del bloque bajo pedido. */
+export function tierProveedor(p: PiezaInventario): number {
+  const mp = (p.marcaProducto || "").trim().toUpperCase();
+  if (mp === "DISTRICAMIONES") return 2;
+  if (mp === "KTC" || mp === "DMB") return 0;
+  const ref = p.referencia.trim().toUpperCase();
+  if (/^K[A-Z]{1,2}-/.test(ref)) return 0;
+  return 1;
+}
+
+function tierLinea(p: PiezaInventario): number {
+  if (p.lineaVehiculo === "liviano") return 0;
+  if (p.lineaVehiculo === "utilitario") return 1;
+  return 2;
+}
+
+/** Bajo pedido: livianos → KTC/DMB → otros → Districamiones (por marca de vehículo). */
+export function ordenarBajoPedido<T extends PiezaInventario>(
+  list: T[],
+  orden: OrdenCatalogo,
+  q: string,
+  precioDe: (p: T) => number,
+): T[] {
+  const qn = q.trim().toLowerCase();
+  return [...list].sort((a, b) => {
+    const la = tierLinea(a);
+    const lb = tierLinea(b);
+    if (la !== lb) return la - lb;
+
+    const pa = tierProveedor(a);
+    const pb = tierProveedor(b);
+    if (pa !== pb) return pa - pb;
+
+    if (pa === 2) {
+      const ma = marcaVehiculoDePieza(a).localeCompare(marcaVehiculoDePieza(b), "es");
+      if (ma !== 0) return ma;
+    }
+
+    if (orden === "relevancia" && qn) {
+      return scoreRelevancia(a, qn) - scoreRelevancia(b, qn);
+    }
+    if (orden === "precio-asc") return precioDe(a) - precioDe(b);
+    if (orden === "precio-desc") return precioDe(b) - precioDe(a);
+
+    return a.nombre.localeCompare(b.nombre, "es");
+  });
+}
+
 export function ordenarPiezas<T extends PiezaInventario>(
   list: T[],
   orden: OrdenCatalogo,
