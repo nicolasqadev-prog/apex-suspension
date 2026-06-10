@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { loadCatalogoTaller, loadPiezaTaller } from "./inventario-taller.server";
-import { notificarApexNuevoPedido } from "./pedidos-alerta.server";
+import { notificarApexNuevoPedido, notificarTallerPedidoEnviado } from "./pedidos-alerta.server";
 import { createPedido, getPedidoById, getPedidoLineas, listPedidosPorTelefono } from "./pedidos.server";
 import { getTallerFidelizadoByWhatsapp } from "./talleres.server";
 import type { LineaCarritoTaller } from "./taller.types";
@@ -226,6 +226,14 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
       esPrueba,
     }).catch(() => {
       // No bloquea el pedido si falla la alerta push al operador.
+    });
+
+    void notificarTallerPedidoEnviado({
+      pedidoId: pedido.pedidoId,
+      tallerWhatsapp: catalogo.taller.whatsapp,
+      esPrueba,
+    }).catch(() => {
+      // No bloquea el pedido si el taller aún no activó notificaciones.
     });
 
     const mensajeWhatsapp = [

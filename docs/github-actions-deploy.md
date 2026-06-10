@@ -15,6 +15,13 @@ En el repo: **Settings → Secrets and variables → Actions → New repository 
 | `SUPABASE_URL`              | URL del proyecto Supabase (podés normalizarla como en local).                                                                                                                                                             |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role de Supabase (solo servidor).                                                                                                                                                                                 |
 | `ADMIN_PIN`                 | PIN fuerte para `/admin` en producción.                                                                                                                                                                                   |
+| `VITE_VAPID_PUBLIC_KEY`     | Clave pública VAPID (build del cliente para suscribir push).                                                                                                                                                              |
+| `VAPID_PUBLIC_KEY`          | Misma clave pública (Worker, enviar push).                                                                                                                                                                                 |
+| `VAPID_PRIVATE_KEY`         | Clave privada VAPID (Worker, **nunca** en el cliente).                                                                                                                                                                    |
+| `VAPID_SUBJECT`             | Ej. `mailto:contacto@apex-suspension.com.co`                                                                                                                                                                              |
+| `APEX_ADMIN_WHATSAPP`       | *(Opcional)* Tu WhatsApp para alertas de pedido nuevo. Si no existe, el deploy usa `VITE_WHATSAPP_APEX`.                                                                                                                  |
+
+El workflow también sube al Worker `WHATSAPP_APEX` y `APEX_ADMIN_WHATSAPP` para que el servidor pueda enviar push al operador.
 
 Los nombres tienen que coincidir **exactamente** con la tabla (mayúsculas incluidas).
 
@@ -26,7 +33,7 @@ Este flujo asume que **el deploy lo hace solo GitHub Actions**.
 
 ## 3. Primer deploy
 
-1. Creá los 7 secretos.
+1. Creá los secretos de la tabla (mínimo los 7 originales + VAPID si usás push).
 2. Hacé `push` a `main` (o en GitHub: **Actions → Deploy Cloudflare → Run workflow**).
 3. En Cloudflare, abrí el Worker **`apex-suspension`** (nombre de `wrangler.jsonc`) y comprobá la URL `*.workers.dev` o el dominio que asignes después.
 

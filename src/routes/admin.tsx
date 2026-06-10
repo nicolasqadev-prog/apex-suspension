@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { Bell } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import AdminCatalogoStatus from "@/components/AdminCatalogoStatus";
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ADMIN_PREPARACION_EVENT, isModoPreparacion } from "@/lib/admin-preparacion";
 import { listarPedidosRecientes } from "@/lib/pedidos.functions";
+import { canSuggestNotifications, subscribeAndRegisterPush } from "@/lib/pwa-engagement";
 
 type Pedido = {
   id: string;
@@ -265,6 +267,14 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
     window.open(routeUrl, "_blank", "noopener,noreferrer");
   }
 
+  async function activarNotificacionesAdmin() {
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      await Notification.requestPermission();
+    }
+    const telOperador = (import.meta.env.VITE_WHATSAPP_APEX as string | undefined)?.trim();
+    await subscribeAndRegisterPush(telOperador ? { telefono: telOperador } : undefined);
+  }
+
   return (
     <div className="min-h-screen bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
       <ActiveRouteBanner pedidosEnRuta={pedidosEnRuta} />
@@ -278,6 +288,17 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
             <AdminCatalogoStatus adminPin={adminPin} />
           </div>
           <div className="flex items-center gap-2">
+            {canSuggestNotifications() && (
+              <Button
+                variant="outline"
+                onClick={() => void activarNotificacionesAdmin()}
+                className="border-emerald-600/50 text-emerald-200"
+                title="Para recibir push cuando entra un pedido nuevo"
+              >
+                <Bell className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Avisos pedidos</span>
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => void refresh()}

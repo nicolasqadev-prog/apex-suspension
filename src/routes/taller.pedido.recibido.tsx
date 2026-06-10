@@ -1,6 +1,6 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { Bell, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
   mensajeEstadoTaller,
   refPedidoCorta,
 } from "@/lib/pedidos-estado-taller";
+import { canSuggestNotifications, subscribeAndRegisterPush } from "@/lib/pwa-engagement";
 import { obtenerDetallePedidoTaller } from "@/lib/taller.portal.functions";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 
@@ -38,6 +39,7 @@ function PedidoRecibidoPage() {
   const [estado, setEstado] = useState("borrador");
   const [mensajeWa, setMensajeWa] = useState("");
   const [waAbierto, setWaAbierto] = useState(false);
+  const [notifOk, setNotifOk] = useState(false);
   const waAutoIntentado = useRef(false);
 
   useEffect(() => {
@@ -125,6 +127,24 @@ function PedidoRecibidoPage() {
               Ver seguimiento del pedido
             </Link>
           </Button>
+          {canSuggestNotifications() && !notifOk && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-emerald-600/50 text-emerald-200"
+              onClick={() => {
+                void subscribeAndRegisterPush().then((res) => {
+                  if (res.ok) setNotifOk(true);
+                });
+              }}
+            >
+              <Bell className="h-4 w-4 mr-2" />
+              Activar avisos de tu pedido
+            </Button>
+          )}
+          {notifOk && (
+            <p className="text-xs text-emerald-300/90">Notificaciones activadas para este dispositivo.</p>
+          )}
           <Button asChild variant="outline" className="w-full border-gray-600 text-gray-300">
             <Link to="/catalogo">Seguir comprando</Link>
           </Button>

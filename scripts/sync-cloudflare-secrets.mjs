@@ -43,12 +43,30 @@ if (!env.VITE_SITE_URL?.trim()) {
   env.VITE_SITE_URL = "https://apex-suspension.com.co";
 }
 
-const SECRETS = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "VITE_SITE_URL"];
-if (env.ADMIN_PIN?.trim()) SECRETS.push("ADMIN_PIN");
+const adminWa = env.APEX_ADMIN_WHATSAPP?.trim() || env.VITE_WHATSAPP_APEX?.trim() || "";
+if (adminWa) {
+  env.APEX_ADMIN_WHATSAPP = adminWa;
+  env.WHATSAPP_APEX = adminWa;
+}
+
+const SECRETS = [
+  "SUPABASE_URL",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "VITE_SITE_URL",
+  "ADMIN_PIN",
+  "VAPID_PUBLIC_KEY",
+  "VAPID_PRIVATE_KEY",
+  "VAPID_SUBJECT",
+  "VITE_WHATSAPP_APEX",
+  "WHATSAPP_APEX",
+  "APEX_ADMIN_WHATSAPP",
+];
 
 for (const name of SECRETS) {
+  const value = env[name]?.trim();
+  if (!value) continue;
   const r = spawnSync("npx", ["wrangler", "secret", "put", name, "--config", wranglerConfig], {
-    input: env[name],
+    input: value,
     stdio: ["pipe", "inherit", "inherit"],
     shell: true,
     cwd: root,

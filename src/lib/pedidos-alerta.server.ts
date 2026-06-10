@@ -53,3 +53,33 @@ export async function notificarApexNuevoPedido(input: {
 
   return { ok: true, sent: res.sent, matched: res.matched };
 }
+
+export function mensajePushPedidoEnviadoTaller(pedidoId: string): PushPayload {
+  const ref = refPedidoCorta(pedidoId);
+  return {
+    title: "Pedido enviado · Apex",
+    body: `Tu pedido #${ref} quedó registrado. Te avisamos cuando lo confirmemos.`,
+    url: `/taller/pedidos/${pedidoId}`,
+  };
+}
+
+/** Confirma al taller por push que el pedido quedó guardado (si activó notificaciones). */
+export async function notificarTallerPedidoEnviado(input: {
+  pedidoId: string;
+  tallerWhatsapp: string;
+  esPrueba?: boolean;
+}): Promise<{ ok: true; sent: number; matched: number } | { ok: false; reason: string }> {
+  if (input.esPrueba) {
+    return { ok: false, reason: "pedido_prueba" };
+  }
+
+  if (!isWebPushConfigured()) {
+    return { ok: false, reason: "vapid_no_configurado" };
+  }
+
+  const payload = mensajePushPedidoEnviadoTaller(input.pedidoId);
+  const res = await sendPushToTelefono(input.tallerWhatsapp, payload);
+  if (!res.ok) return { ok: false, reason: res.reason };
+
+  return { ok: true, sent: res.sent, matched: res.matched };
+}

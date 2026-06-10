@@ -33,6 +33,7 @@ jobs:
           VITE_WHATSAPP_APEX: ${{ secrets.VITE_WHATSAPP_APEX }}
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
           VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
+          VITE_APEX_OPERACION_VIVO: "true"
         run: npm run build
 
       - name: Deploy Worker
@@ -52,6 +53,8 @@ jobs:
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
           VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
           VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
+          VITE_WHATSAPP_APEX: ${{ secrets.VITE_WHATSAPP_APEX }}
+          APEX_ADMIN_WHATSAPP: ${{ secrets.APEX_ADMIN_WHATSAPP }}
         run: |
           printf '%s' "$VITE_SITE_URL" | npx wrangler secret put VITE_SITE_URL --config dist/server/wrangler.json
           printf '%s' "$SUPABASE_URL" | npx wrangler secret put SUPABASE_URL --config dist/server/wrangler.json
@@ -60,3 +63,7 @@ jobs:
           printf '%s' "$VAPID_PUBLIC_KEY" | npx wrangler secret put VAPID_PUBLIC_KEY --config dist/server/wrangler.json
           printf '%s' "$VAPID_PRIVATE_KEY" | npx wrangler secret put VAPID_PRIVATE_KEY --config dist/server/wrangler.json
           printf '%s' "$VAPID_SUBJECT" | npx wrangler secret put VAPID_SUBJECT --config dist/server/wrangler.json
+          printf '%s' "$VITE_WHATSAPP_APEX" | npx wrangler secret put WHATSAPP_APEX --config dist/server/wrangler.json
+          printf '%s' "$VITE_WHATSAPP_APEX" | npx wrangler secret put VITE_WHATSAPP_APEX --config dist/server/wrangler.json
+          ADMIN_WA="${APEX_ADMIN_WHATSAPP:-$VITE_WHATSAPP_APEX}"
+          printf '%s' "$ADMIN_WA" | npx wrangler secret put APEX_ADMIN_WHATSAPP --config dist/server/wrangler.json

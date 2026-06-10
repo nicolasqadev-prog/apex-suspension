@@ -26,5 +26,7 @@ export function setModoPreparacion(on: boolean) {
 
 /** Para catálogo/pedidos de taller en borrador (solo en tu navegador). */
 export function allowTallerBorradorEnCliente(): boolean {
+  const operacionVivo = import.meta.env.VITE_APEX_OPERACION_VIVO === "true";
+  if (operacionVivo) return false;
   return isModoPreparacion();
 }

@@ -105,9 +105,9 @@ function telefonoParaPush(): string | undefined {
 }
 
 /** Suscribe al push del navegador y guarda la suscripción en Supabase. */
-export async function subscribeAndRegisterPush(): Promise<
-  { ok: true } | { ok: false; reason: string }
-> {
+export async function subscribeAndRegisterPush(opts?: {
+  telefono?: string;
+}): Promise<{ ok: true } | { ok: false; reason: string }> {
   const permission = await requestNotificationPermission();
   if (permission !== "granted") {
     return { ok: false, reason: "permiso_denegado" };
@@ -128,7 +128,7 @@ export async function subscribeAndRegisterPush(): Promise<
     data: {
       endpoint: json.endpoint,
       keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
-      telefono: telefonoParaPush(),
+      telefono: opts?.telefono?.replace(/\D/g, "") || telefonoParaPush(),
       userAgent: navigator.userAgent,
     },
   });
