@@ -59,7 +59,7 @@ export default function ApexLandingPage() {
               Catálogo
             </Link>
             <Link
-              to="/taller/acceso"
+              to="/taller"
               className="text-xs sm:text-sm font-semibold text-emerald-400/90 hover:text-emerald-300 transition-colors"
             >
               Talleres

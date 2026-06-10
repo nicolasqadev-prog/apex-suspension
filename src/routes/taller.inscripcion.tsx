@@ -82,7 +82,7 @@ function TallerInscripcionPage() {
         return;
       }
 
-      void navigate({ to: "/catalogo" });
+      void navigate({ to: "/taller" });
     } finally {
       setEnviando(false);
     }

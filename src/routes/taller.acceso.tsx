@@ -33,7 +33,7 @@ function TallerAccesoPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (taller) void navigate({ to: "/catalogo" });
+    if (taller) void navigate({ to: "/taller" });
   }, [taller, navigate]);
 
   async function onSubmit(e: FormEvent) {
@@ -41,7 +41,7 @@ function TallerAccesoPage() {
     setError("");
     const res = await login(whatsapp);
     if (res.ok) {
-      void navigate({ to: "/catalogo" });
+      void navigate({ to: "/taller" });
       return;
     }
     if (res.reason === "rate_limit") {

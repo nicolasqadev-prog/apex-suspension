@@ -217,10 +217,10 @@ function CatalogoPage() {
           </div>
           {!taller && (
             <Link
-              to="/taller/acceso"
+              to="/taller"
               className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 shrink-0"
             >
-              Acceso taller →
+              Portal taller →
             </Link>
           )}
         </div>

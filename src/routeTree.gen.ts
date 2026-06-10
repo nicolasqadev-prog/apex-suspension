@@ -16,6 +16,7 @@ import { Route as LegalRouteImport } from './routes/legal'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TallerIndexRouteImport } from './routes/taller.index'
 import { Route as TallerPedidoRouteImport } from './routes/taller.pedido'
 import { Route as TallerInscripcionRouteImport } from './routes/taller.inscripcion'
 import { Route as TallerCuentaRouteImport } from './routes/taller.cuenta'
@@ -56,6 +57,11 @@ const AdminRoute = AdminRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TallerIndexRoute = TallerIndexRouteImport.update({
+  id: '/taller/',
+  path: '/taller/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TallerPedidoRoute = TallerPedidoRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/taller/cuenta': typeof TallerCuentaRoute
   '/taller/inscripcion': typeof TallerInscripcionRoute
   '/taller/pedido': typeof TallerPedidoRoute
+  '/taller/': typeof TallerIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/taller/cuenta': typeof TallerCuentaRoute
   '/taller/inscripcion': typeof TallerInscripcionRoute
   '/taller/pedido': typeof TallerPedidoRoute
+  '/taller': typeof TallerIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/taller/cuenta': typeof TallerCuentaRoute
   '/taller/inscripcion': typeof TallerInscripcionRoute
   '/taller/pedido': typeof TallerPedidoRoute
+  '/taller/': typeof TallerIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/taller/cuenta'
     | '/taller/inscripcion'
     | '/taller/pedido'
+    | '/taller/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/taller/cuenta'
     | '/taller/inscripcion'
     | '/taller/pedido'
+    | '/taller'
   id:
     | '__root__'
     | '/'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/taller/cuenta'
     | '/taller/inscripcion'
     | '/taller/pedido'
+    | '/taller/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   TallerCuentaRoute: typeof TallerCuentaRoute
   TallerInscripcionRoute: typeof TallerInscripcionRoute
   TallerPedidoRoute: typeof TallerPedidoRoute
+  TallerIndexRoute: typeof TallerIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -248,6 +261,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taller/': {
+      id: '/taller/'
+      path: '/taller'
+      fullPath: '/taller/'
+      preLoaderRoute: typeof TallerIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/taller/pedido': {
@@ -309,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   TallerCuentaRoute: TallerCuentaRoute,
   TallerInscripcionRoute: TallerInscripcionRoute,
   TallerPedidoRoute: TallerPedidoRoute,
+  TallerIndexRoute: TallerIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

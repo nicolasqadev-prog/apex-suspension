@@ -44,7 +44,7 @@ function TallerCuentaPage() {
       }
       setListo(true);
       logout();
-      void navigate({ to: "/catalogo" });
+      void navigate({ to: "/taller" });
     } finally {
       setEnviando(false);
     }

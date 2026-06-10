@@ -1,5 +1,5 @@
 // Increment this when shipping a new release to force cache refresh.
-const CACHE_NAME = "apex-suspension-pwa-v41";
+const CACHE_NAME = "apex-suspension-pwa-v42";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",

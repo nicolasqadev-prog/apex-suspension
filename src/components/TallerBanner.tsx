@@ -41,6 +41,12 @@ export default function TallerBanner() {
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <Link
+          to="/taller"
+          className="text-xs text-emerald-300/90 hover:text-emerald-200 px-2 py-1 font-medium"
+        >
+          Mi panel
+        </Link>
         <Button
           asChild
           size="sm"
