@@ -17,6 +17,8 @@ import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TallerPedidoRouteImport } from './routes/taller.pedido'
+import { Route as TallerInscripcionRouteImport } from './routes/taller.inscripcion'
+import { Route as TallerCuentaRouteImport } from './routes/taller.cuenta'
 import { Route as TallerAccesoRouteImport } from './routes/taller.acceso'
 import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-products.$page'
 import { Route as RepuestoSlugRouteImport } from './routes/repuesto.$slug'
@@ -61,6 +63,16 @@ const TallerPedidoRoute = TallerPedidoRouteImport.update({
   path: '/taller/pedido',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TallerInscripcionRoute = TallerInscripcionRouteImport.update({
+  id: '/taller/inscripcion',
+  path: '/taller/inscripcion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TallerCuentaRoute = TallerCuentaRouteImport.update({
+  id: '/taller/cuenta',
+  path: '/taller/cuenta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TallerAccesoRoute = TallerAccesoRouteImport.update({
   id: '/taller/acceso',
   path: '/taller/acceso',
@@ -88,6 +100,8 @@ export interface FileRoutesByFullPath {
   '/repuesto/$slug': typeof RepuestoSlugRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/taller/acceso': typeof TallerAccesoRoute
+  '/taller/cuenta': typeof TallerCuentaRoute
+  '/taller/inscripcion': typeof TallerInscripcionRoute
   '/taller/pedido': typeof TallerPedidoRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +115,8 @@ export interface FileRoutesByTo {
   '/repuesto/$slug': typeof RepuestoSlugRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/taller/acceso': typeof TallerAccesoRoute
+  '/taller/cuenta': typeof TallerCuentaRoute
+  '/taller/inscripcion': typeof TallerInscripcionRoute
   '/taller/pedido': typeof TallerPedidoRoute
 }
 export interface FileRoutesById {
@@ -115,6 +131,8 @@ export interface FileRoutesById {
   '/repuesto/$slug': typeof RepuestoSlugRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/taller/acceso': typeof TallerAccesoRoute
+  '/taller/cuenta': typeof TallerCuentaRoute
+  '/taller/inscripcion': typeof TallerInscripcionRoute
   '/taller/pedido': typeof TallerPedidoRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +148,8 @@ export interface FileRouteTypes {
     | '/repuesto/$slug'
     | '/sitemap-products/$page'
     | '/taller/acceso'
+    | '/taller/cuenta'
+    | '/taller/inscripcion'
     | '/taller/pedido'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +163,8 @@ export interface FileRouteTypes {
     | '/repuesto/$slug'
     | '/sitemap-products/$page'
     | '/taller/acceso'
+    | '/taller/cuenta'
+    | '/taller/inscripcion'
     | '/taller/pedido'
   id:
     | '__root__'
@@ -156,6 +178,8 @@ export interface FileRouteTypes {
     | '/repuesto/$slug'
     | '/sitemap-products/$page'
     | '/taller/acceso'
+    | '/taller/cuenta'
+    | '/taller/inscripcion'
     | '/taller/pedido'
   fileRoutesById: FileRoutesById
 }
@@ -170,6 +194,8 @@ export interface RootRouteChildren {
   RepuestoSlugRoute: typeof RepuestoSlugRoute
   SitemapProductsPageRoute: typeof SitemapProductsPageRoute
   TallerAccesoRoute: typeof TallerAccesoRoute
+  TallerCuentaRoute: typeof TallerCuentaRoute
+  TallerInscripcionRoute: typeof TallerInscripcionRoute
   TallerPedidoRoute: typeof TallerPedidoRoute
 }
 
@@ -231,6 +257,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TallerPedidoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/taller/inscripcion': {
+      id: '/taller/inscripcion'
+      path: '/taller/inscripcion'
+      fullPath: '/taller/inscripcion'
+      preLoaderRoute: typeof TallerInscripcionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taller/cuenta': {
+      id: '/taller/cuenta'
+      path: '/taller/cuenta'
+      fullPath: '/taller/cuenta'
+      preLoaderRoute: typeof TallerCuentaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/taller/acceso': {
       id: '/taller/acceso'
       path: '/taller/acceso'
@@ -266,6 +306,8 @@ const rootRouteChildren: RootRouteChildren = {
   RepuestoSlugRoute: RepuestoSlugRoute,
   SitemapProductsPageRoute: SitemapProductsPageRoute,
   TallerAccesoRoute: TallerAccesoRoute,
+  TallerCuentaRoute: TallerCuentaRoute,
+  TallerInscripcionRoute: TallerInscripcionRoute,
   TallerPedidoRoute: TallerPedidoRoute,
 }
 export const routeTree = rootRouteImport

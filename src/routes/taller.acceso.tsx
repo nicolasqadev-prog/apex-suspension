@@ -102,13 +102,25 @@ function TallerAccesoPage() {
           </Button>
         </form>
 
-        <p className="mt-8 text-xs text-gray-500 leading-relaxed">
-          El lobby y el catálogo público son los mismos para todos. Los precios de taller solo se
-          muestran después de validar tu número en nuestro sistema. Si aún no eres taller aliado,
-          cotiza como siempre desde el catálogo o por WhatsApp.
+        <div className="mt-8 rounded-lg border border-emerald-500/30 bg-emerald-950/20 px-4 py-4">
+          <p className="text-sm text-gray-300">
+            ¿Primera visita o prueba en el taller?
+          </p>
+          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+            Inscríbete en un minuto con un formulario. Quedas activo al instante para ver stock y
+            pedir con precio taller.
+          </p>
+          <Button asChild className="w-full mt-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">
+            <Link to="/taller/inscripcion">Inscribir taller ahora</Link>
+          </Button>
+        </div>
+
+        <p className="mt-6 text-xs text-gray-500 leading-relaxed">
+          El catálogo público es el mismo para todos. Los precios de taller solo se muestran después
+          de inscribirte o validar tu número.
         </p>
 
-        <div className="mt-8">
+        <div className="mt-6">
           <Button asChild variant="outline" className="border-gray-600 text-gray-300 w-full">
             <Link to="/catalogo">Ver catálogo público</Link>
           </Button>

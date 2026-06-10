@@ -51,12 +51,18 @@ export default function TallerBanner() {
             Pedido{itemsCarrito > 0 ? ` (${itemsCarrito})` : ""}
           </Link>
         </Button>
+        <Link
+          to="/taller/cuenta"
+          className="text-xs text-amber-400/90 hover:text-amber-300 px-2 py-1"
+        >
+          Salir del programa
+        </Link>
         <button
           type="button"
           onClick={logout}
           className="text-xs text-gray-400 hover:text-white px-2 py-1"
         >
-          Salir
+          Cerrar sesión
         </button>
       </div>
     </div>
