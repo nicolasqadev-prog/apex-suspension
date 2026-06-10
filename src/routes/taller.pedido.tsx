@@ -1,7 +1,8 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Loader2, Minus, Plus, Trash2 } from "lucide-react";
 
+import PedidoEnviadoExito from "@/components/PedidoEnviadoExito";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTallerSession } from "@/components/TallerSessionProvider";
@@ -15,8 +16,13 @@ import {
 } from "@/lib/taller-carrito";
 import { allowTallerBorradorEnCliente } from "@/lib/admin-preparacion";
 import { enviarPedidoTaller, obtenerCatalogoTaller } from "@/lib/taller.portal.functions";
-import { enlaceWhatsApp } from "@/lib/whatsapp";
 import type { LineaCarritoTaller } from "@/lib/taller.types";
+
+type PedidoEnviado = {
+  id: string;
+  mensajeWhatsapp: string;
+  totalCop: number;
+};
 
 export const Route = createFileRoute("/taller/pedido")({
   component: TallerPedidoPage,
@@ -29,6 +35,7 @@ function TallerPedidoPage() {
   const [notas, setNotas] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
+  const [pedidoEnviado, setPedidoEnviado] = useState<PedidoEnviado | null>(null);
 
   useEffect(() => {
     setLineas(leerCarritoTaller());
@@ -41,7 +48,7 @@ function TallerPedidoPage() {
   }, [taller, navigate]);
 
   useEffect(() => {
-    if (!taller || !whatsappGuardado || lineas.length === 0) return;
+    if (!taller || !whatsappGuardado || lineas.length === 0 || pedidoEnviado) return;
     let cancelled = false;
     obtenerCatalogoTaller({
       data: {
@@ -69,7 +76,7 @@ function TallerPedidoPage() {
     return () => {
       cancelled = true;
     };
-  }, [taller, whatsappGuardado, lineas.length]);
+  }, [taller, whatsappGuardado, lineas.length, pedidoEnviado]);
 
   const total = useMemo(
     () => lineas.reduce((s, l) => s + l.precioUnitarioCop * l.cantidad, 0),
@@ -93,7 +100,7 @@ function TallerPedidoPage() {
 
   async function onEnviar(e: FormEvent) {
     e.preventDefault();
-    if (!taller || lineas.length === 0) return;
+    if (!taller || lineas.length === 0 || enviando) return;
     setEnviando(true);
     setError("");
     try {
@@ -118,16 +125,31 @@ function TallerPedidoPage() {
         );
         return;
       }
+
+      const totalEnviado = lineas.reduce((s, l) => s + l.precioUnitarioCop * l.cantidad, 0);
       vaciarCarritoTaller();
+      setLineas([]);
       try {
         sessionStorage.setItem("apex.pedido.ultimoWa", res.mensajeWhatsapp);
+        sessionStorage.setItem("apex.pedido.ultimoId", res.pedidoId);
       } catch {
         // ignore
       }
-      void navigate({
-        to: "/taller/pedido/recibido",
-        search: { id: res.pedidoId },
+
+      setPedidoEnviado({
+        id: res.pedidoId,
+        mensajeWhatsapp: res.mensajeWhatsapp,
+        totalCop: res.totalCop ?? totalEnviado,
       });
+
+      try {
+        const url = `/taller/pedido/recibido?id=${encodeURIComponent(res.pedidoId)}`;
+        window.history.replaceState(null, "", url);
+      } catch {
+        // ignore
+      }
+    } catch {
+      setError("Error de conexión. Revisa tu internet e intenta de nuevo.");
     } finally {
       setEnviando(false);
     }
@@ -135,10 +157,32 @@ function TallerPedidoPage() {
 
   if (!taller) return null;
 
+  if (pedidoEnviado) {
+    return (
+      <PedidoEnviadoExito
+        pedidoId={pedidoEnviado.id}
+        mensajeWhatsapp={pedidoEnviado.mensajeWhatsapp}
+        totalCop={pedidoEnviado.totalCop}
+      />
+    );
+  }
+
   const tieneEntrega = Boolean(taller.municipio.trim() || taller.direccionEntrega.trim());
 
   return (
     <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
+      {enviando && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 px-6 text-center"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2 className="h-12 w-12 text-emerald-400 animate-spin" />
+          <p className="mt-4 text-lg font-semibold text-white">Enviando tu pedido a Apex…</p>
+          <p className="mt-2 text-sm text-gray-400">No cierres esta pantalla</p>
+        </div>
+      )}
+
       <header className="border-b border-white/10 px-4 py-4">
         <div className="max-w-lg mx-auto">
           <Link to="/catalogo" className="text-xs text-gray-500 hover:text-[oklch(0.7_0.2_40)]">
@@ -156,6 +200,13 @@ function TallerPedidoPage() {
             <Button asChild className="mt-6 bg-emerald-600 hover:bg-emerald-500">
               <Link to="/catalogo">Ir al catálogo</Link>
             </Button>
+            <p className="mt-4 text-xs text-gray-500">
+              Si acabas de enviar un pedido, revisa{" "}
+              <Link to="/taller/pedidos" className="text-emerald-400 underline">
+                Mis pedidos
+              </Link>
+              .
+            </p>
           </div>
         ) : (
           <>
@@ -255,6 +306,7 @@ function TallerPedidoPage() {
                   onChange={(e) => setNotas(e.target.value)}
                   placeholder="Urgente, contra entrega, cambio de dirección, etc."
                   className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white"
+                  disabled={enviando}
                 />
               </label>
               {taller.contraEntregaHabilitada && (
@@ -264,20 +316,19 @@ function TallerPedidoPage() {
                 </p>
               )}
               {error && (
-                <p className="text-sm text-red-300" role="alert">
+                <p className="text-sm text-red-300 rounded-lg border border-red-900/50 bg-red-950/30 px-3 py-2" role="alert">
                   {error}
                 </p>
               )}
               <Button
                 type="submit"
                 disabled={enviando}
-                className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold"
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-12 text-base"
               >
-                {enviando ? "Enviando pedido…" : "Enviar pedido"}
+                {enviando ? "Enviando…" : "Enviar pedido"}
               </Button>
               <p className="text-[10px] text-gray-500 text-center leading-relaxed">
-                Guardamos el pedido en Apex y luego puedes enviar una copia por WhatsApp como
-                respaldo.
+                Al enviar verás la confirmación en pantalla y podrás mandar copia por WhatsApp.
               </p>
             </form>
           </>

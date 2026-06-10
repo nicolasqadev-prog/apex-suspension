@@ -1,5 +1,5 @@
 // Increment this when shipping a new release to force cache refresh.
-const CACHE_NAME = "apex-suspension-pwa-v49";
+const CACHE_NAME = "apex-suspension-pwa-v50";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -89,9 +89,10 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Panel interno y archivos para buscadores: siempre red (sin cache del SW).
+  // Panel interno, portal taller y archivos para buscadores: siempre red (sin cache del SW).
   if (
     url.pathname.startsWith("/admin") ||
+    url.pathname.startsWith("/taller") ||
     url.pathname === "/sitemap.xml" ||
     url.pathname === "/robots.txt"
   ) {
