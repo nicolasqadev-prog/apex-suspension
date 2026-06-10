@@ -115,22 +115,25 @@ function RepuestoDetallePage() {
             <>
               <div className="flex justify-between text-sm">
                 <span className="text-emerald-400/90">Precio taller</span>
-                <span className="font-semibold text-emerald-200">
+                <span className="font-semibold text-emerald-200 text-right">
                   {formatoPrecioCop(precioTaller)}
+                  <span className="block text-[10px] font-normal text-gray-500">c/u</span>
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Precio lista</span>
-                <span className="text-gray-500 line-through">
+                <span className="text-gray-500 line-through text-right">
                   {formatoPrecioCop(pieza.precioLista)}
+                  <span className="block text-[10px] font-normal no-underline">c/u</span>
                 </span>
               </div>
             </>
           ) : (
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Precio lista</span>
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-white text-right">
                 {formatoPrecioCop(pieza.precioLista)}
+                <span className="block text-[10px] font-normal text-gray-500">c/u</span>
               </span>
             </div>
           )}

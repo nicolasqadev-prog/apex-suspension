@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { loadCatalogoTaller, loadPiezaTaller } from "./inventario-taller.server";
+import { notificarApexNuevoPedido } from "./pedidos-alerta.server";
 import { createPedido, getPedidoById, getPedidoLineas, listPedidosPorTelefono } from "./pedidos.server";
 import { getTallerFidelizadoByWhatsapp } from "./talleres.server";
 import type { LineaCarritoTaller } from "./taller.types";
@@ -217,6 +218,15 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
     if (!pedido.ok) {
       return { ok: false as const, reason: "pedido_fallo" as const };
     }
+
+    void notificarApexNuevoPedido({
+      pedidoId: pedido.pedidoId,
+      tallerNombre: catalogo.taller.nombreTaller,
+      totalCop: total,
+      esPrueba,
+    }).catch(() => {
+      // No bloquea el pedido si falla la alerta push al operador.
+    });
 
     const mensajeWhatsapp = [
       "Hola Apex Suspensión,",

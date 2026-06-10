@@ -50,12 +50,20 @@ function TallerPedidoPage() {
       },
     }).then((res) => {
       if (cancelled || !res.ok) return;
-      const porSlug = new Map(res.piezas.map((p) => [p.slug, p.precioLista]));
+      const porSlug = new Map(res.piezas.map((p) => [p.slug, p]));
       setLineas((prev) =>
-        prev.map((l) => ({
-          ...l,
-          precioListaPublicoCop: porSlug.get(l.slug) ?? l.precioListaPublicoCop,
-        })),
+        prev.map((l) => {
+          const pieza = porSlug.get(l.slug);
+          if (!pieza) return l;
+          return {
+            ...l,
+            referencia: pieza.referencia,
+            nombre: pieza.nombre,
+            precioUnitarioCop: pieza.precioTaller,
+            precioListaPublicoCop: pieza.precioLista,
+            stock: pieza.stock,
+          };
+        }),
       );
     });
     return () => {
@@ -98,7 +106,16 @@ function TallerPedidoPage() {
         },
       });
       if (!res.ok) {
-        setError("No pudimos registrar el pedido. Revisa tu sesión o intenta de nuevo.");
+        const mensajes: Record<string, string> = {
+          linea_invalida:
+            "Una referencia ya no está en el catálogo. Vuelve al catálogo y agrégala de nuevo.",
+          pedido_fallo: "No pudimos guardar el pedido. Intenta de nuevo en unos segundos.",
+          no_autorizado: "Tu sesión expiró. Vuelve a entrar con tu WhatsApp.",
+        };
+        setError(
+          mensajes[res.reason ?? ""] ??
+            "No pudimos registrar el pedido. Revisa tu sesión o intenta de nuevo.",
+        );
         return;
       }
       vaciarCarritoTaller();
@@ -256,11 +273,11 @@ function TallerPedidoPage() {
                 disabled={enviando}
                 className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold"
               >
-                {enviando ? "Registrando…" : "Enviar pedido y abrir WhatsApp"}
+                {enviando ? "Enviando pedido…" : "Enviar pedido"}
               </Button>
               <p className="text-[10px] text-gray-500 text-center leading-relaxed">
-                Guardamos el pedido en Apex y abrimos WhatsApp con el resumen para confirmación de
-                stock y despacho.
+                Guardamos el pedido en Apex y luego puedes enviar una copia por WhatsApp como
+                respaldo.
               </p>
             </form>
           </>

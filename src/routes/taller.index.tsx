@@ -146,7 +146,7 @@ function TallerPanelPage() {
                   <span className="text-left">
                     Mis pedidos
                     <span className="block text-xs font-normal text-gray-400 mt-0.5">
-                      Seguimiento: recibido, en bodega, en camino
+                      Seguimiento: enviado, confirmado, en camino
                     </span>
                   </span>
                 </Link>

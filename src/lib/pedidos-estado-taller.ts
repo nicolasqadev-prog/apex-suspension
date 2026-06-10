@@ -11,7 +11,7 @@ export const FLUJO_ESTADOS_TALLER = [
 export function etiquetaEstadoTaller(estado: string): string {
   switch (estado) {
     case "borrador":
-      return "Recibido";
+      return "Pedido enviado";
     case "cotizado":
       return "En revisión";
     case "confirmado":
@@ -32,7 +32,7 @@ export function etiquetaEstadoTaller(estado: string): string {
 export function mensajeEstadoTaller(estado: string): string {
   switch (estado) {
     case "borrador":
-      return "Apex recibió tu pedido y lo está revisando.";
+      return "Tu pedido ya está en Apex. Te avisamos cuando lo confirmemos (stock y despacho).";
     case "cotizado":
       return "Estamos confirmando stock y referencias.";
     case "confirmado":

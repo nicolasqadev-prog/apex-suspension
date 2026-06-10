@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import AdminCatalogoStatus from "@/components/AdminCatalogoStatus";
 import AdminDispatchPanel, { ActiveRouteBanner } from "@/components/AdminDispatchPanel";
@@ -191,6 +191,8 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const pedidosConocidosRef = useRef<Set<string>>(new Set());
+  const primeraCargaPedidosRef = useRef(true);
 
   useEffect(() => {
     setModoPreparacion(isModoPreparacion());
@@ -199,9 +201,9 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
     return () => window.removeEventListener(ADMIN_PREPARACION_EVENT, onChange);
   }, []);
 
-  async function refresh() {
-    setLoading(true);
-    setError(null);
+  async function refresh(silent = false) {
+    if (!silent) setLoading(true);
+    if (!silent) setError(null);
     try {
       const res = await listarPedidosRecientes({
         data: {
@@ -211,22 +213,43 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
         },
       });
       if (!res.ok) {
-        setError(res.reason);
-        setPedidos([]);
+        if (!silent) {
+          setError(res.reason);
+          setPedidos([]);
+        }
         return;
       }
-      setPedidos(res.pedidos as Pedido[]);
-      setSelected({});
+      const lista = res.pedidos as Pedido[];
+      const nuevos = lista.filter((p) => !pedidosConocidosRef.current.has(p.id));
+      if (!primeraCargaPedidosRef.current && nuevos.length > 0) {
+        const primero = nuevos[0];
+        if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+          new Notification("Nuevo pedido portal · Apex", {
+            body: `${primero.taller_nombre} — revisa en Operación y pedidos`,
+            tag: `apex-pedido-${primero.id}`,
+          });
+        }
+      }
+      for (const p of lista) pedidosConocidosRef.current.add(p.id);
+      primeraCargaPedidosRef.current = false;
+      setPedidos(lista);
+      if (!silent) setSelected({});
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo cargar pedidos");
-      setPedidos([]);
+      if (!silent) {
+        setError(e instanceof Error ? e.message : "No se pudo cargar pedidos");
+        setPedidos([]);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
   useEffect(() => {
-    refresh();
+    pedidosConocidosRef.current = new Set();
+    primeraCargaPedidosRef.current = true;
+    void refresh();
+    const interval = window.setInterval(() => void refresh(true), 45_000);
+    return () => window.clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modoPreparacion]);
 
@@ -235,6 +258,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
     selectedPedidos.map((p) => p.direccion ?? "").filter(Boolean),
   );
   const pedidosEnRuta = pedidos.filter((p) => p.estado === "en_ruta").length;
+  const pedidosPendientes = pedidos.filter((p) => p.estado === "borrador").length;
 
   function abrirRutaMaps() {
     if (!routeUrl) return;
@@ -256,7 +280,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              onClick={refresh}
+              onClick={() => void refresh()}
               className="border-gray-600 text-gray-300"
               disabled={loading}
             >
@@ -316,7 +340,14 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
 
         {tab === "operacion" && (
           <>
-            <AdminPushPanel adminPin={adminPin} pedidos={pedidos} onPedidosChange={refresh} />
+            {pedidosPendientes > 0 && (
+              <p className="mb-4 text-sm text-emerald-100 rounded-lg border border-emerald-500/40 bg-emerald-950/40 px-4 py-3">
+                <strong className="text-emerald-300">{pedidosPendientes}</strong>{" "}
+                {pedidosPendientes === 1 ? "pedido nuevo" : "pedidos nuevos"} sin revisar (estado
+                enviado). Actualización automática cada 45 s.
+              </p>
+            )}
+            <AdminPushPanel adminPin={adminPin} pedidos={pedidos} onPedidosChange={() => void refresh()} />
 
             <div className="rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-5 mb-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

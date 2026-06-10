@@ -621,6 +621,7 @@ function PiezaCard({
                   <p className="text-sm font-bold text-emerald-200">
                     {formatoPrecioCop(p.precioTaller)}
                   </p>
+                  <p className="text-[10px] text-gray-500">c/u</p>
                   <p className="text-[10px] text-gray-500 line-through">
                     Público {formatoPrecioCop(p.precioLista)}
                   </p>
@@ -631,6 +632,7 @@ function PiezaCard({
                     Precio público
                   </p>
                   <p className="text-sm font-bold text-white">{formatoPrecioCop(p.precioLista)}</p>
+                  <p className="text-[10px] text-gray-500">c/u</p>
                 </>
               )}
               <p
