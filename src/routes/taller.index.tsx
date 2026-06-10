@@ -1,6 +1,6 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BadgeCheck, LogOut, Package, ShoppingCart, Wrench } from "lucide-react";
+import { BadgeCheck, ClipboardList, LogOut, Package, ShoppingCart, Wrench } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useTallerSession } from "@/components/TallerSessionProvider";
@@ -96,7 +96,7 @@ function TallerPanelPage() {
               <p className="text-lg font-bold text-white mt-2">{taller.nombreTaller}</p>
               <p className="text-xs text-gray-400 mt-2 font-mono">WhatsApp: {whatsappGuardado}</p>
               <p className="text-xs text-emerald-200/80 mt-1">
-                Precio taller · {taller.descuentoPorcentaje}% sobre lista pública
+                Precio especial taller
                 {taller.contraEntregaHabilitada ? " · Contra entrega habilitada" : ""}
               </p>
             </div>
@@ -130,6 +130,23 @@ function TallerPanelPage() {
                     Mi pedido{itemsCarrito > 0 ? ` (${itemsCarrito})` : ""}
                     <span className="block text-xs font-normal text-gray-400 mt-0.5">
                       Revisar carrito y enviar por WhatsApp
+                    </span>
+                  </span>
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-auto py-4 justify-start border-gray-600 text-gray-100"
+              >
+                <Link to="/taller/pedidos">
+                  <ClipboardList className="h-5 w-5 mr-3 shrink-0 text-emerald-400" />
+                  <span className="text-left">
+                    Mis pedidos
+                    <span className="block text-xs font-normal text-gray-400 mt-0.5">
+                      Seguimiento: recibido, en bodega, en camino
                     </span>
                   </span>
                 </Link>

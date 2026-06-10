@@ -87,17 +87,22 @@ export async function buscarProductosAdmin(
     "select",
     "id,slug,referencia,nombre,marca,precio_lista,stock_actual,activo",
   );
-  url.searchParams.set("order", "nombre.asc");
   url.searchParams.set("limit", String(Math.min(50, Math.max(1, limit))));
+  url.searchParams.set("activo", "eq.true");
 
   if (q.length > 0) {
-    const pattern = encodeURIComponent(`%${q.replace(/%/g, "")}%`);
-    url.searchParams.set(
-      "or",
-      `(referencia.ilike.${pattern},nombre.ilike.${pattern},slug.ilike.${pattern})`,
-    );
+    const safe = q.replace(/[%_,.()]/g, "").trim();
+    if (safe.length > 0) {
+      const pattern = `%${safe}%`;
+      url.searchParams.set(
+        "or",
+        `(referencia.ilike.${pattern},nombre.ilike.${pattern},slug.ilike.${pattern})`,
+      );
+    }
+    url.searchParams.set("order", "nombre.asc");
   } else {
-    url.searchParams.set("activo", "eq.true");
+    url.searchParams.set("stock_actual", "gt.0");
+    url.searchParams.set("order", "stock_actual.desc,referencia.asc");
   }
 
   const res = await fetch(url.toString(), { headers: headers(env) });

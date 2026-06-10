@@ -226,6 +226,89 @@ export function esEstadoPedidoValido(value: string): value is EstadoPedido {
   return (ESTADOS_PEDIDO as readonly string[]).includes(value);
 }
 
+export type PedidoLineaRow = {
+  cantidad: number;
+  precio_unitario: number;
+  productos: { referencia: string; nombre: string } | null;
+};
+
+export async function listPedidosPorTelefono(
+  rawTelefono: string,
+  opts?: { dias?: number; incluirPrueba?: boolean },
+): Promise<{ ok: true; pedidos: PedidoRow[] } | { ok: false; reason: string }> {
+  const env = getSupabaseEnv();
+  if (!env) return { ok: false, reason: "Supabase no configurado en servidor" };
+
+  const telefono = rawTelefono.replace(/\D/g, "");
+  if (telefono.length < 10) return { ok: false, reason: "Teléfono inválido" };
+
+  const dias = Math.min(90, Math.max(1, opts?.dias ?? 30));
+  const since = new Date(Date.now() - dias * 24 * 60 * 60_000).toISOString();
+
+  const url = new URL(`${env.url}/rest/v1/pedidos`);
+  url.searchParams.set(
+    "select",
+    "id,estado,taller_nombre,telefono,direccion,notas,created_at,es_prueba",
+  );
+  url.searchParams.set("telefono", `eq.${telefono}`);
+  url.searchParams.set("created_at", `gte.${since}`);
+  if (!opts?.incluirPrueba) url.searchParams.set("es_prueba", "eq.false");
+  url.searchParams.set("order", "created_at.desc");
+  url.searchParams.set("limit", "40");
+
+  let res = await fetch(url.toString(), {
+    headers: {
+      apikey: env.serviceRoleKey,
+      Authorization: `Bearer ${env.serviceRoleKey}`,
+    },
+  });
+
+  if (!res.ok && res.status === 400 && !opts?.incluirPrueba) {
+    const url2 = new URL(url.toString());
+    url2.searchParams.delete("es_prueba");
+    res = await fetch(url2.toString(), {
+      headers: {
+        apikey: env.serviceRoleKey,
+        Authorization: `Bearer ${env.serviceRoleKey}`,
+      },
+    });
+  }
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return { ok: false, reason: `Listar pedidos falló (${res.status}) ${text}`.slice(0, 200) };
+  }
+
+  const pedidos = (await res.json()) as PedidoRow[];
+  return { ok: true, pedidos };
+}
+
+export async function getPedidoLineas(
+  pedidoId: string,
+): Promise<{ ok: true; lineas: PedidoLineaRow[] } | { ok: false; reason: string }> {
+  const env = getSupabaseEnv();
+  if (!env) return { ok: false, reason: "Supabase no configurado en servidor" };
+
+  const url = new URL(`${env.url}/rest/v1/pedido_lineas`);
+  url.searchParams.set("select", "cantidad,precio_unitario,productos(referencia,nombre)");
+  url.searchParams.set("pedido_id", `eq.${pedidoId}`);
+
+  const res = await fetch(url.toString(), {
+    headers: {
+      apikey: env.serviceRoleKey,
+      Authorization: `Bearer ${env.serviceRoleKey}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return { ok: false, reason: `Líneas pedido falló (${res.status}) ${text}`.slice(0, 200) };
+  }
+
+  const lineas = (await res.json()) as PedidoLineaRow[];
+  return { ok: true, lineas };
+}
+
 export async function getPedidoById(
   id: string,
 ): Promise<{ ok: true; pedido: PedidoRow } | { ok: false; reason: string }> {

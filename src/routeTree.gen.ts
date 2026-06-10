@@ -17,12 +17,15 @@ import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TallerIndexRouteImport } from './routes/taller.index'
+import { Route as TallerPedidosRouteImport } from './routes/taller.pedidos'
 import { Route as TallerPedidoRouteImport } from './routes/taller.pedido'
 import { Route as TallerInscripcionRouteImport } from './routes/taller.inscripcion'
 import { Route as TallerCuentaRouteImport } from './routes/taller.cuenta'
 import { Route as TallerAccesoRouteImport } from './routes/taller.acceso'
 import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-products.$page'
 import { Route as RepuestoSlugRouteImport } from './routes/repuesto.$slug'
+import { Route as TallerPedidosIdRouteImport } from './routes/taller.pedidos.$id'
+import { Route as TallerPedidoRecibidoRouteImport } from './routes/taller.pedido.recibido'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -64,6 +67,11 @@ const TallerIndexRoute = TallerIndexRouteImport.update({
   path: '/taller/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TallerPedidosRoute = TallerPedidosRouteImport.update({
+  id: '/taller/pedidos',
+  path: '/taller/pedidos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TallerPedidoRoute = TallerPedidoRouteImport.update({
   id: '/taller/pedido',
   path: '/taller/pedido',
@@ -94,6 +102,16 @@ const RepuestoSlugRoute = RepuestoSlugRouteImport.update({
   path: '/repuesto/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TallerPedidosIdRoute = TallerPedidosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => TallerPedidosRoute,
+} as any)
+const TallerPedidoRecibidoRoute = TallerPedidoRecibidoRouteImport.update({
+  id: '/recibido',
+  path: '/recibido',
+  getParentRoute: () => TallerPedidoRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,8 +126,11 @@ export interface FileRoutesByFullPath {
   '/taller/acceso': typeof TallerAccesoRoute
   '/taller/cuenta': typeof TallerCuentaRoute
   '/taller/inscripcion': typeof TallerInscripcionRoute
-  '/taller/pedido': typeof TallerPedidoRoute
+  '/taller/pedido': typeof TallerPedidoRouteWithChildren
+  '/taller/pedidos': typeof TallerPedidosRouteWithChildren
   '/taller/': typeof TallerIndexRoute
+  '/taller/pedido/recibido': typeof TallerPedidoRecibidoRoute
+  '/taller/pedidos/$id': typeof TallerPedidosIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,8 +145,11 @@ export interface FileRoutesByTo {
   '/taller/acceso': typeof TallerAccesoRoute
   '/taller/cuenta': typeof TallerCuentaRoute
   '/taller/inscripcion': typeof TallerInscripcionRoute
-  '/taller/pedido': typeof TallerPedidoRoute
+  '/taller/pedido': typeof TallerPedidoRouteWithChildren
+  '/taller/pedidos': typeof TallerPedidosRouteWithChildren
   '/taller': typeof TallerIndexRoute
+  '/taller/pedido/recibido': typeof TallerPedidoRecibidoRoute
+  '/taller/pedidos/$id': typeof TallerPedidosIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -141,8 +165,11 @@ export interface FileRoutesById {
   '/taller/acceso': typeof TallerAccesoRoute
   '/taller/cuenta': typeof TallerCuentaRoute
   '/taller/inscripcion': typeof TallerInscripcionRoute
-  '/taller/pedido': typeof TallerPedidoRoute
+  '/taller/pedido': typeof TallerPedidoRouteWithChildren
+  '/taller/pedidos': typeof TallerPedidosRouteWithChildren
   '/taller/': typeof TallerIndexRoute
+  '/taller/pedido/recibido': typeof TallerPedidoRecibidoRoute
+  '/taller/pedidos/$id': typeof TallerPedidosIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -160,7 +187,10 @@ export interface FileRouteTypes {
     | '/taller/cuenta'
     | '/taller/inscripcion'
     | '/taller/pedido'
+    | '/taller/pedidos'
     | '/taller/'
+    | '/taller/pedido/recibido'
+    | '/taller/pedidos/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -176,7 +206,10 @@ export interface FileRouteTypes {
     | '/taller/cuenta'
     | '/taller/inscripcion'
     | '/taller/pedido'
+    | '/taller/pedidos'
     | '/taller'
+    | '/taller/pedido/recibido'
+    | '/taller/pedidos/$id'
   id:
     | '__root__'
     | '/'
@@ -192,7 +225,10 @@ export interface FileRouteTypes {
     | '/taller/cuenta'
     | '/taller/inscripcion'
     | '/taller/pedido'
+    | '/taller/pedidos'
     | '/taller/'
+    | '/taller/pedido/recibido'
+    | '/taller/pedidos/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -208,7 +244,8 @@ export interface RootRouteChildren {
   TallerAccesoRoute: typeof TallerAccesoRoute
   TallerCuentaRoute: typeof TallerCuentaRoute
   TallerInscripcionRoute: typeof TallerInscripcionRoute
-  TallerPedidoRoute: typeof TallerPedidoRoute
+  TallerPedidoRoute: typeof TallerPedidoRouteWithChildren
+  TallerPedidosRoute: typeof TallerPedidosRouteWithChildren
   TallerIndexRoute: typeof TallerIndexRoute
 }
 
@@ -270,6 +307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TallerIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/taller/pedidos': {
+      id: '/taller/pedidos'
+      path: '/taller/pedidos'
+      fullPath: '/taller/pedidos'
+      preLoaderRoute: typeof TallerPedidosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/taller/pedido': {
       id: '/taller/pedido'
       path: '/taller/pedido'
@@ -312,8 +356,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RepuestoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/taller/pedidos/$id': {
+      id: '/taller/pedidos/$id'
+      path: '/$id'
+      fullPath: '/taller/pedidos/$id'
+      preLoaderRoute: typeof TallerPedidosIdRouteImport
+      parentRoute: typeof TallerPedidosRoute
+    }
+    '/taller/pedido/recibido': {
+      id: '/taller/pedido/recibido'
+      path: '/recibido'
+      fullPath: '/taller/pedido/recibido'
+      preLoaderRoute: typeof TallerPedidoRecibidoRouteImport
+      parentRoute: typeof TallerPedidoRoute
+    }
   }
 }
+
+interface TallerPedidoRouteChildren {
+  TallerPedidoRecibidoRoute: typeof TallerPedidoRecibidoRoute
+}
+
+const TallerPedidoRouteChildren: TallerPedidoRouteChildren = {
+  TallerPedidoRecibidoRoute: TallerPedidoRecibidoRoute,
+}
+
+const TallerPedidoRouteWithChildren = TallerPedidoRoute._addFileChildren(
+  TallerPedidoRouteChildren,
+)
+
+interface TallerPedidosRouteChildren {
+  TallerPedidosIdRoute: typeof TallerPedidosIdRoute
+}
+
+const TallerPedidosRouteChildren: TallerPedidosRouteChildren = {
+  TallerPedidosIdRoute: TallerPedidosIdRoute,
+}
+
+const TallerPedidosRouteWithChildren = TallerPedidosRoute._addFileChildren(
+  TallerPedidosRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -328,7 +410,8 @@ const rootRouteChildren: RootRouteChildren = {
   TallerAccesoRoute: TallerAccesoRoute,
   TallerCuentaRoute: TallerCuentaRoute,
   TallerInscripcionRoute: TallerInscripcionRoute,
-  TallerPedidoRoute: TallerPedidoRoute,
+  TallerPedidoRoute: TallerPedidoRouteWithChildren,
+  TallerPedidosRoute: TallerPedidosRouteWithChildren,
   TallerIndexRoute: TallerIndexRoute,
 }
 export const routeTree = rootRouteImport

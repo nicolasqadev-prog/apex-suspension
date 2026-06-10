@@ -134,7 +134,7 @@ export async function sendPushToTelefono(
 }
 
 export function mensajePushPorEstadoPedido(estado: string, tallerNombre: string): PushPayload {
-  const base = { url: "/catalogo" as const };
+  const base = { url: "/taller/pedidos" as const };
   switch (estado) {
     case "cotizado":
       return {

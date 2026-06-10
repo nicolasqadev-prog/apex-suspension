@@ -1,109 +1,105 @@
-import { Bike, MapPin, PackageOpen, ShieldCheck, Timer, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { MapPin, PackageOpen, ShieldCheck } from "lucide-react";
 
-function CountdownTimer({ initialMinutes = 5 }: { initialMinutes?: number }) {
-  const [timeLeft, setTimeLeft] = useState(Math.floor(initialMinutes * 60));
+import { etiquetaEstadoTaller } from "@/lib/pedidos-estado-taller";
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+export type PedidoDespacho = {
+  id: string;
+  taller_nombre: string;
+  direccion: string | null;
+  estado: string;
+  notas: string | null;
+  created_at: string;
+  es_prueba?: boolean;
+};
 
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-  const formatted = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-
-  return <span className="font-mono font-bold text-[oklch(0.7_0.2_40)]">{formatted}</span>;
+function municipioDePedido(direccion: string | null): string {
+  if (!direccion?.trim()) return "Sin municipio";
+  const partes = direccion.split(",").map((s) => s.trim()).filter(Boolean);
+  if (partes.length > 1) return partes[partes.length - 1]!;
+  return partes[0] ?? "Sin municipio";
 }
 
-export function ActiveRouteBanner() {
+function horaCorta(iso: string): string {
+  return new Date(iso).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+}
+
+type Props = {
+  pedidos: PedidoDespacho[];
+};
+
+export function ActiveRouteBanner({ pedidosEnRuta }: { pedidosEnRuta: number }) {
+  if (pedidosEnRuta <= 0) return null;
+
   return (
-    <div className="sticky top-0 z-50 w-full bg-[oklch(0.7_0.2_40)] border-b-2 border-[oklch(0.18_0.04_250)] flex items-center justify-between px-4 py-3 shadow-lg">
-      <div className="flex items-center gap-3 max-w-4xl mx-auto w-full">
-        <div className="flex-shrink-0 bg-[oklch(0.18_0.04_250)] rounded-full p-2">
-          <Bike className="w-6 h-6 text-[oklch(0.7_0.2_40)] animate-pulse" />
-        </div>
-        <p className="text-sm sm:text-base font-bold text-[oklch(0.18_0.04_250)] leading-tight flex-1">
-          Ruta activa hacia <span className="underline">Zona Norte / Tocancipá</span>: pedidos en{" "}
-          <CountdownTimer initialMinutes={10} /> y se agrupan en el siguiente despacho.
-        </p>
-      </div>
+    <div className="sticky top-0 z-50 w-full bg-[oklch(0.7_0.2_40)] border-b-2 border-[oklch(0.18_0.04_250)] px-4 py-3 shadow-lg">
+      <p className="text-sm font-bold text-[oklch(0.18_0.04_250)] text-center max-w-4xl mx-auto">
+        {pedidosEnRuta} pedido{pedidosEnRuta === 1 ? "" : "s"} en ruta ahora — revisa despachos abajo.
+      </p>
     </div>
   );
 }
 
-export default function AdminDispatchPanel() {
-  const routes = [
-    {
-      id: 1,
-      driver: "Motorizado 1",
-      zone: "Zona Norte (Cajicá - Chía)",
-      activeOrders: [
-        { shop: "Taller El Turbo", part: "Amortiguador delantero derecho" },
-        { shop: "Servicentro Motorfix", part: "Rótula de dirección" },
-        { shop: "Autosprint", part: "Buje de barra estabilizadora" },
-      ],
-      windowMinutes: 4.5,
-    },
-    {
-      id: 2,
-      driver: "Motorizado 2",
-      zone: "Tocancipá Norte",
-      activeOrders: [{ shop: "Taller Hermanos Gómez", part: "Bieleta de suspensión" }],
-      windowMinutes: 7.2,
-    },
-  ];
+export default function AdminDispatchPanel({ pedidos }: Props) {
+  const operativos = pedidos.filter((p) =>
+    ["borrador", "cotizado", "confirmado", "empacando", "en_ruta"].includes(p.estado),
+  );
+
+  const porZona = new Map<string, PedidoDespacho[]>();
+  for (const p of operativos) {
+    const zona = municipioDePedido(p.direccion);
+    const lista = porZona.get(zona) ?? [];
+    lista.push(p);
+    porZona.set(zona, lista);
+  }
+
+  const zonas = [...porZona.entries()].sort((a, b) => a[0].localeCompare(b[0], "es"));
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-extrabold uppercase text-white flex items-center gap-2">
+      <h2 className="text-lg font-extrabold uppercase text-white flex items-center gap-2">
         <ShieldCheck className="w-5 h-5 text-[oklch(0.7_0.2_40)]" />
         Panel de despachos
-      </h1>
+      </h2>
+      <p className="text-xs text-gray-500 -mt-4">
+        Pedidos reales agrupados por municipio (últimas 2 h). Actualiza estados arriba para que el
+        taller vea el seguimiento en su app.
+      </p>
 
-      {routes.map((route) => (
+      {zonas.length === 0 && (
+        <p className="text-sm text-gray-500 py-8 text-center rounded-xl border border-gray-800 bg-black/20">
+          No hay pedidos pendientes de despacho en esta ventana.
+        </p>
+      )}
+
+      {zonas.map(([zona, lista]) => (
         <div
-          key={route.id}
-          className="bg-[oklch(0.18_0.04_250)] border border-gray-800 rounded-xl p-5 shadow-xl hover:border-[oklch(0.7_0.2_40)]/40 transition-colors"
+          key={zona}
+          className="bg-[oklch(0.18_0.04_250)] border border-gray-800 rounded-xl p-5 shadow-xl"
         >
-          <div className="flex items-start justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-3">
-              <User className="w-6 h-6 text-gray-400" />
-              <div>
-                <p className="text-white font-bold">{route.driver}</p>
-                <p className="text-xs text-gray-400 flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-[oklch(0.7_0.2_40)]" /> {route.zone}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-[oklch(0.24_0.05_255)] rounded-lg px-4 py-2 text-sm flex items-center gap-2">
-              <Timer className="w-4 h-4 text-[oklch(0.7_0.2_40)]" />
-              <span className="text-gray-300 font-medium">
-                Ventana: <CountdownTimer initialMinutes={route.windowMinutes} />
-              </span>
-            </div>
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin className="w-5 h-5 text-[oklch(0.7_0.2_40)]" />
+            <p className="text-white font-bold">{zona}</p>
+            <span className="text-xs text-gray-500">({lista.length} pedido{lista.length === 1 ? "" : "s"})</span>
           </div>
 
-          <div className="mt-4 space-y-2">
-            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
-              Pedidos ({route.activeOrders.length})
-            </p>
-            {route.activeOrders.map((order, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-3 bg-[oklch(0.24_0.05_255)] rounded-lg px-3 py-2"
+          <ul className="space-y-2">
+            {lista.map((p) => (
+              <li
+                key={p.id}
+                className="flex items-start gap-3 bg-[oklch(0.24_0.05_255)] rounded-lg px-3 py-2.5"
               >
-                <PackageOpen className="w-4 h-4 text-[oklch(0.7_0.2_40)]" />
-                <div>
-                  <p className="text-sm font-medium text-gray-200">{order.part}</p>
-                  <p className="text-xs text-gray-500">{order.shop}</p>
+                <PackageOpen className="w-4 h-4 text-[oklch(0.7_0.2_40)] shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-100">{p.taller_nombre}</p>
+                  <p className="text-xs text-gray-500 mt-0.5 truncate">{p.direccion ?? "Sin dirección"}</p>
+                  <p className="text-xs text-emerald-300/90 mt-1">
+                    {etiquetaEstadoTaller(p.estado)} · {horaCorta(p.created_at)}
+                    {p.es_prueba ? " · prueba" : ""}
+                  </p>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       ))}
     </div>

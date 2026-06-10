@@ -112,9 +112,9 @@ export default function AdminInventarioPanel({ adminPin }: Props) {
         <div>
           <p className="text-sm font-semibold text-white">Inventario y stock</p>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-            Busca por referencia o nombre. Cada ajuste registra un movimiento en{" "}
-            <code className="text-gray-300">stock_movimientos</code> (el stock del catálogo se
-            actualiza solo).
+            Por defecto muestra referencias con stock en bodega. Busca por referencia o nombre. Cada
+            ajuste registra un movimiento en{" "}
+            <code className="text-gray-300">stock_movimientos</code>.
           </p>
         </div>
       </div>

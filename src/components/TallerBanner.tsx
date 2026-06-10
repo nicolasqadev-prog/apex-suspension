@@ -35,8 +35,7 @@ export default function TallerBanner() {
             Modo taller · {taller.nombreTaller}
           </p>
           <p className="text-xs text-emerald-200/80 mt-0.5">
-            Precio taller con {taller.descuentoPorcentaje}% de descuento sobre lista · stock y
-            referencias desde la base de datos.
+            Precio especial taller · stock en bodega y referencias bajo pedido.
           </p>
         </div>
       </div>
@@ -46,6 +45,12 @@ export default function TallerBanner() {
           className="text-xs text-emerald-300/90 hover:text-emerald-200 px-2 py-1 font-medium"
         >
           Mi panel
+        </Link>
+        <Link
+          to="/taller/pedidos"
+          className="text-xs text-emerald-300/90 hover:text-emerald-200 px-2 py-1 font-medium"
+        >
+          Mis pedidos
         </Link>
         <Button
           asChild

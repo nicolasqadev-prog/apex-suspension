@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { loadCatalogoTaller, loadPiezaTaller } from "./inventario-taller.server";
-import { createPedido } from "./pedidos.server";
+import { createPedido, getPedidoById, getPedidoLineas, listPedidosPorTelefono } from "./pedidos.server";
 import { getTallerFidelizadoByWhatsapp } from "./talleres.server";
 import type { LineaCarritoTaller } from "./taller.types";
 
@@ -146,6 +146,7 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
     const porSlug = new Map(catalogo.piezas.map((p) => [p.slug, p]));
     const lineasValidadas: LineaCarritoTaller[] = [];
     let total = 0;
+    let totalPublico = 0;
 
     for (const l of data.lineas) {
       const pieza = porSlug.get(l.slug);
@@ -160,10 +161,14 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
         nombre: pieza.nombre,
         cantidad: qty,
         precioUnitarioCop: pieza.precioTaller,
+        precioListaPublicoCop: pieza.precioLista,
         stock: pieza.stock,
       });
       total += pieza.precioTaller * qty;
+      totalPublico += pieza.precioLista * qty;
     }
+
+    const ahorroCop = Math.max(0, totalPublico - total);
 
     const resumenLineas = lineasValidadas
       .map(
@@ -231,9 +236,67 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
 
     return {
       ok: true as const,
+      pedidoId: pedido.pedidoId,
       lineas: lineasValidadas,
       totalCop: total,
+      ahorroCop,
       mensajeWhatsapp,
       contraEntregaHabilitada: catalogo.taller.contraEntregaHabilitada,
+    };
+  });
+
+const PedidoIdSchema = z
+  .object({
+    whatsapp: z.string().min(7).max(20),
+    pedidoId: z.string().uuid(),
+  })
+  .merge(AllowBorradorSchema);
+
+export const listarMisPedidosTaller = createServerFn({ method: "POST" })
+  .inputValidator(WhatsappSchema)
+  .handler(async ({ data }) => {
+    const taller = await getTallerFidelizadoByWhatsapp(data.whatsapp, {
+      allowNoPublicado: data.allowNoPublicado,
+    });
+    if (!taller) return { ok: false as const, reason: "no_autorizado" as const };
+
+    const res = await listPedidosPorTelefono(taller.whatsapp, {
+      dias: 30,
+      incluirPrueba: data.allowNoPublicado,
+    });
+    if (!res.ok) return { ok: false as const, reason: "listar_fallo" as const };
+    return { ok: true as const, pedidos: res.pedidos };
+  });
+
+export const obtenerDetallePedidoTaller = createServerFn({ method: "POST" })
+  .inputValidator(PedidoIdSchema)
+  .handler(async ({ data }) => {
+    const taller = await getTallerFidelizadoByWhatsapp(data.whatsapp, {
+      allowNoPublicado: data.allowNoPublicado,
+    });
+    if (!taller) return { ok: false as const, reason: "no_autorizado" as const };
+
+    const pedidoRes = await getPedidoById(data.pedidoId);
+    if (!pedidoRes.ok) return { ok: false as const, reason: "no_encontrado" as const };
+
+    const telPedido = pedidoRes.pedido.telefono.replace(/\D/g, "");
+    const telTaller = taller.whatsapp.replace(/\D/g, "");
+    if (telPedido !== telTaller) {
+      return { ok: false as const, reason: "no_autorizado" as const };
+    }
+
+    const lineasRes = await getPedidoLineas(data.pedidoId);
+    const lineas = lineasRes.ok ? lineasRes.lineas : [];
+
+    let totalCop = 0;
+    for (const l of lineas) {
+      totalCop += Number(l.precio_unitario) * l.cantidad;
+    }
+
+    return {
+      ok: true as const,
+      pedido: pedidoRes.pedido,
+      lineas,
+      totalCop,
     };
   });

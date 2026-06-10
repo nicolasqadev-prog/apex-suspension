@@ -14,7 +14,7 @@ import {
   vaciarCarritoTaller,
 } from "@/lib/taller-carrito";
 import { allowTallerBorradorEnCliente } from "@/lib/admin-preparacion";
-import { enviarPedidoTaller } from "@/lib/taller.portal.functions";
+import { enviarPedidoTaller, obtenerCatalogoTaller } from "@/lib/taller.portal.functions";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 import type { LineaCarritoTaller } from "@/lib/taller.types";
 
@@ -39,6 +39,29 @@ function TallerPedidoPage() {
       void navigate({ to: "/taller/acceso" });
     }
   }, [taller, navigate]);
+
+  useEffect(() => {
+    if (!taller || !whatsappGuardado || lineas.length === 0) return;
+    let cancelled = false;
+    obtenerCatalogoTaller({
+      data: {
+        whatsapp: whatsappGuardado,
+        allowNoPublicado: allowTallerBorradorEnCliente(),
+      },
+    }).then((res) => {
+      if (cancelled || !res.ok) return;
+      const porSlug = new Map(res.piezas.map((p) => [p.slug, p.precioLista]));
+      setLineas((prev) =>
+        prev.map((l) => ({
+          ...l,
+          precioListaPublicoCop: porSlug.get(l.slug) ?? l.precioListaPublicoCop,
+        })),
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [taller, whatsappGuardado, lineas.length]);
 
   const total = useMemo(
     () => lineas.reduce((s, l) => s + l.precioUnitarioCop * l.cantidad, 0),
@@ -79,8 +102,15 @@ function TallerPedidoPage() {
         return;
       }
       vaciarCarritoTaller();
-      window.open(enlaceWhatsApp(res.mensajeWhatsapp), "_blank", "noreferrer");
-      void navigate({ to: "/catalogo" });
+      try {
+        sessionStorage.setItem("apex.pedido.ultimoWa", res.mensajeWhatsapp);
+      } catch {
+        // ignore
+      }
+      void navigate({
+        to: "/taller/pedido/recibido",
+        search: { id: res.pedidoId },
+      });
     } finally {
       setEnviando(false);
     }
