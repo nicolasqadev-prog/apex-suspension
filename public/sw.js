@@ -1,5 +1,5 @@
 // Increment this when shipping a new release to force cache refresh.
-const CACHE_NAME = "apex-suspension-pwa-v52";
+const CACHE_NAME = "apex-suspension-pwa-v53";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -76,14 +76,8 @@ self.addEventListener("notificationclick", (event) => {
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
       for (const client of clients) {
         if (!client.url.startsWith(self.location.origin)) continue;
-        if ("focus" in client) {
-          return client.focus().then(() => {
-            if ("navigate" in client && typeof client.navigate === "function") {
-              return client.navigate(target);
-            }
-            return client;
-          });
-        }
+        client.postMessage({ type: "APEX_NAVIGATE", url: path });
+        if ("focus" in client) return client.focus();
       }
       if (self.clients.openWindow) return self.clients.openWindow(target);
       return undefined;

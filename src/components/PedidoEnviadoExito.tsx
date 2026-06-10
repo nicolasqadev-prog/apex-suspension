@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Bell, CheckCircle2, MessageCircle } from "lucide-react";
 
@@ -34,6 +34,7 @@ export default function PedidoEnviadoExito({
   mensajeWhatsapp,
   totalCop = null,
 }: Props) {
+  const navigate = useNavigate();
   const { whatsappGuardado } = useTallerSession();
   const [notifOk, setNotifOk] = useState(false);
 
@@ -83,10 +84,14 @@ export default function PedidoEnviadoExito({
         )}
 
         <div className="mt-6 grid gap-3">
-          <Button asChild className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-12">
-            <Link to="/taller/pedidos/$id" params={{ id: pedidoId }}>
-              Ver seguimiento del pedido
-            </Link>
+          <Button
+            type="button"
+            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-12"
+            onClick={() =>
+              void navigate({ to: "/taller/pedidos/$id", params: { id: pedidoId } })
+            }
+          >
+            Ver seguimiento del pedido
           </Button>
           {mensajeWhatsapp && (
             <Button

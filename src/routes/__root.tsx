@@ -5,6 +5,7 @@ import appCss from "../styles.css?url";
 import AdminPreviewBanner from "@/components/AdminPreviewBanner";
 import CarritoAgregadoAviso from "@/components/CarritoAgregadoAviso";
 import MostradorChat from "@/components/MostradorChat";
+import ServiceWorkerNavigation from "@/components/ServiceWorkerNavigation";
 import { TallerSessionProvider } from "@/components/TallerSessionProvider";
 import { siteOriginForHead } from "@/lib/site-url";
 
@@ -150,6 +151,7 @@ function RootComponent() {
       <AdminPreviewBanner />
       <RootErrorBoundary>
         <TallerSessionProvider>
+          <ServiceWorkerNavigation />
           <Outlet />
           <CarritoAgregadoAviso />
           <MostradorChat />

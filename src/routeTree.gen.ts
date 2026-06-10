@@ -24,6 +24,7 @@ import { Route as TallerCuentaRouteImport } from './routes/taller.cuenta'
 import { Route as TallerAccesoRouteImport } from './routes/taller.acceso'
 import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-products.$page'
 import { Route as RepuestoSlugRouteImport } from './routes/repuesto.$slug'
+import { Route as TallerPedidosIndexRouteImport } from './routes/taller.pedidos.index'
 import { Route as TallerPedidosIdRouteImport } from './routes/taller.pedidos.$id'
 import { Route as TallerPedidoRecibidoRouteImport } from './routes/taller.pedido.recibido'
 
@@ -102,6 +103,11 @@ const RepuestoSlugRoute = RepuestoSlugRouteImport.update({
   path: '/repuesto/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TallerPedidosIndexRoute = TallerPedidosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TallerPedidosRoute,
+} as any)
 const TallerPedidosIdRoute = TallerPedidosIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/taller/': typeof TallerIndexRoute
   '/taller/pedido/recibido': typeof TallerPedidoRecibidoRoute
   '/taller/pedidos/$id': typeof TallerPedidosIdRoute
+  '/taller/pedidos/': typeof TallerPedidosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -146,10 +153,10 @@ export interface FileRoutesByTo {
   '/taller/cuenta': typeof TallerCuentaRoute
   '/taller/inscripcion': typeof TallerInscripcionRoute
   '/taller/pedido': typeof TallerPedidoRouteWithChildren
-  '/taller/pedidos': typeof TallerPedidosRouteWithChildren
   '/taller': typeof TallerIndexRoute
   '/taller/pedido/recibido': typeof TallerPedidoRecibidoRoute
   '/taller/pedidos/$id': typeof TallerPedidosIdRoute
+  '/taller/pedidos': typeof TallerPedidosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -170,6 +177,7 @@ export interface FileRoutesById {
   '/taller/': typeof TallerIndexRoute
   '/taller/pedido/recibido': typeof TallerPedidoRecibidoRoute
   '/taller/pedidos/$id': typeof TallerPedidosIdRoute
+  '/taller/pedidos/': typeof TallerPedidosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -191,6 +199,7 @@ export interface FileRouteTypes {
     | '/taller/'
     | '/taller/pedido/recibido'
     | '/taller/pedidos/$id'
+    | '/taller/pedidos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -206,10 +215,10 @@ export interface FileRouteTypes {
     | '/taller/cuenta'
     | '/taller/inscripcion'
     | '/taller/pedido'
-    | '/taller/pedidos'
     | '/taller'
     | '/taller/pedido/recibido'
     | '/taller/pedidos/$id'
+    | '/taller/pedidos'
   id:
     | '__root__'
     | '/'
@@ -229,6 +238,7 @@ export interface FileRouteTypes {
     | '/taller/'
     | '/taller/pedido/recibido'
     | '/taller/pedidos/$id'
+    | '/taller/pedidos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -356,6 +366,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RepuestoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/taller/pedidos/': {
+      id: '/taller/pedidos/'
+      path: '/'
+      fullPath: '/taller/pedidos/'
+      preLoaderRoute: typeof TallerPedidosIndexRouteImport
+      parentRoute: typeof TallerPedidosRoute
+    }
     '/taller/pedidos/$id': {
       id: '/taller/pedidos/$id'
       path: '/$id'
@@ -387,10 +404,12 @@ const TallerPedidoRouteWithChildren = TallerPedidoRoute._addFileChildren(
 
 interface TallerPedidosRouteChildren {
   TallerPedidosIdRoute: typeof TallerPedidosIdRoute
+  TallerPedidosIndexRoute: typeof TallerPedidosIndexRoute
 }
 
 const TallerPedidosRouteChildren: TallerPedidosRouteChildren = {
   TallerPedidosIdRoute: TallerPedidosIdRoute,
+  TallerPedidosIndexRoute: TallerPedidosIndexRoute,
 }
 
 const TallerPedidosRouteWithChildren = TallerPedidosRoute._addFileChildren(
