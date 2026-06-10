@@ -18,7 +18,8 @@ const PinSchema = z.object({
 const TallerSchema = PinSchema.extend({
   whatsapp: z.string().min(10).max(20),
   nombreTaller: z.string().min(2).max(120),
-  descuentoPorcentaje: z.number().min(0).max(50),
+  municipio: z.string().min(2).max(80),
+  direccionEntrega: z.string().min(3).max(200),
   contraEntregaHabilitada: z.boolean(),
   activo: z.boolean().optional(),
   publicado: z.boolean().optional(),
@@ -57,7 +58,8 @@ export const guardarTallerAdmin = createServerFn({ method: "POST" })
     return upsertTallerFidelizado({
       whatsapp: data.whatsapp,
       nombreTaller: data.nombreTaller,
-      descuentoPorcentaje: data.descuentoPorcentaje,
+      municipio: data.municipio,
+      direccionEntrega: data.direccionEntrega,
       contraEntregaHabilitada: data.contraEntregaHabilitada,
       activo: data.activo,
       publicado: data.publicado,

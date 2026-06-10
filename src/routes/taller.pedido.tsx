@@ -26,8 +26,6 @@ function TallerPedidoPage() {
   const navigate = useNavigate();
   const { taller, whatsappGuardado } = useTallerSession();
   const [lineas, setLineas] = useState<LineaCarritoTaller[]>([]);
-  const [municipio, setMunicipio] = useState("");
-  const [direccion, setDireccion] = useState("");
   const [notas, setNotas] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
@@ -47,6 +45,17 @@ function TallerPedidoPage() {
     [lineas],
   );
 
+  const ahorro = useMemo(() => {
+    let totalPublico = 0;
+    for (const l of lineas) {
+      if (l.precioListaPublicoCop != null && l.precioListaPublicoCop > l.precioUnitarioCop) {
+        totalPublico += l.precioListaPublicoCop * l.cantidad;
+      }
+    }
+    if (totalPublico <= total) return 0;
+    return totalPublico - total;
+  }, [lineas, total]);
+
   function refresh() {
     setLineas(leerCarritoTaller());
   }
@@ -61,8 +70,6 @@ function TallerPedidoPage() {
         data: {
           whatsapp: whatsappGuardado,
           lineas: lineas.map((l) => ({ slug: l.slug, cantidad: l.cantidad })),
-          municipio: municipio.trim() || undefined,
-          direccion: direccion.trim() || undefined,
           notas: notas.trim() || undefined,
           allowNoPublicado: allowTallerBorradorEnCliente(),
         },
@@ -80,6 +87,8 @@ function TallerPedidoPage() {
   }
 
   if (!taller) return null;
+
+  const tieneEntrega = Boolean(taller.municipio.trim() || taller.direccionEntrega.trim());
 
   return (
     <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
@@ -157,35 +166,47 @@ function TallerPedidoPage() {
               ))}
             </ul>
 
-            <p className="mt-6 text-right text-lg font-bold text-white">
-              Total referencia: {formatoPrecioCop(total)}
-            </p>
+            <div className="mt-6 space-y-1 text-right">
+              <p className="text-lg font-bold text-white">
+                Total referencia: {formatoPrecioCop(total)}
+              </p>
+              {ahorro > 0 && (
+                <p className="text-sm text-emerald-300">
+                  Tu ahorro en esta compra: {formatoPrecioCop(ahorro)}
+                </p>
+              )}
+            </div>
 
             <form onSubmit={onEnviar} className="mt-8 space-y-4 border-t border-white/10 pt-6">
-              <label className="block text-sm text-gray-400">
-                Municipio (opcional)
-                <Input
-                  value={municipio}
-                  onChange={(e) => setMunicipio(e.target.value)}
-                  placeholder="Ej. Chía"
-                  className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white"
-                />
-              </label>
-              <label className="block text-sm text-gray-400">
-                Dirección de entrega (opcional)
-                <Input
-                  value={direccion}
-                  onChange={(e) => setDireccion(e.target.value)}
-                  placeholder="Calle, barrio, referencia"
-                  className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white"
-                />
-              </label>
+              {tieneEntrega ? (
+                <div className="rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-sm">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                    Entrega registrada
+                  </p>
+                  {taller.municipio.trim() && (
+                    <p className="text-white mt-1">{taller.municipio}</p>
+                  )}
+                  {taller.direccionEntrega.trim() && (
+                    <p className="text-gray-400 text-xs mt-0.5 leading-relaxed">
+                      {taller.direccionEntrega}
+                    </p>
+                  )}
+                  <p className="text-[10px] text-gray-500 mt-2">
+                    Si cambió el punto de entrega, indícalo en notas para Apex.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-amber-300/90 leading-relaxed">
+                  Aún no hay dirección de entrega registrada. Escribe el punto en notas para Apex o
+                  pide al equipo que actualice tu ficha.
+                </p>
+              )}
               <label className="block text-sm text-gray-400">
                 Notas para Apex
                 <Input
                   value={notas}
                   onChange={(e) => setNotas(e.target.value)}
-                  placeholder="Urgente, contra entrega, etc."
+                  placeholder="Urgente, contra entrega, cambio de dirección, etc."
                   className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white"
                 />
               </label>

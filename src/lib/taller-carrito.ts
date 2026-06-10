@@ -49,6 +49,7 @@ export function agregarAlCarritoTaller(
       ...actual[idx],
       cantidad: actual[idx].cantidad + qty,
       precioUnitarioCop: linea.precioUnitarioCop,
+      precioListaPublicoCop: linea.precioListaPublicoCop ?? actual[idx].precioListaPublicoCop,
     };
   } else {
     actual.push({ ...linea, cantidad: qty });

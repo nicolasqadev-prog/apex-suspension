@@ -4,8 +4,6 @@ import { z } from "zod";
 import { setTallerActivo, upsertTallerFidelizado } from "./talleres-admin.server";
 import { getTallerFidelizadoByWhatsapp, normalizeWhatsapp } from "./talleres.server";
 
-const DESCUENTO_TALLER_DEFAULT = 16.67;
-
 const RATE_WINDOW_MS = 10 * 60_000;
 const RATE_MAX_INSCRIPCION = 12;
 const inscripcionByIp = new Map<string, { count: number; firstAt: number }>();
@@ -65,7 +63,8 @@ export const inscribirTallerEnCampo = createServerFn({ method: "POST" })
     const res = await upsertTallerFidelizado({
       whatsapp,
       nombreTaller: nombreConMeta,
-      descuentoPorcentaje: DESCUENTO_TALLER_DEFAULT,
+      municipio,
+      direccionEntrega: "",
       contraEntregaHabilitada: false,
       activo: true,
       publicado: true,

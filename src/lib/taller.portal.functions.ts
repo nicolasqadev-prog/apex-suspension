@@ -32,8 +32,6 @@ const PedidoTallerSchema = z
   .object({
     whatsapp: z.string().min(7).max(20),
     lineas: z.array(LineaPedidoSchema).min(1).max(80),
-    municipio: z.string().max(80).optional(),
-    direccion: z.string().max(200).optional(),
     notas: z.string().max(500).optional(),
   })
   .merge(AllowBorradorSchema);
@@ -92,6 +90,8 @@ export const iniciarSesionTaller = createServerFn({ method: "POST" })
         nombreTaller: taller.nombreTaller,
         descuentoPorcentaje: taller.descuentoPorcentaje,
         contraEntregaHabilitada: taller.contraEntregaHabilitada,
+        municipio: taller.municipio,
+        direccionEntrega: taller.direccionEntrega,
       },
     };
   });
@@ -179,12 +179,17 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
       .filter(Boolean)
       .join("\n");
 
+    const municipio =
+      catalogo.taller.municipio.trim() || "Por confirmar";
+    const direccion =
+      catalogo.taller.direccionEntrega.trim() || "Por confirmar en WhatsApp";
+
     const pedido = await createPedido(
       {
         tallerNombre: catalogo.taller.nombreTaller,
         whatsapp: catalogo.taller.whatsapp,
-        municipio: data.municipio?.trim() || "Por confirmar",
-        direccion: data.direccion?.trim() || "Por confirmar en WhatsApp",
+        municipio,
+        direccion,
         notas: notasPedido,
         requerimiento: esPrueba ? "Pedido de prueba (preparación)" : "Pedido portal taller",
       },
@@ -206,6 +211,7 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
       "Hola Apex Suspensión,",
       `Pedido desde portal taller (${catalogo.taller.nombreTaller}).`,
       `WhatsApp taller: ${catalogo.taller.whatsapp}`,
+      `Entrega: ${municipio} — ${direccion}`,
       "",
       resumenLineas,
       "",

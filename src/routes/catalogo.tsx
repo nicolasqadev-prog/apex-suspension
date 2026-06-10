@@ -654,6 +654,7 @@ function PiezaCard({
                   referencia: p.referencia,
                   nombre: p.nombre,
                   precioUnitarioCop: p.precioTaller!,
+                  precioListaPublicoCop: p.precioLista,
                   stock: p.stock,
                 });
               }}

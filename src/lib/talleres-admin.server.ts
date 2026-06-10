@@ -1,4 +1,5 @@
 import { normalizeSupabaseUrl } from "./supabase-env";
+import { DESCUENTO_TALLER_POLITICA } from "./taller-politica";
 import { normalizeWhatsapp } from "./talleres.server";
 
 type SupabaseEnv = {
@@ -14,6 +15,8 @@ export type TallerFidelizadoAdmin = {
   contraEntregaHabilitada: boolean;
   activo: boolean;
   publicado: boolean;
+  municipio: string;
+  direccionEntrega: string;
   createdAt: string;
 };
 
@@ -41,18 +44,27 @@ type DbRow = {
   contra_entrega_habilitada: boolean;
   activo: boolean;
   publicado?: boolean;
+  municipio?: string | null;
+  direccion_entrega?: string | null;
   created_at: string;
 };
+
+const SELECT_ADMIN_CON_ENTREGA =
+  "id,whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo,publicado,municipio,direccion_entrega,created_at";
+const SELECT_ADMIN_SIN_ENTREGA =
+  "id,whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo,publicado,created_at";
 
 function mapRow(row: DbRow): TallerFidelizadoAdmin {
   return {
     id: row.id,
     whatsapp: row.whatsapp,
     nombreTaller: row.nombre_taller,
-    descuentoPorcentaje: Number(row.descuento_porcentaje ?? 0),
+    descuentoPorcentaje: Number(row.descuento_porcentaje ?? DESCUENTO_TALLER_POLITICA),
     contraEntregaHabilitada: Boolean(row.contra_entrega_habilitada),
     activo: Boolean(row.activo),
     publicado: row.publicado !== false,
+    municipio: row.municipio?.trim() ?? "",
+    direccionEntrega: row.direccion_entrega?.trim() ?? "",
     createdAt: row.created_at,
   };
 }
@@ -64,13 +76,14 @@ export async function listTalleresFidelizadosAdmin(): Promise<
   if (!env) return { ok: false, reason: "Supabase no configurado" };
 
   const url = new URL(`${env.url}/rest/v1/talleres_fidelizados`);
-  url.searchParams.set(
-    "select",
-    "id,whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo,publicado,created_at",
-  );
+  url.searchParams.set("select", SELECT_ADMIN_CON_ENTREGA);
   url.searchParams.set("order", "publicado.asc,activo.desc,nombre_taller.asc");
 
-  const res = await fetch(url.toString(), { headers: headers(env) });
+  let res = await fetch(url.toString(), { headers: headers(env) });
+  if (!res.ok && res.status === 400) {
+    url.searchParams.set("select", SELECT_ADMIN_SIN_ENTREGA);
+    res = await fetch(url.toString(), { headers: headers(env) });
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     return { ok: false, reason: `Listar talleres falló (${res.status}) ${text}`.slice(0, 200) };
@@ -83,8 +96,9 @@ export async function listTalleresFidelizadosAdmin(): Promise<
 export type UpsertTallerInput = {
   whatsapp: string;
   nombreTaller: string;
-  descuentoPorcentaje: number;
   contraEntregaHabilitada: boolean;
+  municipio: string;
+  direccionEntrega: string;
   activo?: boolean;
   publicado?: boolean;
 };
@@ -94,37 +108,44 @@ export async function upsertTallerFidelizado(
 ): Promise<{ ok: true; taller: TallerFidelizadoAdmin } | { ok: false; reason: string }> {
   const env = getSupabaseEnv();
   if (!env) return { ok: false, reason: "Supabase no configurado" };
+  const supabase = env;
 
   const whatsapp = normalizeWhatsapp(input.whatsapp);
   if (whatsapp.length < 10) return { ok: false, reason: "WhatsApp inválido" };
 
-  const descuento = Math.min(50, Math.max(0, input.descuentoPorcentaje));
-  const payload = {
+  const municipio = input.municipio.trim();
+  const direccionEntrega = input.direccionEntrega.trim();
+  const payload: Record<string, unknown> = {
     whatsapp,
     nombre_taller: input.nombreTaller.trim(),
-    descuento_porcentaje: descuento,
+    descuento_porcentaje: DESCUENTO_TALLER_POLITICA,
     contra_entrega_habilitada: input.contraEntregaHabilitada,
     activo: input.activo ?? true,
     publicado: input.publicado ?? true,
+    municipio: municipio || null,
+    direccion_entrega: direccionEntrega || null,
   };
 
-  let res = await fetch(`${env.url}/rest/v1/talleres_fidelizados?on_conflict=whatsapp`, {
-    method: "POST",
-    headers: headers(env, {
-      Prefer: "resolution=merge-duplicates,return=representation",
-    }),
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok && res.status === 400 && payload.publicado !== undefined) {
-    const { publicado: _p, ...sinPublicado } = payload;
-    res = await fetch(`${env.url}/rest/v1/talleres_fidelizados?on_conflict=whatsapp`, {
+  async function postUpsert(body: Record<string, unknown>) {
+    return fetch(`${supabase.url}/rest/v1/talleres_fidelizados?on_conflict=whatsapp`, {
       method: "POST",
-      headers: headers(env, {
+      headers: headers(supabase, {
         Prefer: "resolution=merge-duplicates,return=representation",
       }),
-      body: JSON.stringify(sinPublicado),
+      body: JSON.stringify(body),
     });
+  }
+
+  let res = await postUpsert(payload);
+
+  if (!res.ok && res.status === 400) {
+    const { municipio: _m, direccion_entrega: _d, ...sinEntrega } = payload;
+    res = await postUpsert(sinEntrega);
+  }
+
+  if (!res.ok && res.status === 400 && payload.publicado !== undefined) {
+    const { publicado: _p, municipio: _m, direccion_entrega: _d, ...minimo } = payload;
+    res = await postUpsert(minimo);
   }
 
   if (!res.ok) {

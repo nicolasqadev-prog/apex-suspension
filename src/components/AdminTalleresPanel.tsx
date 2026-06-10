@@ -13,6 +13,7 @@ import {
 } from "@/lib/admin-talleres.functions";
 import type { UltimoPedidoTaller } from "@/lib/pedidos.server";
 import { setModoPreparacion } from "@/lib/admin-preparacion";
+import { DESCUENTO_TALLER_POLITICA } from "@/lib/taller-politica";
 import type { TallerFidelizadoAdmin } from "@/lib/talleres-admin.server";
 
 type Props = {
@@ -23,7 +24,8 @@ type Props = {
 const emptyForm = {
   whatsapp: "",
   nombreTaller: "",
-  descuentoPorcentaje: "16.67",
+  municipio: "",
+  direccionEntrega: "",
   contraEntregaHabilitada: true,
 };
 
@@ -69,7 +71,8 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
         adminPin,
         whatsapp: form.whatsapp,
         nombreTaller: form.nombreTaller,
-        descuentoPorcentaje: Number(form.descuentoPorcentaje) || 0,
+        municipio: form.municipio,
+        direccionEntrega: form.direccionEntrega,
         contraEntregaHabilitada: form.contraEntregaHabilitada,
         activo: true,
         publicado: editingWhatsapp ? (existing?.publicado ?? false) : false,
@@ -94,7 +97,8 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
     setForm({
       whatsapp: t.whatsapp,
       nombreTaller: t.nombreTaller,
-      descuentoPorcentaje: String(t.descuentoPorcentaje),
+      municipio: t.municipio,
+      direccionEntrega: t.direccionEntrega,
       contraEntregaHabilitada: t.contraEntregaHabilitada,
     });
   }
@@ -206,18 +210,31 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
           />
         </label>
         <label className="text-xs text-gray-400 block">
-          Descuento %
+          Municipio de entrega
           <Input
-            type="number"
-            min={0}
-            max={50}
-            step={0.5}
-            value={form.descuentoPorcentaje}
-            onChange={(e) => setForm((f) => ({ ...f, descuentoPorcentaje: e.target.value }))}
+            value={form.municipio}
+            onChange={(e) => setForm((f) => ({ ...f, municipio: e.target.value }))}
+            placeholder="Ej. Chía"
             className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white"
+            required
           />
         </label>
-        <label className="text-xs text-gray-400 flex items-end gap-2 pb-2">
+        <label className="text-xs text-gray-400 block sm:col-span-2">
+          Dirección / punto de entrega
+          <Input
+            value={form.direccionEntrega}
+            onChange={(e) => setForm((f) => ({ ...f, direccionEntrega: e.target.value }))}
+            placeholder="Calle, barrio, referencia"
+            className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white"
+            required
+          />
+        </label>
+        <div className="sm:col-span-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-gray-400">
+          Política Apex: precio taller con{" "}
+          <span className="text-emerald-300 font-semibold">{DESCUENTO_TALLER_POLITICA}%</span> de
+          descuento sobre lista — fijo para todos los aliados.
+        </div>
+        <label className="text-xs text-gray-400 flex items-end gap-2 pb-2 sm:col-span-2">
           <input
             type="checkbox"
             checked={form.contraEntregaHabilitada}
@@ -281,8 +298,14 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
               <div>
                 <p className="font-semibold text-white">{t.nombreTaller}</p>
                 <p className="text-xs text-gray-400 font-mono mt-0.5">{t.whatsapp}</p>
+                {t.municipio && (
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {t.municipio}
+                    {t.direccionEntrega ? ` · ${t.direccionEntrega}` : ""}
+                  </p>
+                )}
                 <p className="text-xs text-emerald-300/90 mt-1">
-                  {t.descuentoPorcentaje}% desc. · CE: {t.contraEntregaHabilitada ? "sí" : "no"} ·{" "}
+                  CE: {t.contraEntregaHabilitada ? "sí" : "no"} ·{" "}
                   {t.activo ? "activo" : "inactivo"} ·{" "}
                   {t.publicado ? (
                     <span className="text-emerald-400">aliado certificado</span>

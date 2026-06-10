@@ -157,6 +157,7 @@ function RepuestoDetallePage() {
                   referencia: pieza.referencia,
                   nombre: pieza.nombre,
                   precioUnitarioCop: precioTaller,
+                  precioListaPublicoCop: pieza.precioLista,
                   stock: pieza.stock,
                 });
               }}
