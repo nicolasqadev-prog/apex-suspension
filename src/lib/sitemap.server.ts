@@ -3,7 +3,7 @@ import { normalizeSupabaseUrl } from "./supabase-env";
 
 export const SITEMAP_CHUNK_SIZE = 1000;
 
-const STATIC_PATHS = ["/", "/catalogo", "/legal", "/taller", "/taller/acceso", "/taller/inscripcion"];
+const STATIC_PATHS = ["/", "/catalogo", "/legal", "/taller", "/taller/acceso"];
 
 function escapeXml(s: string): string {
   return s

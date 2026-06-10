@@ -3,11 +3,13 @@ import { z } from "zod";
 
 import { verifyAdminPinValue } from "./admin-auth.server";
 import {
+  certificarTallerFidelizado,
   deleteTallerFidelizado,
   listTalleresFidelizadosAdmin,
   setTallerActivo,
   upsertTallerFidelizado,
 } from "./talleres-admin.server";
+import { ultimosPedidosPorTelefonos } from "./pedidos.server";
 
 const PinSchema = z.object({
   adminPin: z.string().min(4).max(64),
@@ -35,7 +37,16 @@ export const listarTalleresAdmin = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const auth = checkAdmin(data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
-    return listTalleresFidelizadosAdmin();
+    const talleresRes = await listTalleresFidelizadosAdmin();
+    if (!talleresRes.ok) return talleresRes;
+    const actividad = await ultimosPedidosPorTelefonos(
+      talleresRes.talleres.map((t) => t.whatsapp),
+    );
+    return {
+      ok: true as const,
+      talleres: talleresRes.talleres,
+      ultimosPedidos: actividad.ok ? actividad.pedidos : [],
+    };
   });
 
 export const guardarTallerAdmin = createServerFn({ method: "POST" })
@@ -67,6 +78,14 @@ export const reactivarTallerAdmin = createServerFn({ method: "POST" })
     const auth = checkAdmin(data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
     return setTallerActivo(data.whatsapp, true);
+  });
+
+export const certificarTallerAdmin = createServerFn({ method: "POST" })
+  .inputValidator(WhatsappPinSchema)
+  .handler(async ({ data }) => {
+    const auth = checkAdmin(data.adminPin);
+    if (!auth.ok) return { ok: false as const, reason: auth.reason };
+    return certificarTallerFidelizado(data.whatsapp);
   });
 
 export const eliminarTallerAdmin = createServerFn({ method: "POST" })

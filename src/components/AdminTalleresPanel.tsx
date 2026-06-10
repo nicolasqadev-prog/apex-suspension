@@ -4,12 +4,14 @@ import { Plus, Trash2, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  certificarTallerAdmin,
   desactivarTallerAdmin,
   eliminarTallerAdmin,
   guardarTallerAdmin,
   listarTalleresAdmin,
   reactivarTallerAdmin,
 } from "@/lib/admin-talleres.functions";
+import type { UltimoPedidoTaller } from "@/lib/pedidos.server";
 import { setModoPreparacion } from "@/lib/admin-preparacion";
 import type { TallerFidelizadoAdmin } from "@/lib/talleres-admin.server";
 
@@ -27,6 +29,7 @@ const emptyForm = {
 
 export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props) {
   const [talleres, setTalleres] = useState<TallerFidelizadoAdmin[]>([]);
+  const [ultimosPedidos, setUltimosPedidos] = useState<UltimoPedidoTaller[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -44,6 +47,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
         return;
       }
       setTalleres(res.talleres);
+      setUltimosPedidos(res.ultimosPedidos ?? []);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Error al cargar talleres");
     } finally {
@@ -68,7 +72,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
         descuentoPorcentaje: Number(form.descuentoPorcentaje) || 0,
         contraEntregaHabilitada: form.contraEntregaHabilitada,
         activo: true,
-        publicado: modoPreparacion ? (existing ? existing.publicado : false) : true,
+        publicado: editingWhatsapp ? (existing?.publicado ?? false) : false,
       },
     });
     if (!res.ok) {
@@ -77,12 +81,8 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
     }
     setMessage(
       editingWhatsapp
-        ? modoPreparacion
-          ? `Taller actualizado en borrador: ${res.taller.nombreTaller}`
-          : `Taller actualizado en vivo: ${res.taller.nombreTaller}`
-        : modoPreparacion
-          ? `Taller en borrador: ${res.taller.nombreTaller}. Publícalo desde Soporte cuando esté listo.`
-          : `Taller en operación: ${res.taller.nombreTaller}. Ya puede entrar en /taller/acceso.`,
+        ? `Taller actualizado: ${res.taller.nombreTaller}`
+        : `Taller registrado: ${res.taller.nombreTaller}. Certifícalo como aliado para que entren con su WhatsApp.`,
     );
     setForm(emptyForm);
     setEditingWhatsapp(null);
@@ -107,6 +107,29 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
       return;
     }
     setMessage("Taller desactivado. Ya no verá precios de taller.");
+    void refresh();
+  }
+
+  function ultimoPedidoDe(whatsapp: string): UltimoPedidoTaller | undefined {
+    const w = whatsapp.replace(/\D/g, "");
+    return ultimosPedidos.find((p) => p.telefono.replace(/\D/g, "") === w);
+  }
+
+  function diasSinPedir(whatsapp: string): number | null {
+    const u = ultimoPedidoDe(whatsapp);
+    if (!u) return null;
+    const ms = Date.now() - new Date(u.created_at).getTime();
+    return Math.floor(ms / 86_400_000);
+  }
+
+  async function onCertificar(whatsapp: string) {
+    if (!adminPin) return;
+    const res = await certificarTallerAdmin({ data: { adminPin, whatsapp } });
+    if (!res.ok) {
+      setMessage(res.reason);
+      return;
+    }
+    setMessage(`Aliado certificado: ${res.taller.nombreTaller}. Ya puede entrar en /taller/acceso.`);
     void refresh();
   }
 
@@ -156,9 +179,8 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
         <div>
           <p className="text-sm font-semibold text-white">Talleres fidelizados</p>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-            {modoPreparacion
-              ? "Con modo preparación activo, los talleres quedan en borrador hasta publicar operación."
-              : "Al guardar, el taller queda en operación y puede entrar en /taller/acceso."}
+            Registra cada taller con su WhatsApp. Certifícalo como aliado cuando cierren acuerdo en la
+            visita. Desactiva si dejan de trabajar con Apex.
           </p>
         </div>
       </div>
@@ -231,7 +253,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
       <div className="flex items-center justify-between gap-2 mb-3">
         <p className="text-xs font-semibold text-gray-300">
           Registrados ({talleres.length}) ·{" "}
-          {loading ? "actualizando…" : modoPreparacion ? "borrador" : "operación"}
+          {loading ? "actualizando…" : "certificar = puede entrar"}
         </p>
         <Button
           type="button"
@@ -263,11 +285,25 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
                   {t.descuentoPorcentaje}% desc. · CE: {t.contraEntregaHabilitada ? "sí" : "no"} ·{" "}
                   {t.activo ? "activo" : "inactivo"} ·{" "}
                   {t.publicado ? (
-                    <span className="text-emerald-400">en operación</span>
+                    <span className="text-emerald-400">aliado certificado</span>
                   ) : (
-                    <span className="text-amber-400">borrador</span>
+                    <span className="text-amber-400">pendiente certificar</span>
                   )}
                 </p>
+                {(() => {
+                  const dias = diasSinPedir(t.whatsapp);
+                  const ult = ultimoPedidoDe(t.whatsapp);
+                  if (ult == null) {
+                    return (
+                      <p className="text-xs text-gray-500 mt-1">Sin pedidos registrados aún</p>
+                    );
+                  }
+                  return (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Último pedido: hace {dias} día{dias === 1 ? "" : "s"} · {ult.estado}
+                    </p>
+                  );
+                })()}
               </div>
               <div className="flex flex-wrap gap-1.5 shrink-0">
                 <Button
@@ -279,6 +315,16 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
                 >
                   Editar
                 </Button>
+                {!t.publicado && t.activo && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white h-8"
+                    onClick={() => void onCertificar(t.whatsapp)}
+                  >
+                    Certificar aliado
+                  </Button>
+                )}
                 <Button
                   type="button"
                   size="sm"
@@ -286,7 +332,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
                   className="text-xs border-emerald-700 text-emerald-200 h-8"
                   onClick={() => abrirCatalogoComo(t)}
                 >
-                  Ver catálogo
+                  Probar catálogo
                 </Button>
                 {t.activo ? (
                   <Button

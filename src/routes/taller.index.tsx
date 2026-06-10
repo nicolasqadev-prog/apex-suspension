@@ -1,13 +1,6 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import {
-  LogOut,
-  Package,
-  ShoppingCart,
-  UserMinus,
-  UserPlus,
-  Wrench,
-} from "lucide-react";
+import { BadgeCheck, LogOut, Package, ShoppingCart, Wrench } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useTallerSession } from "@/components/TallerSessionProvider";
@@ -25,7 +18,7 @@ export const Route = createFileRoute("/taller/")({
         {
           name: "description",
           content:
-            "Panel para talleres aliados: catálogo con precio taller, stock y pedidos. Sin acceso administrativo.",
+            "Panel para talleres aliados Apex: catálogo con precio taller, stock y pedidos.",
         },
       ],
       links: href ? [{ rel: "canonical", href }] : [],
@@ -67,7 +60,7 @@ function TallerPanelPage() {
           <h1 className="text-xl font-bold text-white">Portal taller</h1>
         </div>
         <p className="text-sm text-gray-500">
-          Solo para talleres aliados. Aquí no hay panel administrativo de Apex.
+          Solo para talleres aliados registrados por Apex.
         </p>
 
         {loading && (
@@ -76,31 +69,16 @@ function TallerPanelPage() {
 
         {!loading && !taller && (
           <div className="mt-8 space-y-4">
-            <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-5">
-              <div className="flex items-start gap-2">
-                <UserPlus className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-white">Vincular taller (primera vez)</p>
-                  <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                    Formulario en el celular: quedas activo al instante para ver stock y pedir con
-                    precio taller.
-                  </p>
-                  <Button asChild className="mt-3 w-full bg-emerald-600 hover:bg-emerald-500 text-white">
-                    <Link to="/taller/inscripcion">Inscribir taller</Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-
             <div className="rounded-xl border border-white/10 bg-black/20 p-5">
-              <p className="font-semibold text-white">Ya estoy inscrito</p>
-              <p className="text-xs text-gray-400 mt-1">
-                Entra con el WhatsApp que registraron para este taller.
+              <p className="font-semibold text-white">Entrar al programa</p>
+              <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+                Si Apex ya registró tu taller, ingresa con el <strong className="text-gray-300">mismo
+                WhatsApp</strong> que quedó en el sistema. Si aún no estás registrado, pide la visita o
+                el alta al equipo Apex.
               </p>
               <Button
                 asChild
-                variant="outline"
-                className="mt-3 w-full border-gray-600 text-gray-200"
+                className="mt-4 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
               >
                 <Link to="/taller/acceso">Entrar con mi WhatsApp</Link>
               </Button>
@@ -111,8 +89,11 @@ function TallerPanelPage() {
         {!loading && taller && (
           <div className="mt-8 space-y-4">
             <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-4 py-4">
-              <p className="text-xs uppercase tracking-wide text-emerald-400/80">Tu taller</p>
-              <p className="text-lg font-bold text-white mt-1">{taller.nombreTaller}</p>
+              <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wide">
+                <BadgeCheck className="h-4 w-4" />
+                Aliado Apex certificado
+              </div>
+              <p className="text-lg font-bold text-white mt-2">{taller.nombreTaller}</p>
               <p className="text-xs text-gray-400 mt-2 font-mono">WhatsApp: {whatsappGuardado}</p>
               <p className="text-xs text-emerald-200/80 mt-1">
                 Precio taller · {taller.descuentoPorcentaje}% sobre lista pública
@@ -149,23 +130,6 @@ function TallerPanelPage() {
                     Mi pedido{itemsCarrito > 0 ? ` (${itemsCarrito})` : ""}
                     <span className="block text-xs font-normal text-gray-400 mt-0.5">
                       Revisar carrito y enviar por WhatsApp
-                    </span>
-                  </span>
-                </Link>
-              </Button>
-
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-auto py-4 justify-start border-amber-800/50 text-amber-100/90"
-              >
-                <Link to="/taller/cuenta">
-                  <UserMinus className="h-5 w-5 mr-3 shrink-0 text-amber-400" />
-                  <span className="text-left">
-                    Desvincular taller
-                    <span className="block text-xs font-normal text-gray-500 mt-0.5">
-                      Si la prueba no les convence, salen del programa al instante
                     </span>
                   </span>
                 </Link>

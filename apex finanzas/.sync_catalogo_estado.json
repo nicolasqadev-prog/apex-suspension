@@ -1,0 +1,21 @@
+{
+  "siguiente_desde": 3600,
+  "total": 5910,
+  "completado": false,
+  "ultimo_lote": {
+    "archivo": "data/inventario-catalogo-completo.json",
+    "lote": {
+      "desde": 3300,
+      "hasta": 3599,
+      "total": 5910
+    },
+    "creados": 0,
+    "actualizadosMetadatos": 300,
+    "omitidos": 0,
+    "stockAjustadoEnExistentes": 0,
+    "siguiente_desde": 3600,
+    "completado": false,
+    "sincronizarStock": false,
+    "nota": "CatÃ¡logo completo: precios/nombres sin tocar stock. Stock: inventario-vivo.json o --stock"
+  }
+}

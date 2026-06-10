@@ -112,6 +112,68 @@ export async function createPedido(
   return { ok: true, pedidoId };
 }
 
+export type UltimoPedidoTaller = {
+  telefono: string;
+  created_at: string;
+  estado: string;
+};
+
+/** Último pedido por WhatsApp de taller (para seguimiento en admin). */
+export async function ultimosPedidosPorTelefonos(
+  telefonos: string[],
+): Promise<{ ok: true; pedidos: UltimoPedidoTaller[] } | { ok: false; reason: string }> {
+  const env = getSupabaseEnv();
+  if (!env) return { ok: false, reason: "Supabase no configurado en servidor" };
+  if (telefonos.length === 0) return { ok: true, pedidos: [] };
+
+  const unicos = [...new Set(telefonos.map((t) => t.replace(/\D/g, "")).filter((t) => t.length >= 10))];
+  const url = new URL(`${env.url}/rest/v1/pedidos`);
+  url.searchParams.set("select", "telefono,created_at,estado");
+  url.searchParams.set("telefono", `in.(${unicos.join(",")})`);
+  url.searchParams.set("es_prueba", "eq.false");
+  url.searchParams.set("order", "created_at.desc");
+  url.searchParams.set("limit", "200");
+
+  let res = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      apikey: env.serviceRoleKey,
+      Authorization: `Bearer ${env.serviceRoleKey}`,
+    },
+  });
+
+  if (!res.ok && res.status === 400) {
+    const url2 = new URL(`${env.url}/rest/v1/pedidos`);
+    url2.searchParams.set("select", "telefono,created_at,estado");
+    url2.searchParams.set("telefono", `in.(${unicos.join(",")})`);
+    url2.searchParams.set("order", "created_at.desc");
+    url2.searchParams.set("limit", "200");
+    res = await fetch(url2.toString(), {
+      method: "GET",
+      headers: {
+        apikey: env.serviceRoleKey,
+        Authorization: `Bearer ${env.serviceRoleKey}`,
+      },
+    });
+  }
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return { ok: false, reason: `Pedidos taller falló (${res.status}) ${text}`.slice(0, 200) };
+  }
+
+  const rows = (await res.json()) as UltimoPedidoTaller[];
+  const vistos = new Set<string>();
+  const pedidos: UltimoPedidoTaller[] = [];
+  for (const row of rows) {
+    const tel = row.telefono?.replace(/\D/g, "") ?? "";
+    if (!tel || vistos.has(tel)) continue;
+    vistos.add(tel);
+    pedidos.push(row);
+  }
+  return { ok: true, pedidos };
+}
+
 export async function listPedidosRecientes(
   minutes: number,
   opts?: { soloPrueba?: boolean; soloProduccion?: boolean },

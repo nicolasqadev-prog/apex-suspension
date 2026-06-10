@@ -102,22 +102,9 @@ function TallerAccesoPage() {
           </Button>
         </form>
 
-        <div className="mt-8 rounded-lg border border-emerald-500/30 bg-emerald-950/20 px-4 py-4">
-          <p className="text-sm text-gray-300">
-            ¿Primera visita o prueba en el taller?
-          </p>
-          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-            Inscríbete en un minuto con un formulario. Quedas activo al instante para ver stock y
-            pedir con precio taller.
-          </p>
-          <Button asChild className="w-full mt-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">
-            <Link to="/taller/inscripcion">Inscribir taller ahora</Link>
-          </Button>
-        </div>
-
-        <p className="mt-6 text-xs text-gray-500 leading-relaxed">
-          El catálogo público es el mismo para todos. Los precios de taller solo se muestran después
-          de inscribirte o validar tu número.
+        <p className="mt-8 text-xs text-gray-500 leading-relaxed">
+          El alta al programa la realiza el equipo Apex en la visita. Si tu número aún no funciona,
+          solicita que te certifiquen como aliado.
         </p>
 
         <div className="mt-6">

@@ -138,6 +138,46 @@ export async function upsertTallerFidelizado(
   return { ok: true, taller: mapRow(row) };
 }
 
+export async function certificarTallerFidelizado(
+  whatsapp: string,
+): Promise<{ ok: true; taller: TallerFidelizadoAdmin } | { ok: false; reason: string }> {
+  const env = getSupabaseEnv();
+  if (!env) return { ok: false, reason: "Supabase no configurado" };
+
+  const w = normalizeWhatsapp(whatsapp);
+  const patch = { activo: true, publicado: true };
+
+  let res = await fetch(
+    `${env.url}/rest/v1/talleres_fidelizados?whatsapp=eq.${encodeURIComponent(w)}`,
+    {
+      method: "PATCH",
+      headers: headers(env, { Prefer: "return=representation" }),
+      body: JSON.stringify(patch),
+    },
+  );
+
+  if (!res.ok && res.status === 400) {
+    res = await fetch(
+      `${env.url}/rest/v1/talleres_fidelizados?whatsapp=eq.${encodeURIComponent(w)}`,
+      {
+        method: "PATCH",
+        headers: headers(env, { Prefer: "return=representation" }),
+        body: JSON.stringify({ activo: true }),
+      },
+    );
+  }
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return { ok: false, reason: `Certificar falló (${res.status}) ${text}`.slice(0, 200) };
+  }
+
+  const rows = (await res.json()) as DbRow[];
+  const row = rows[0];
+  if (!row) return { ok: false, reason: "Taller no encontrado" };
+  return { ok: true, taller: mapRow(row) };
+}
+
 export async function setTallerActivo(
   whatsapp: string,
   activo: boolean,
