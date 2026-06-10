@@ -14,6 +14,7 @@ import {
 import type { UltimoPedidoTaller } from "@/lib/pedidos.server";
 import { setModoPreparacion } from "@/lib/admin-preparacion";
 import { DESCUENTO_TALLER_POLITICA } from "@/lib/taller-politica";
+import { guardarWhatsappTallerEnCliente } from "@/lib/taller-whatsapp";
 import type { TallerFidelizadoAdmin } from "@/lib/talleres-admin.server";
 
 type Props = {
@@ -168,11 +169,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
 
   function abrirCatalogoComo(t: TallerFidelizadoAdmin) {
     setModoPreparacion(true);
-    try {
-      localStorage.setItem("apex.taller.whatsapp", JSON.stringify(t.whatsapp));
-    } catch {
-      // ignore
-    }
+    guardarWhatsappTallerEnCliente(t.whatsapp);
     window.open("/catalogo", "_blank", "noreferrer");
   }
 

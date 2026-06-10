@@ -12,9 +12,13 @@ import { allowTallerBorradorEnCliente } from "@/lib/admin-preparacion";
 import { iniciarSesionTaller } from "@/lib/taller.portal.functions";
 import type { TallerSesion } from "@/lib/taller.types";
 import { vaciarCarritoTaller } from "@/lib/taller-carrito";
+import {
+  TALLER_WHATSAPP_STORAGE_KEY,
+  normalizeWhatsappTaller,
+} from "@/lib/taller-whatsapp";
 import { usePersistentState } from "@/lib/usePersistentState";
 
-export const TALLER_WHATSAPP_KEY = "apex.taller.whatsapp";
+export const TALLER_WHATSAPP_KEY = TALLER_WHATSAPP_STORAGE_KEY;
 
 type TallerSessionValue = {
   taller: TallerSesion | null;
@@ -32,7 +36,7 @@ export function TallerSessionProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const w = whatsappGuardado.replace(/\D/g, "");
+    const w = normalizeWhatsappTaller(whatsappGuardado);
     if (!w || w.length < 10) {
       setTaller(null);
       return;
@@ -47,9 +51,12 @@ export function TallerSessionProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         if (res.ok && res.taller) {
           setTaller(res.taller);
+          if (w !== whatsappGuardado) setWhatsappGuardado(w);
         } else {
           setTaller(null);
-          setWhatsappGuardado("");
+          if (res.reason !== "pendiente_certificacion") {
+            setWhatsappGuardado("");
+          }
         }
       })
       .finally(() => {
@@ -63,7 +70,7 @@ export function TallerSessionProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (raw: string) => {
-      const w = raw.replace(/\D/g, "");
+      const w = normalizeWhatsappTaller(raw);
       if (w.length < 10) {
         return { ok: false, reason: "whatsapp_invalido" };
       }

@@ -80,6 +80,12 @@ export const iniciarSesionTaller = createServerFn({ method: "POST" })
       allowNoPublicado: data.allowNoPublicado,
     });
     if (!taller) {
+      const borrador = await getTallerFidelizadoByWhatsapp(data.whatsapp, {
+        allowNoPublicado: true,
+      });
+      if (borrador && !borrador.publicado) {
+        return { ok: false as const, reason: "pendiente_certificacion" as const };
+      }
       return { ok: false as const, reason: "no_autorizado" as const };
     }
 

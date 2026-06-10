@@ -48,6 +48,12 @@ function TallerAccesoPage() {
       setError("Demasiados intentos. Espera unos minutos e intenta de nuevo.");
       return;
     }
+    if (res.reason === "pendiente_certificacion") {
+      setError(
+        "Tu taller está registrado pero Apex aún no te ha certificado como aliado. Pide la certificación en la visita o por WhatsApp.",
+      );
+      return;
+    }
     setError(
       "Este número no está registrado como taller fidelizado o la cuenta está inactiva. Escríbenos por WhatsApp si crees que es un error.",
     );

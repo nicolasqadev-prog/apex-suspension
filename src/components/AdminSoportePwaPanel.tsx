@@ -16,6 +16,7 @@ import {
   setModoPreparacion,
 } from "@/lib/admin-preparacion";
 import { publicarOperacionVivoAdmin } from "@/lib/admin-operacion.functions";
+import { guardarWhatsappTallerEnCliente } from "@/lib/taller-whatsapp";
 
 type Props = {
   adminPin: string;
@@ -106,16 +107,16 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
   }
 
   function abrirComoTaller() {
-    const w = whatsappPrueba.replace(/\D/g, "");
-    if (w.length < 10) return;
+    const w = guardarWhatsappTallerEnCliente(whatsappPrueba);
+    if (w.length < 10) {
+      setMensaje("Ingresa un WhatsApp válido (mínimo 10 dígitos).");
+      return;
+    }
     setModoPreparacion(true);
     setPreparacionOn(true);
     onPreparacionChange?.();
-    try {
-      localStorage.setItem("apex.taller.whatsapp", JSON.stringify(w));
-    } catch {
-      // ignore
-    }
+    window.dispatchEvent(new Event(ADMIN_PREPARACION_EVENT));
+    setMensaje(`Modo preparación activo. Abriendo catálogo como ${w}…`);
     window.open("/catalogo", "_blank", "noreferrer");
   }
 

@@ -1,4 +1,5 @@
 import { normalizeSupabaseUrl } from "./supabase-env";
+import { normalizeWhatsappTaller } from "./taller-whatsapp";
 
 export type TallerFidelizado = {
   whatsapp: string;
@@ -23,14 +24,8 @@ function getSupabaseEnv(): SupabaseEnv | null {
   return { url: normalizeSupabaseUrl(rawUrl), serviceRoleKey };
 }
 
-/** Solo dígitos; si es celular CO de 10 dígitos (3xx…), antepone 57. */
-export function normalizeWhatsapp(raw: string): string {
-  let digits = raw.replace(/\D/g, "");
-  if (digits.length === 10 && digits.startsWith("3")) {
-    digits = `57${digits}`;
-  }
-  return digits;
-}
+/** @deprecated Usar normalizeWhatsappTaller (misma lógica, usable en cliente). */
+export const normalizeWhatsapp = normalizeWhatsappTaller;
 
 type TallerRow = {
   whatsapp: string;
