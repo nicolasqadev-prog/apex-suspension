@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Bell, CheckCircle2, Loader2, MessageCircle } from "lucide-react";
+import { Bell, CheckCircle2, MessageCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import StudioFooterSignature from "@/components/StudioFooterSignature";
@@ -10,6 +10,7 @@ import {
   mensajeEstadoTaller,
   refPedidoCorta,
 } from "@/lib/pedidos-estado-taller";
+import { useTallerSession } from "@/components/TallerSessionProvider";
 import { canSuggestNotifications, subscribeAndRegisterPush } from "@/lib/pwa-engagement";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 
@@ -29,6 +30,7 @@ export default function PedidoEnviadoExito({
   mensajeWhatsapp,
   totalCop = null,
 }: Props) {
+  const { whatsappGuardado } = useTallerSession();
   const [notifOk, setNotifOk] = useState(false);
 
   return (
@@ -48,10 +50,8 @@ export default function PedidoEnviadoExito({
 
         <div className="mt-6 rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-4 py-4 text-left">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Estado actual</p>
-          <p className="text-lg font-semibold text-white mt-1 flex items-center gap-2">
-            {etiquetaEstadoTaller("borrador")}
-            <Loader2 className="h-4 w-4 text-emerald-400 animate-spin" aria-hidden />
-          </p>
+          <p className="text-lg font-semibold text-white mt-1">{etiquetaEstadoTaller("borrador")}</p>
+          <p className="text-xs text-emerald-400/90 mt-1 font-medium">✓ Registrado en Apex — en revisión</p>
           {totalCop != null && (
             <p className="text-sm text-gray-400 mt-2">
               Total referencia:{" "}
@@ -97,7 +97,9 @@ export default function PedidoEnviadoExito({
               variant="outline"
               className="w-full border-emerald-600/50 text-emerald-200 h-11"
               onClick={() => {
-                void subscribeAndRegisterPush().then((res) => {
+                void subscribeAndRegisterPush(
+                  whatsappGuardado ? { telefono: whatsappGuardado } : undefined,
+                ).then((res) => {
                   if (res.ok) setNotifOk(true);
                 });
               }}

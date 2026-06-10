@@ -24,6 +24,7 @@ export function mensajePushNuevoPedidoAdmin(input: {
     title: "Nuevo pedido portal · Apex",
     body: `${input.tallerNombre} · #${ref} · ${formatoPrecioCop(input.totalCop)} · revisa en Admin`,
     url: "/admin",
+    tag: `apex-pedido-admin-${input.pedidoId}`,
   };
 }
 
@@ -60,6 +61,7 @@ export function mensajePushPedidoEnviadoTaller(pedidoId: string): PushPayload {
     title: "Pedido enviado · Apex",
     body: `Tu pedido #${ref} quedó registrado. Te avisamos cuando lo confirmemos.`,
     url: `/taller/pedidos/${pedidoId}`,
+    tag: `apex-pedido-${pedidoId}`,
   };
 }
 

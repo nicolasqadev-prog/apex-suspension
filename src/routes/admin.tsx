@@ -12,6 +12,7 @@ import AdminTalleresPanel from "@/components/AdminTalleresPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ADMIN_PREPARACION_EVENT, isModoPreparacion } from "@/lib/admin-preparacion";
+import { googleMapsRouteUrl } from "@/lib/maps-ruta";
 import { listarPedidosRecientes } from "@/lib/pedidos.functions";
 import { canSuggestNotifications, subscribeAndRegisterPush } from "@/lib/pwa-engagement";
 
@@ -165,20 +166,6 @@ function AdminPage() {
   }
 
   return <AdminAuthed onLogout={onLogout} />;
-}
-
-function googleMapsRouteUrl(addresses: string[]) {
-  const cleaned = addresses.map((a) => a.trim()).filter(Boolean);
-  if (cleaned.length === 0) return null;
-  const destination = cleaned[cleaned.length - 1];
-  const waypoints = cleaned.slice(0, -1);
-  const url = new URL("https://www.google.com/maps/dir/");
-  url.searchParams.set("api", "1");
-  url.searchParams.set("destination", destination);
-  // sin origin → Google Maps usa “tu ubicación”
-  if (waypoints.length) url.searchParams.set("waypoints", waypoints.join("|"));
-  url.searchParams.set("travelmode", "driving");
-  return url.toString();
 }
 
 type AdminTab = "talleres" | "inventario" | "operacion" | "soporte";

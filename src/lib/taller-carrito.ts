@@ -2,6 +2,16 @@ import type { LineaCarritoTaller } from "./taller.types";
 
 const STORAGE_KEY = "apex.taller.carrito";
 
+export const CARRITO_AGREGADO_EVENT = "apex-taller-carrito-agregado";
+
+export type CarritoAgregadoPayload = {
+  referencia: string;
+  nombre: string;
+  cantidadAgregada: number;
+  cantidadEnCarrito: number;
+  itemsEnCarrito: number;
+};
+
 export function leerCarritoTaller(): LineaCarritoTaller[] {
   if (typeof window === "undefined") return [];
   try {
@@ -27,6 +37,11 @@ function notificarCarrito() {
   window.dispatchEvent(new Event("apex-taller-carrito"));
 }
 
+function notificarAgregado(payload: CarritoAgregadoPayload) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(CARRITO_AGREGADO_EVENT, { detail: payload }));
+}
+
 export function guardarCarritoTaller(lineas: LineaCarritoTaller[]) {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(lineas));
@@ -36,6 +51,7 @@ export function guardarCarritoTaller(lineas: LineaCarritoTaller[]) {
 export function vaciarCarritoTaller() {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
+  notificarCarrito();
 }
 
 export function agregarAlCarritoTaller(
@@ -44,17 +60,30 @@ export function agregarAlCarritoTaller(
   const qty = Math.max(1, Math.floor(linea.cantidad ?? 1));
   const actual = leerCarritoTaller();
   const idx = actual.findIndex((l) => l.slug === linea.slug);
+  let cantidadEnCarrito = qty;
   if (idx >= 0) {
+    cantidadEnCarrito = actual[idx].cantidad + qty;
     actual[idx] = {
       ...actual[idx],
-      cantidad: actual[idx].cantidad + qty,
+      cantidad: cantidadEnCarrito,
+      referencia: linea.referencia,
+      nombre: linea.nombre,
       precioUnitarioCop: linea.precioUnitarioCop,
       precioListaPublicoCop: linea.precioListaPublicoCop ?? actual[idx].precioListaPublicoCop,
+      stock: linea.stock,
     };
   } else {
     actual.push({ ...linea, cantidad: qty });
   }
   guardarCarritoTaller(actual);
+  const itemsEnCarrito = actual.reduce((s, l) => s + l.cantidad, 0);
+  notificarAgregado({
+    referencia: linea.referencia,
+    nombre: linea.nombre,
+    cantidadAgregada: qty,
+    cantidadEnCarrito,
+    itemsEnCarrito,
+  });
   return actual;
 }
 

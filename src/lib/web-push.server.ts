@@ -1,5 +1,6 @@
 import webpush from "web-push";
 
+import { etiquetaEstadoTaller, refPedidoCorta } from "./pedidos-estado-taller";
 import {
   deletePushSubscriptionByEndpoint,
   listPushSubscriptions,
@@ -11,6 +12,7 @@ export type PushPayload = {
   title: string;
   body: string;
   url?: string;
+  tag?: string;
 };
 
 function getVapidConfig(): { publicKey: string; privateKey: string; subject: string } | null {
@@ -60,6 +62,7 @@ export async function sendPushToRow(
         title: payload.title,
         body: payload.body,
         url: payload.url ?? "/",
+        tag: payload.tag,
       }),
     );
     return { ok: true };
@@ -133,50 +136,61 @@ export async function sendPushToTelefono(
   return { ok: true, sent, failed, expired, matched: list.rows.length };
 }
 
-export function mensajePushPorEstadoPedido(estado: string, tallerNombre: string): PushPayload {
-  const base = { url: "/taller/pedidos" as const };
+export function mensajePushPorEstadoPedido(estado: string, pedidoId: string): PushPayload {
+  const ref = refPedidoCorta(pedidoId);
+  const etiqueta = etiquetaEstadoTaller(estado);
+  const url = `/taller/pedidos/${pedidoId}`;
+  const tag = `apex-pedido-${pedidoId}`;
+
   switch (estado) {
     case "cotizado":
       return {
-        ...base,
         title: "Cotización lista · Apex",
-        body: `${tallerNombre}: revisamos tu pedido y tenemos actualización de cotización.`,
+        body: `#${ref} · ${etiqueta}. Revisa el detalle en tu app.`,
+        url,
+        tag,
       };
     case "confirmado":
       return {
-        ...base,
         title: "Pedido confirmado · Apex",
-        body: `${tallerNombre}: tu pedido quedó confirmado. Te avisamos cuando salga a ruta.`,
+        body: `#${ref} · ${etiqueta}. Te avisamos cuando salga a ruta.`,
+        url,
+        tag,
       };
     case "empacando":
       return {
-        ...base,
         title: "Preparando tu pedido · Apex",
-        body: `${tallerNombre}: estamos empacando tu pedido en bodega.`,
+        body: `#${ref} · ${etiqueta}. Estamos empacando en bodega.`,
+        url,
+        tag,
       };
     case "en_ruta":
       return {
-        ...base,
         title: "Pedido en camino · Apex",
-        body: `${tallerNombre}: tu pedido va en ruta. Coordinamos contigo la entrega.`,
+        body: `#${ref} · ${etiqueta}. Coordinamos contigo la entrega.`,
+        url,
+        tag,
       };
     case "entregado":
       return {
-        ...base,
         title: "Pedido entregado · Apex",
-        body: `${tallerNombre}: pedido marcado como entregado. Gracias por confiar en Apex.`,
+        body: `#${ref} · ${etiqueta}. Gracias por confiar en Apex.`,
+        url,
+        tag,
       };
     case "cancelado":
       return {
-        ...base,
         title: "Actualización de pedido · Apex",
-        body: `${tallerNombre}: tu pedido fue cancelado. Escríbenos por WhatsApp si necesitas ayuda.`,
+        body: `#${ref} · ${etiqueta}. Escríbenos por WhatsApp si necesitas ayuda.`,
+        url,
+        tag,
       };
     default:
       return {
-        ...base,
-        title: "Actualización · Apex Suspensión",
-        body: `${tallerNombre}: hay novedades en tu pedido (${estado}).`,
+        title: "Actualización · Apex",
+        body: `#${ref} · ${etiqueta}. Toca para ver el pedido.`,
+        url,
+        tag,
       };
   }
 }

@@ -1,5 +1,5 @@
 // Increment this when shipping a new release to force cache refresh.
-const CACHE_NAME = "apex-suspension-pwa-v51";
+const CACHE_NAME = "apex-suspension-pwa-v52";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -41,6 +41,7 @@ self.addEventListener("push", (event) => {
   let title = "Apex Suspensión";
   let body = "Tienes una novedad en tu pedido o catálogo.";
   let url = "/";
+  let tag = "apex-push";
 
   try {
     const data = event.data?.json();
@@ -48,6 +49,7 @@ self.addEventListener("push", (event) => {
       if (typeof data.title === "string") title = data.title;
       if (typeof data.body === "string") body = data.body;
       if (typeof data.url === "string") url = data.url;
+      if (typeof data.tag === "string") tag = data.tag;
     }
   } catch {
     const text = event.data?.text();
@@ -60,7 +62,7 @@ self.addEventListener("push", (event) => {
       icon: "/icon-192.png",
       badge: "/icon-192.png",
       data: { url },
-      tag: "apex-push",
+      tag,
     }),
   );
 });
@@ -73,8 +75,14 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
       for (const client of clients) {
-        if (client.url.startsWith(self.location.origin) && "focus" in client) {
-          return client.focus();
+        if (!client.url.startsWith(self.location.origin)) continue;
+        if ("focus" in client) {
+          return client.focus().then(() => {
+            if ("navigate" in client && typeof client.navigate === "function") {
+              return client.navigate(target);
+            }
+            return client;
+          });
         }
       }
       if (self.clients.openWindow) return self.clients.openWindow(target);
