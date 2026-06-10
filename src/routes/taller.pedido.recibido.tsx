@@ -59,11 +59,6 @@ function PedidoRecibidoPage() {
   if (!taller || !id) return null;
 
   return (
-    <PedidoEnviadoExito
-      pedidoId={id}
-      mensajeWhatsapp={mensajeWa}
-      totalCop={totalCop}
-      autoAbrirWhatsapp={Boolean(mensajeWa)}
-    />
+    <PedidoEnviadoExito pedidoId={id} mensajeWhatsapp={mensajeWa} totalCop={totalCop} />
   );
 }

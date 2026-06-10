@@ -103,6 +103,7 @@ function TallerPedidoPage() {
     if (!taller || lineas.length === 0 || enviando) return;
     setEnviando(true);
     setError("");
+    const inicioEnvio = Date.now();
     try {
       const res = await enviarPedidoTaller({
         data: {
@@ -124,6 +125,12 @@ function TallerPedidoPage() {
             "No pudimos registrar el pedido. Revisa tu sesión o intenta de nuevo.",
         );
         return;
+      }
+
+      const minOverlayMs = 1400;
+      const restante = minOverlayMs - (Date.now() - inicioEnvio);
+      if (restante > 0) {
+        await new Promise((resolve) => setTimeout(resolve, restante));
       }
 
       const totalEnviado = lineas.reduce((s, l) => s + l.precioUnitarioCop * l.cantidad, 0);

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { Bell, CheckCircle2, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Bell, CheckCircle2, Loader2, MessageCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import StudioFooterSignature from "@/components/StudioFooterSignature";
@@ -15,35 +15,21 @@ import { enlaceWhatsApp } from "@/lib/whatsapp";
 
 export function abrirWhatsAppPedido(mensaje: string) {
   const url = enlaceWhatsApp(mensaje);
-  window.location.assign(url);
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
 type Props = {
   pedidoId: string;
   mensajeWhatsapp: string;
   totalCop?: number | null;
-  autoAbrirWhatsapp?: boolean;
 };
 
 export default function PedidoEnviadoExito({
   pedidoId,
   mensajeWhatsapp,
   totalCop = null,
-  autoAbrirWhatsapp = true,
 }: Props) {
-  const [waAbierto, setWaAbierto] = useState(false);
   const [notifOk, setNotifOk] = useState(false);
-  const waAutoIntentado = useRef(false);
-
-  useEffect(() => {
-    if (!autoAbrirWhatsapp || !mensajeWhatsapp || waAutoIntentado.current) return;
-    waAutoIntentado.current = true;
-    const t = setTimeout(() => {
-      abrirWhatsAppPedido(mensajeWhatsapp);
-      setWaAbierto(true);
-    }, 900);
-    return () => clearTimeout(t);
-  }, [autoAbrirWhatsapp, mensajeWhatsapp]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
@@ -54,7 +40,7 @@ export default function PedidoEnviadoExito({
           Referencia <span className="font-mono text-emerald-300">#{refPedidoCorta(pedidoId)}</span>
         </p>
         <p className="text-base text-white mt-4 leading-relaxed font-medium">
-          Apex ya tiene tu pedido.
+          Apex ya tiene tu pedido guardado.
         </p>
         <p className="text-sm text-emerald-200/90 mt-2 leading-relaxed">
           {mensajeEstadoTaller("borrador")}
@@ -73,34 +59,35 @@ export default function PedidoEnviadoExito({
             </p>
           )}
           <p className="text-xs text-gray-500 mt-3 leading-relaxed">
-            Te avisamos por notificación cuando confirmemos stock y despacho. También puedes
-            revisar el estado en <strong className="text-gray-400">Mis pedidos</strong>.
+            Puedes quedarte aquí o ir a <strong className="text-gray-400">Mis pedidos</strong> para
+            ver el seguimiento. Te avisamos por notificación cuando confirmemos stock y despacho.
           </p>
         </div>
 
         {mensajeWhatsapp && (
-          <p className="text-xs text-gray-500 mt-4 leading-relaxed">
-            {waAbierto
-              ? "Si WhatsApp no se abrió, toca el botón verde de abajo."
-              : "Abriendo WhatsApp con el resumen…"}
+          <p className="text-xs text-gray-500 mt-5 leading-relaxed px-2">
+            ¿Quieres acelerar la confirmación? Envía una copia del pedido por WhatsApp cuando
+            quieras — es opcional, el pedido ya quedó registrado en Apex.
           </p>
         )}
 
-        <div className="mt-8 grid gap-3">
-          {mensajeWhatsapp && (
-            <Button
-              type="button"
-              className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold h-12"
-              onClick={() => abrirWhatsAppPedido(mensajeWhatsapp)}
-            >
-              Enviar copia por WhatsApp
-            </Button>
-          )}
+        <div className="mt-6 grid gap-3">
           <Button asChild className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-12">
             <Link to="/taller/pedidos/$id" params={{ id: pedidoId }}>
               Ver seguimiento del pedido
             </Link>
           </Button>
+          {mensajeWhatsapp && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-[#25D366] text-[#25D366] hover:bg-[#25D366]/10 font-semibold h-12"
+              onClick={() => abrirWhatsAppPedido(mensajeWhatsapp)}
+            >
+              <MessageCircle className="h-5 w-5 mr-2" />
+              Confirmar por WhatsApp (opcional)
+            </Button>
+          )}
           <Button asChild variant="outline" className="w-full border-gray-600 text-gray-300 h-11">
             <Link to="/taller/pedidos">Mis pedidos</Link>
           </Button>
