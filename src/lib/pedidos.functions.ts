@@ -22,15 +22,19 @@ export const crearPedidoDesdeWeb = createServerFn({ method: "POST" })
 export const listarPedidosRecientes = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => {
     const d = typeof data === "object" && data !== null ? (data as Record<string, unknown>) : {};
-    const minutes = typeof d.minutes === "number" ? d.minutes : 30;
+    const minutes = typeof d.minutes === "number" ? d.minutes : 120;
+    const ventana = d.ventana === "minutos" ? ("minutos" as const) : ("dia" as const);
     return {
+      ventana,
       minutes: Math.max(5, Math.min(240, minutes)),
       soloPrueba: d.soloPrueba === true,
       soloProduccion: d.soloProduccion === true,
     };
   })
   .handler(async ({ data }) => {
-    return listPedidosRecientes(data.minutes, {
+    return listPedidosRecientes({
+      ventana: data.ventana,
+      minutes: data.minutes,
       soloPrueba: data.soloPrueba,
       soloProduccion: data.soloProduccion,
     });

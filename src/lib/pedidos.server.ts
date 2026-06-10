@@ -174,24 +174,47 @@ export async function ultimosPedidosPorTelefonos(
   return { ok: true, pedidos };
 }
 
-export async function listPedidosRecientes(
-  minutes: number,
-  opts?: { soloPrueba?: boolean; soloProduccion?: boolean },
-): Promise<{ ok: true; pedidos: PedidoRow[] } | { ok: false; reason: string }> {
+/** Medianoche de hoy en Colombia (America/Bogota), en ISO para filtros Supabase. */
+export function inicioDiaBogotaIso(ahora = new Date()): string {
+  const partes = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(ahora);
+  const y = partes.find((p) => p.type === "year")!.value;
+  const m = partes.find((p) => p.type === "month")!.value;
+  const d = partes.find((p) => p.type === "day")!.value;
+  return `${y}-${m}-${d}T00:00:00-05:00`;
+}
+
+export type VentanaPedidosAdmin = "dia" | "minutos";
+
+export async function listPedidosRecientes(opts: {
+  ventana?: VentanaPedidosAdmin;
+  minutes?: number;
+  soloPrueba?: boolean;
+  soloProduccion?: boolean;
+}): Promise<{ ok: true; pedidos: PedidoRow[] } | { ok: false; reason: string }> {
   const env = getSupabaseEnv();
   if (!env) return { ok: false, reason: "Supabase no configurado en servidor" };
 
-  const since = new Date(Date.now() - minutes * 60_000).toISOString();
+  const ventana = opts.ventana ?? "minutos";
+  const since =
+    ventana === "dia"
+      ? inicioDiaBogotaIso()
+      : new Date(Date.now() - (opts.minutes ?? 30) * 60_000).toISOString();
+
   const url = new URL(`${env.url}/rest/v1/pedidos`);
   url.searchParams.set(
     "select",
     "id,estado,taller_nombre,telefono,direccion,notas,created_at,es_prueba",
   );
   url.searchParams.set("created_at", `gte.${since}`);
-  if (opts?.soloPrueba) url.searchParams.set("es_prueba", "eq.true");
-  if (opts?.soloProduccion) url.searchParams.set("es_prueba", "eq.false");
+  if (opts.soloPrueba) url.searchParams.set("es_prueba", "eq.true");
+  if (opts.soloProduccion) url.searchParams.set("es_prueba", "eq.false");
   url.searchParams.set("order", "created_at.desc");
-  url.searchParams.set("limit", "50");
+  url.searchParams.set("limit", ventana === "dia" ? "200" : "50");
 
   const res = await fetch(url.toString(), {
     method: "GET",

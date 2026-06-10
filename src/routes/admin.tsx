@@ -11,6 +11,7 @@ import AdminSoportePwaPanel from "@/components/AdminSoportePwaPanel";
 import AdminTalleresPanel from "@/components/AdminTalleresPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ADMIN_REFRESH_MS } from "@/lib/admin-despachos";
 import { ADMIN_PREPARACION_EVENT, isModoPreparacion } from "@/lib/admin-preparacion";
 import { googleMapsRouteUrl } from "@/lib/maps-ruta";
 import { listarPedidosRecientes } from "@/lib/pedidos.functions";
@@ -174,7 +175,6 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
   const adminPin =
     typeof window !== "undefined" ? (window.sessionStorage.getItem(PIN_STORAGE_KEY) ?? "") : "";
   const [tab, setTab] = useState<AdminTab>("talleres");
-  const [minutes] = useState(120);
   const [modoPreparacion, setModoPreparacion] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -196,7 +196,8 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
     try {
       const res = await listarPedidosRecientes({
         data: {
-          minutes,
+          ventana: modoPreparacion ? "minutos" : "dia",
+          minutes: 120,
           soloPrueba: modoPreparacion,
           soloProduccion: !modoPreparacion,
         },
@@ -237,7 +238,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
     pedidosConocidosRef.current = new Set();
     primeraCargaPedidosRef.current = true;
     void refresh();
-    const interval = window.setInterval(() => void refresh(true), 45_000);
+    const interval = window.setInterval(() => void refresh(true), ADMIN_REFRESH_MS);
     return () => window.clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modoPreparacion]);
@@ -270,7 +271,9 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
           <div>
             <h1 className="text-xl font-bold text-white tracking-tight">Administración</h1>
             <p className="text-xs text-gray-500 mt-1">
-              Uso interno (despachos, rutas y operación). Ventana actual: {minutes} min.
+              {modoPreparacion
+                ? "Modo prueba · ventana 2 h · actualización cada 15 min"
+                : "Operación real · pedidos del día (Colombia) · actualización cada 15 min"}
             </p>
             <AdminCatalogoStatus adminPin={adminPin} />
           </div>
@@ -352,7 +355,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
               <p className="mb-4 text-sm text-emerald-100 rounded-lg border border-emerald-500/40 bg-emerald-950/40 px-4 py-3">
                 <strong className="text-emerald-300">{pedidosPendientes}</strong>{" "}
                 {pedidosPendientes === 1 ? "pedido nuevo" : "pedidos nuevos"} sin revisar (estado
-                enviado). Actualización automática cada 45 s.
+                enviado). Actualización automática cada 15 min (o push al instante).
               </p>
             )}
             <AdminPushPanel adminPin={adminPin} pedidos={pedidos} onPedidosChange={() => void refresh()} />
@@ -360,11 +363,11 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
             <div className="rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-5 mb-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-white">Pedidos recientes</p>
+                  <p className="text-sm font-semibold text-white">Todos los pedidos de la ventana</p>
                   <p className="text-xs text-gray-500 mt-1">
                     {modoPreparacion
-                      ? "Solo pedidos de prueba (simulacros). No uses para rutas reales."
-                      : "Pedidos reales. Selecciona para ruta en Google Maps."}
+                      ? "Prueba: últimas 2 h. Cambia estados arriba; enruta en el panel de despachos."
+                      : "Hoy (Colombia): cambia estados aquí; arma rutas en el panel de despachos abajo."}
                   </p>
                 </div>
                 <Button
@@ -430,13 +433,15 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
                 ))}
                 {!error && !loading && pedidos.length === 0 && (
                   <p className="text-xs text-gray-500 py-6 text-center">
-                    No hay pedidos recientes en los últimos {minutes} minutos.
+                    {modoPreparacion
+                      ? "No hay pedidos de prueba en las últimas 2 horas."
+                      : "No hay pedidos registrados hoy."}
                   </p>
                 )}
               </div>
             </div>
 
-            <AdminDispatchPanel pedidos={pedidos} />
+            <AdminDispatchPanel pedidos={pedidos} ventanaDia={!modoPreparacion} />
           </>
         )}
       </main>
