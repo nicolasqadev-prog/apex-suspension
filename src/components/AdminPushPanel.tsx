@@ -94,7 +94,10 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
       const push = res.push;
       let extra = "";
       if (push && "sent" in push) {
-        extra = ` · Push: ${push.sent} enviado(s), ${push.matched} suscripción(es) para este teléfono.`;
+        extra =
+          push.matched === 0
+            ? " · Push: 0 enviados — el taller no tiene avisos activados. Pídele que abra la app, entre con su WhatsApp y pulse «Activar avisos»."
+            : ` · Push: ${push.sent} enviado(s), ${push.matched} suscripción(es) para este teléfono.`;
       } else if (push && "skipped" in push) {
         extra = ` · Push: ${push.reason}`;
       }

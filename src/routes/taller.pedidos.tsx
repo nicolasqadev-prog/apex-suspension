@@ -2,6 +2,7 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ChevronRight, Package } from "lucide-react";
 
+import TallerNotificacionesAviso from "@/components/TallerNotificacionesAviso";
 import { useTallerSession } from "@/components/TallerSessionProvider";
 import StudioFooterSignature from "@/components/StudioFooterSignature";
 import { formatoPrecioCop } from "@/lib/formato-cop";
@@ -70,6 +71,7 @@ function MisPedidosPage() {
       </header>
 
       <main className="max-w-lg mx-auto w-full flex-1 px-4 py-6">
+        <TallerNotificacionesAviso />
         {loading && <p className="text-sm text-gray-400 text-center py-8">Cargando pedidos…</p>}
 
         {!loading && pedidos.length === 0 && (

@@ -1,4 +1,8 @@
 import { isPwaStandalone } from "./pwa-standalone";
+import {
+  TALLER_WHATSAPP_STORAGE_KEY,
+  normalizeWhatsappTaller,
+} from "./taller-whatsapp";
 
 const SESSION_HIDE_KEY = "apex.pwa.engagement.hideSession";
 const SNOOZE_KEY = "apex.pwa.engagement.snoozeUntil";
@@ -81,27 +85,57 @@ export async function subscribeToPushIfConfigured(): Promise<PushSubscription | 
   });
 }
 
-function telefonoParaPush(): string | undefined {
+/** Lee el WhatsApp del taller guardado en localStorage (JSON o texto plano). */
+export function leerTelefonoTallerParaPush(): string | undefined {
   if (typeof window === "undefined") return undefined;
   try {
-    const taller = localStorage.getItem("apex.taller.whatsapp");
-    if (taller?.replace(/\D/g, "")) return taller.replace(/\D/g, "");
-    const general = localStorage.getItem("apex.whatsapp");
-    if (general) {
-      let raw = general;
+    const raw = localStorage.getItem(TALLER_WHATSAPP_STORAGE_KEY);
+    if (raw) {
+      let parsed = raw;
       try {
-        const parsed = JSON.parse(general) as unknown;
-        if (typeof parsed === "string") raw = parsed;
+        const j = JSON.parse(raw) as unknown;
+        if (typeof j === "string") parsed = j;
       } catch {
         // valor plano
       }
-      const digits = raw.replace(/\D/g, "");
-      if (digits.length >= 10) return digits;
+      const w = normalizeWhatsappTaller(parsed);
+      if (w.length >= 10) return w;
+    }
+    const general = localStorage.getItem("apex.whatsapp");
+    if (general) {
+      let parsed = general;
+      try {
+        const j = JSON.parse(general) as unknown;
+        if (typeof j === "string") parsed = j;
+      } catch {
+        // valor plano
+      }
+      const w = normalizeWhatsappTaller(parsed);
+      if (w.length >= 10) return w;
     }
   } catch {
     // ignore
   }
   return undefined;
+}
+
+/**
+ * Si el taller ya dio permiso de notificaciones, vincula la suscripción push
+ * a su WhatsApp sin volver a pedir permiso (clave para que admin encuentre el dispositivo).
+ */
+export async function vincularPushConTelefonoTaller(
+  rawTelefono?: string,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  if (typeof window === "undefined") return { ok: false, reason: "sin_cliente" };
+  if (!("Notification" in window)) return { ok: false, reason: "sin_notificaciones" };
+  if (Notification.permission !== "granted") return { ok: false, reason: "permiso_pendiente" };
+
+  const telefono = rawTelefono
+    ? normalizeWhatsappTaller(rawTelefono)
+    : leerTelefonoTallerParaPush();
+  if (!telefono || telefono.length < 10) return { ok: false, reason: "sin_telefono" };
+
+  return subscribeAndRegisterPush({ telefono });
 }
 
 /** Suscribe al push del navegador y guarda la suscripción en Supabase. */
@@ -128,7 +162,9 @@ export async function subscribeAndRegisterPush(opts?: {
     data: {
       endpoint: json.endpoint,
       keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
-      telefono: opts?.telefono?.replace(/\D/g, "") || telefonoParaPush(),
+      telefono: opts?.telefono
+        ? normalizeWhatsappTaller(opts.telefono)
+        : leerTelefonoTallerParaPush(),
       userAgent: navigator.userAgent,
     },
   });

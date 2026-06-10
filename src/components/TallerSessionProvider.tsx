@@ -16,6 +16,7 @@ import {
   TALLER_WHATSAPP_STORAGE_KEY,
   normalizeWhatsappTaller,
 } from "@/lib/taller-whatsapp";
+import { vincularPushConTelefonoTaller } from "@/lib/pwa-engagement";
 import { usePersistentState } from "@/lib/usePersistentState";
 
 export const TALLER_WHATSAPP_KEY = TALLER_WHATSAPP_STORAGE_KEY;
@@ -68,6 +69,14 @@ export function TallerSessionProvider({ children }: { children: ReactNode }) {
     };
   }, [whatsappGuardado, setWhatsappGuardado]);
 
+  // Vincula push al WhatsApp del taller si ya dio permiso (sin pedir de nuevo).
+  useEffect(() => {
+    if (!taller) return;
+    const w = normalizeWhatsappTaller(whatsappGuardado);
+    if (w.length < 10) return;
+    void vincularPushConTelefonoTaller(w);
+  }, [taller, whatsappGuardado]);
+
   const login = useCallback(
     async (raw: string) => {
       const w = normalizeWhatsappTaller(raw);
@@ -85,6 +94,7 @@ export function TallerSessionProvider({ children }: { children: ReactNode }) {
         }
         setTaller(res.taller);
         setWhatsappGuardado(w);
+        void vincularPushConTelefonoTaller(w);
         return { ok: true };
       } finally {
         setLoading(false);

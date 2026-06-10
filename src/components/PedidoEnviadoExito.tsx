@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, CheckCircle2, MessageCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,11 @@ import {
   refPedidoCorta,
 } from "@/lib/pedidos-estado-taller";
 import { useTallerSession } from "@/components/TallerSessionProvider";
-import { canSuggestNotifications, subscribeAndRegisterPush } from "@/lib/pwa-engagement";
+import {
+  canSuggestNotifications,
+  subscribeAndRegisterPush,
+  vincularPushConTelefonoTaller,
+} from "@/lib/pwa-engagement";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 
 export function abrirWhatsAppPedido(mensaje: string) {
@@ -32,6 +36,13 @@ export default function PedidoEnviadoExito({
 }: Props) {
   const { whatsappGuardado } = useTallerSession();
   const [notifOk, setNotifOk] = useState(false);
+
+  useEffect(() => {
+    if (!whatsappGuardado) return;
+    void vincularPushConTelefonoTaller(whatsappGuardado).then((res) => {
+      if (res.ok) setNotifOk(true);
+    });
+  }, [whatsappGuardado]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
