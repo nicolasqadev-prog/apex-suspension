@@ -1,45 +1,38 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { allowNoPublicadoEnServidor } from "./admin-preparacion.server";
 import { loadCatalogoTaller, loadPiezaTaller } from "./inventario-taller.server";
 import { notificarApexNuevoPedido, notificarTallerPedidoEnviado } from "./pedidos-alerta.server";
 import { createPedido, getPedidoById, getPedidoLineas, listPedidosPorTelefono } from "./pedidos.server";
 import { getTallerFidelizadoByWhatsapp } from "./talleres.server";
 import type { LineaCarritoTaller } from "./taller.types";
 
-const AllowBorradorSchema = z.object({
-  allowNoPublicado: z.boolean().optional(),
+const WhatsappSchema = z.object({
+  whatsapp: z.string().min(7).max(20),
 });
 
-const WhatsappSchema = z
-  .object({
-    whatsapp: z.string().min(7).max(20),
-  })
-  .merge(AllowBorradorSchema);
-
-const SlugSchema = z
-  .object({
-    whatsapp: z.string().min(7).max(20),
-    slug: z.string().min(1).max(120),
-  })
-  .merge(AllowBorradorSchema);
+const SlugSchema = z.object({
+  whatsapp: z.string().min(7).max(20),
+  slug: z.string().min(1).max(120),
+});
 
 const LineaPedidoSchema = z.object({
   slug: z.string().min(1).max(120),
   cantidad: z.number().int().min(1).max(999),
 });
 
-const PedidoTallerSchema = z
-  .object({
-    whatsapp: z.string().min(7).max(20),
-    lineas: z.array(LineaPedidoSchema).min(1).max(80),
-    notas: z.string().max(500).optional(),
-  })
-  .merge(AllowBorradorSchema);
+const PedidoTallerSchema = z.object({
+  whatsapp: z.string().min(7).max(20),
+  lineas: z.array(LineaPedidoSchema).min(1).max(80),
+  notas: z.string().max(500).optional(),
+});
 
 const RATE_WINDOW_MS = 10 * 60_000;
 const RATE_MAX_LOGIN = 25;
+const RATE_MAX_PEDIDOS = 12;
 const loginAttemptsByIp = new Map<string, { count: number; firstAt: number }>();
+const pedidoAttemptsByIp = new Map<string, { count: number; firstAt: number }>();
 
 function getIpFromHeaders(headers: Headers): string {
   const cf = headers.get("CF-Connecting-IP");
@@ -49,16 +42,28 @@ function getIpFromHeaders(headers: Headers): string {
   return "unknown";
 }
 
-function checkLoginRateLimit(ip: string): boolean {
+function checkRateLimit(
+  ip: string,
+  store: Map<string, { count: number; firstAt: number }>,
+  max: number,
+): boolean {
   const now = Date.now();
-  const entry = loginAttemptsByIp.get(ip);
+  const entry = store.get(ip);
   if (!entry || now - entry.firstAt > RATE_WINDOW_MS) {
-    loginAttemptsByIp.set(ip, { count: 1, firstAt: now });
+    store.set(ip, { count: 1, firstAt: now });
     return true;
   }
-  if (entry.count >= RATE_MAX_LOGIN) return false;
+  if (entry.count >= max) return false;
   entry.count += 1;
   return true;
+}
+
+function checkLoginRateLimit(ip: string): boolean {
+  return checkRateLimit(ip, loginAttemptsByIp, RATE_MAX_LOGIN);
+}
+
+function checkPedidoRateLimit(ip: string): boolean {
+  return checkRateLimit(ip, pedidoAttemptsByIp, RATE_MAX_PEDIDOS);
 }
 
 function formatoCop(cop: number): string {
@@ -77,8 +82,9 @@ export const iniciarSesionTaller = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "rate_limit" as const };
     }
 
+    const allowBorrador = allowNoPublicadoEnServidor();
     const taller = await getTallerFidelizadoByWhatsapp(data.whatsapp, {
-      allowNoPublicado: data.allowNoPublicado,
+      allowNoPublicado: allowBorrador,
     });
     if (!taller) {
       const borrador = await getTallerFidelizadoByWhatsapp(data.whatsapp, {
@@ -107,7 +113,7 @@ export const obtenerCatalogoTaller = createServerFn({ method: "POST" })
   .inputValidator(WhatsappSchema)
   .handler(async ({ data }) => {
     const result = await loadCatalogoTaller(data.whatsapp, {
-      allowNoPublicado: data.allowNoPublicado,
+      allowNoPublicado: allowNoPublicadoEnServidor(),
     });
     if (!result.ok) return { ok: false as const, reason: result.reason };
     return {
@@ -123,7 +129,7 @@ export const obtenerPiezaTaller = createServerFn({ method: "POST" })
   .inputValidator(SlugSchema)
   .handler(async ({ data }) => {
     const result = await loadPiezaTaller(data.whatsapp, data.slug, {
-      allowNoPublicado: data.allowNoPublicado,
+      allowNoPublicado: allowNoPublicadoEnServidor(),
     });
     if (!result.ok) return { ok: false as const, reason: result.reason };
     return {
@@ -136,9 +142,14 @@ export const obtenerPiezaTaller = createServerFn({ method: "POST" })
 
 export const enviarPedidoTaller = createServerFn({ method: "POST" })
   .inputValidator(PedidoTallerSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ data, request }) => {
+    const ip = request ? getIpFromHeaders(request.headers) : "unknown";
+    if (!checkPedidoRateLimit(ip)) {
+      return { ok: false as const, reason: "rate_limit" as const };
+    }
+
     const catalogo = await loadCatalogoTaller(data.whatsapp, {
-      allowNoPublicado: data.allowNoPublicado,
+      allowNoPublicado: allowNoPublicadoEnServidor(),
     });
     if (!catalogo.ok) {
       return { ok: false as const, reason: catalogo.reason };
@@ -264,24 +275,23 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
     };
   });
 
-const PedidoIdSchema = z
-  .object({
-    whatsapp: z.string().min(7).max(20),
-    pedidoId: z.string().uuid(),
-  })
-  .merge(AllowBorradorSchema);
+const PedidoIdSchema = z.object({
+  whatsapp: z.string().min(7).max(20),
+  pedidoId: z.string().uuid(),
+});
 
 export const listarMisPedidosTaller = createServerFn({ method: "POST" })
   .inputValidator(WhatsappSchema)
   .handler(async ({ data }) => {
+    const allowBorrador = allowNoPublicadoEnServidor();
     const taller = await getTallerFidelizadoByWhatsapp(data.whatsapp, {
-      allowNoPublicado: data.allowNoPublicado,
+      allowNoPublicado: allowBorrador,
     });
     if (!taller) return { ok: false as const, reason: "no_autorizado" as const };
 
     const res = await listPedidosPorTelefono(taller.whatsapp, {
       dias: 30,
-      incluirPrueba: data.allowNoPublicado,
+      incluirPrueba: allowNoPublicadoEnServidor(),
     });
     if (!res.ok) return { ok: false as const, reason: "listar_fallo" as const };
     return { ok: true as const, pedidos: res.pedidos };
@@ -290,8 +300,9 @@ export const listarMisPedidosTaller = createServerFn({ method: "POST" })
 export const obtenerDetallePedidoTaller = createServerFn({ method: "POST" })
   .inputValidator(PedidoIdSchema)
   .handler(async ({ data }) => {
+    const allowBorrador = allowNoPublicadoEnServidor();
     const taller = await getTallerFidelizadoByWhatsapp(data.whatsapp, {
-      allowNoPublicado: data.allowNoPublicado,
+      allowNoPublicado: allowBorrador,
     });
     if (!taller) return { ok: false as const, reason: "no_autorizado" as const };
 

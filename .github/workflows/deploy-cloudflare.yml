@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate PWA icons and OG image
+        run: npm run icons:pwa
+
       - name: Production build
         env:
           VITE_WHATSAPP_APEX: ${{ secrets.VITE_WHATSAPP_APEX }}

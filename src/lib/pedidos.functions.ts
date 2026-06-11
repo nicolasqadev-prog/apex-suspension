@@ -1,40 +1,30 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { createPedido, listPedidosRecientes } from "./pedidos.server";
+import { verifyAdminPinValue } from "./admin-auth.server";
+import { listPedidosRecientes } from "./pedidos.server";
 
-const PedidoInputSchema = z.object({
-  tallerNombre: z.string().min(2),
-  whatsapp: z.string().min(7),
-  municipio: z.string().min(2),
-  direccion: z.string().min(5),
-  referencia: z.string().optional(),
-  requerimiento: z.string().optional(),
-  notas: z.string().optional(),
+const ListarPedidosSchema = z.object({
+  adminPin: z.string().min(4).max(64),
+  ventana: z.enum(["dia", "minutos"]).optional(),
+  minutes: z.number().int().min(5).max(240).optional(),
+  soloPrueba: z.boolean().optional(),
+  soloProduccion: z.boolean().optional(),
 });
 
-export const crearPedidoDesdeWeb = createServerFn({ method: "POST" })
-  .inputValidator(PedidoInputSchema)
-  .handler(async ({ data }) => {
-    return createPedido(data);
-  });
+export const listarPedidosRecientes = createServerFn({ method: "POST" })
+  .inputValidator(ListarPedidosSchema)
+  .handler(async ({ data, request }) => {
+    const ip = request
+      ? request.headers.get("CF-Connecting-IP")?.trim() ||
+        request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim()
+      : undefined;
+    const auth = verifyAdminPinValue(data.adminPin, { ip });
+    if (!auth.ok) return { ok: false as const, reason: auth.reason };
 
-export const listarPedidosRecientes = createServerFn({ method: "GET" })
-  .inputValidator((data: unknown) => {
-    const d = typeof data === "object" && data !== null ? (data as Record<string, unknown>) : {};
-    const minutes = typeof d.minutes === "number" ? d.minutes : 120;
-    const ventana = d.ventana === "minutos" ? ("minutos" as const) : ("dia" as const);
-    return {
-      ventana,
-      minutes: Math.max(5, Math.min(240, minutes)),
-      soloPrueba: d.soloPrueba === true,
-      soloProduccion: d.soloProduccion === true,
-    };
-  })
-  .handler(async ({ data }) => {
     return listPedidosRecientes({
-      ventana: data.ventana,
-      minutes: data.minutes,
+      ventana: data.ventana ?? "dia",
+      minutes: data.minutes ?? 120,
       soloPrueba: data.soloPrueba,
       soloProduccion: data.soloProduccion,
     });

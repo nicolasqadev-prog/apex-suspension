@@ -202,6 +202,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
     try {
       const res = await listarPedidosRecientes({
         data: {
+          adminPin,
           ventana: modoPreparacion ? "minutos" : "dia",
           minutes: 120,
           soloPrueba: modoPreparacion,

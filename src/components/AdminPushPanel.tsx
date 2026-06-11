@@ -210,6 +210,7 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
                 </div>
                 <div className="flex items-center gap-2">
                   <select
+                    key={`${p.id}-${p.estado}`}
                     defaultValue={p.estado}
                     className="text-xs rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2.5 min-h-11"
                     id={`estado-${p.id}`}

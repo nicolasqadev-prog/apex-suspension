@@ -95,14 +95,40 @@ export async function createPedido(
   const refPedido = refPedidoCorta(pedidoId);
   const descontarStock = !opts?.esPrueba;
 
+  type LineaValidada = LineaPedidoInput & { productoId: string; producto: { referencia: string; nombre: string; stockActual: number } };
+  const validadas: LineaValidada[] = [];
+
   for (const linea of lineas) {
     if (linea.cantidad <= 0) continue;
     const producto = await resolverProductoPedido({
       slug: linea.slug,
       referencia: linea.referencia,
     });
-    if (!producto) continue;
-    const productoId = producto.id;
+    if (!producto) {
+      return {
+        ok: false,
+        reason: `Producto no encontrado en inventario: ${linea.referencia ?? linea.slug}`,
+      };
+    }
+    if (descontarStock && producto.stockActual > 0 && producto.stockActual < linea.cantidad) {
+      return {
+        ok: false,
+        reason: `Stock insuficiente para ${producto.referencia} (hay ${producto.stockActual}, pediste ${linea.cantidad})`,
+      };
+    }
+    validadas.push({
+      ...linea,
+      productoId: producto.id,
+      producto: {
+        referencia: producto.referencia,
+        nombre: producto.nombre,
+        stockActual: producto.stockActual,
+      },
+    });
+  }
+
+  for (const linea of validadas) {
+    const productoId = linea.productoId;
 
     const lineRes = await fetch(`${env.url}/rest/v1/pedido_lineas`, {
       method: "POST",
@@ -127,19 +153,23 @@ export async function createPedido(
       };
     }
 
-    if (descontarStock) {
+    if (descontarStock && linea.producto.stockActual > 0) {
       const mov = await registrarMovimientoStock({
         productoId,
         delta: -linea.cantidad,
         motivo: `Pedido portal #${refPedido}`,
       });
-      if (mov.ok) {
-        await notificarAdminStockBajo({
-          referencia: producto.referencia,
-          nombre: producto.nombre,
-          stockActual: mov.stockActual,
-        });
+      if (!mov.ok) {
+        return {
+          ok: false,
+          reason: `No se pudo descontar stock de ${linea.producto.referencia}: ${mov.reason}`,
+        };
       }
+      await notificarAdminStockBajo({
+        referencia: linea.producto.referencia,
+        nombre: linea.producto.nombre,
+        stockActual: mov.stockActual,
+      });
     }
   }
 
