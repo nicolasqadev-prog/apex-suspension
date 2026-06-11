@@ -186,6 +186,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [pedidosRefreshKey, setPedidosRefreshKey] = useState(0);
+  const [checklistRefreshKey, setChecklistRefreshKey] = useState(0);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const pedidosConocidosRef = useRef<Set<string>>(new Set());
   const primeraCargaPedidosRef = useRef(true);
@@ -323,9 +324,13 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
       <main className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <AdminDemoChecklist
           adminPin={adminPin}
+          refreshKey={checklistRefreshKey}
           onIrSoporte={() => setTab("soporte")}
         />
-        <AdminOperadorAvisos adminPin={adminPin} />
+        <AdminOperadorAvisos
+          adminPin={adminPin}
+          onVinculado={() => setChecklistRefreshKey((k) => k + 1)}
+        />
         <nav className="mb-4 sm:mb-6 border-b border-white/10 pb-2 -mx-3 sm:-mx-4 px-3 sm:px-4 overflow-x-auto overscroll-x-contain">
           <div className="flex gap-1.5 min-w-max pb-1">
           {(

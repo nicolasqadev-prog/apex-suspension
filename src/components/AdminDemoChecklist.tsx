@@ -22,6 +22,8 @@ import { scrollToAvisosOperadorAdmin } from "@/components/AdminOperadorAvisos";
 type Props = {
   adminPin: string;
   onIrSoporte?: () => void;
+  /** Incrementar tras activar push para refrescar contadores. */
+  refreshKey?: number;
 };
 
 type ItemEstado = "ok" | "warn" | "fail";
@@ -40,7 +42,7 @@ function badge(estado: ItemEstado) {
   return <CircleAlert className="h-4 w-4 text-red-400 shrink-0" />;
 }
 
-export default function AdminDemoChecklist({ adminPin, onIrSoporte }: Props) {
+export default function AdminDemoChecklist({ adminPin, onIrSoporte, refreshKey = 0 }: Props) {
   const [servidor, setServidor] = useState<AdminReadinessServidor | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -83,7 +85,7 @@ export default function AdminDemoChecklist({ adminPin, onIrSoporte }: Props) {
     const onPrep = () => leerCliente();
     window.addEventListener(ADMIN_PREPARACION_EVENT, onPrep);
     return () => window.removeEventListener(ADMIN_PREPARACION_EVENT, onPrep);
-  }, [cargar, leerCliente]);
+  }, [cargar, leerCliente, refreshKey]);
 
   const items = useMemo((): CheckItem[] => {
     if (!servidor) return [];
@@ -139,42 +141,52 @@ export default function AdminDemoChecklist({ adminPin, onIrSoporte }: Props) {
         estado: servidor.vapidOk ? "ok" : "fail",
       },
       {
+        id: "wa-sync",
+        label: "WhatsApp build = servidor",
+        detalle: servidor.whatsappBuildCoincide
+          ? `Operador ${servidor.adminWhatsappMascara ?? ""}`
+          : `Desfase: servidor ${servidor.adminWhatsappMascara ?? "—"} ≠ build. Revisa secretos GitHub.`,
+        estado: servidor.whatsappBuildCoincide ? "ok" : "fail",
+      },
+      {
         id: "wa",
-        label: "WhatsApp operador",
+        label: "WhatsApp operador (servidor)",
         detalle: servidor.adminWhatsappOk
-          ? `Vinculado ${servidor.adminWhatsappMascara ?? ""}`
+          ? `Push se envía a ${servidor.adminWhatsappMascara ?? ""}`
           : "Falta APEX_ADMIN_WHATSAPP / WHATSAPP_APEX",
         estado: servidor.adminWhatsappOk ? "ok" : "fail",
       },
       {
         id: "push-srv",
-        label: "Dispositivos push del operador",
+        label: "Dispositivos registrados (todos)",
         detalle:
           servidor.pushSuscripcionesOperador > 0
-            ? `${servidor.pushSuscripcionesOperador} suscripción(es) en total`
-            : "Ningún celular/PC registrado aún",
-        estado: servidor.pushSuscripcionesOperador > 0 ? "ok" : "warn",
-        accion:
-          servidor.pushSuscripcionesOperador === 0
-            ? { label: "Activar avisos", onClick: () => scrollToAvisosOperadorAdmin() }
-            : undefined,
+            ? `${servidor.pushSuscripcionesOperador} en total (puede ser otro celular)`
+            : "Ningún dispositivo registrado aún",
+        estado:
+          servidor.pushSuscripcionesOperador > 0 && notifPermiso === "granted"
+            ? "ok"
+            : servidor.pushSuscripcionesOperador > 0
+              ? "warn"
+              : "warn",
+        accion: { label: "Activar aquí", onClick: () => scrollToAvisosOperadorAdmin() },
       },
       {
         id: "push-local",
-        label: "Notificaciones en este dispositivo",
+        label: "Este dispositivo (permiso)",
         detalle:
           notifPermiso === "granted"
-            ? "Permiso concedido"
+            ? "Permiso OK — pulsa Activar avisos abajo si aún no probaste"
             : notifPermiso === "denied"
-              ? "Bloqueadas — permite en ajustes del sitio"
+              ? "Bloqueadas — Brave → Configuración del sitio → Permitir"
               : notifPermiso === "unsupported"
                 ? "Navegador sin soporte"
-                : "Pendiente de activar",
+                : "Pulsa «Activar avisos» abajo (no solo Probar)",
         estado:
           notifPermiso === "granted" ? "ok" : notifPermiso === "denied" ? "fail" : "warn",
         accion:
           notifPermiso !== "granted"
-            ? { label: "Ir a avisos", onClick: () => scrollToAvisosOperadorAdmin() }
+            ? { label: "Activar avisos", onClick: () => scrollToAvisosOperadorAdmin() }
             : undefined,
       },
       {

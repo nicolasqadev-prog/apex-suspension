@@ -7,6 +7,7 @@ import { getResumenCatalogoAdmin } from "./inventario-admin.server";
 import { telefonoAdminApex } from "./pedidos-alerta.server";
 import { listPushSubscriptionsByTelefono } from "./push-subscriptions.server";
 import { listTalleresFidelizadosAdmin } from "./talleres-admin.server";
+import { normalizeWhatsapp } from "./talleres.server";
 import { isWebPushConfigured } from "./web-push.server";
 
 const PinSchema = z.object({
@@ -23,10 +24,28 @@ export type AdminReadinessServidor = {
   adminWhatsappOk: boolean;
   adminWhatsappMascara: string | null;
   pushSuscripcionesOperador: number;
+  telefonoOperador: string | null;
+  whatsappBuildCoincide: boolean;
   operacionVivo: boolean;
   talleresPublicados: number;
   talleresActivos: number;
 };
+
+/** Teléfono canónico del operador (mismo que usa el servidor para enviar push). */
+export const telefonoOperadorAdmin = createServerFn({ method: "POST" })
+  .inputValidator(PinSchema)
+  .handler(async ({ data, request }) => {
+    const ip = request
+      ? request.headers.get("CF-Connecting-IP")?.trim() ||
+        request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim()
+      : undefined;
+    const auth = verifyAdminPinValue(data.adminPin, { ip });
+    if (!auth.ok) return { ok: false as const, reason: auth.reason };
+
+    const tel = telefonoAdminApex();
+    if (!tel) return { ok: false as const, reason: "sin_telefono_admin" };
+    return { ok: true as const, telefono: tel };
+  });
 
 export const checklistEstadoAdmin = createServerFn({ method: "POST" })
   .inputValidator(PinSchema)
@@ -60,6 +79,9 @@ export const checklistEstadoAdmin = createServerFn({ method: "POST" })
     }
 
     const operacionVivo = !allowNoPublicadoEnServidor();
+    const buildWa = process.env.VITE_WHATSAPP_APEX?.trim();
+    const buildNorm = buildWa ? normalizeWhatsapp(buildWa) : null;
+    const whatsappBuildCoincide = Boolean(tel && buildNorm && buildNorm === tel);
 
     const estado: AdminReadinessServidor = {
       supabaseVivo: resumen.fuente === "supabase" && resumen.totalProductos > 50,
@@ -71,6 +93,8 @@ export const checklistEstadoAdmin = createServerFn({ method: "POST" })
       adminWhatsappOk: Boolean(tel),
       adminWhatsappMascara: tel ? `***${tel.slice(-4)}` : null,
       pushSuscripcionesOperador,
+      telefonoOperador: tel,
+      whatsappBuildCoincide,
       operacionVivo,
       talleresPublicados,
       talleresActivos,

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Bell, BellRing } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { telefonoOperadorAdmin } from "@/lib/admin-readiness.functions";
 import { probarPushOperadorAdmin } from "@/lib/push.functions";
 import {
   subscribeAndRegisterPush,
@@ -9,11 +10,6 @@ import {
 } from "@/lib/pwa-engagement";
 
 const VINCULO_SESSION_KEY = "apex.admin.push.vinculado";
-
-function telefonoOperadorApex(): string | undefined {
-  const raw = import.meta.env.VITE_WHATSAPP_APEX as string | undefined;
-  return raw?.trim() || undefined;
-}
 
 function withTimeout<T>(promise: Promise<T>, ms: number, mensaje: string): Promise<T> {
   return Promise.race([
@@ -32,17 +28,35 @@ type Props = {
 
 /**
  * Avisos push al operador (pedidos nuevos y stock bajo).
- * Visible en todas las pestañas del admin.
+ * El WhatsApp se lee del servidor para coincidir con el envío de push.
  */
 export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: Props) {
   const [estado, setEstado] = useState<"idle" | "ok" | "pendiente" | "denegado" | "busy">("idle");
   const [detalle, setDetalle] = useState<string | null>(null);
   const [probando, setProbando] = useState(false);
-  const tel = telefonoOperadorApex();
+  const [tel, setTel] = useState<string | null>(null);
+  const [cargandoTel, setCargandoTel] = useState(true);
 
   useEffect(() => {
+    if (!adminPin) {
+      setCargandoTel(false);
+      setTel(null);
+      return;
+    }
+    setCargandoTel(true);
+    void telefonoOperadorAdmin({ data: { adminPin } })
+      .then((res) => {
+        if (res.ok) setTel(res.telefono);
+        else setTel(null);
+      })
+      .catch(() => setTel(null))
+      .finally(() => setCargandoTel(false));
+  }, [adminPin]);
+
+  useEffect(() => {
+    if (cargandoTel) return;
     if (!tel) {
-      setDetalle("Falta VITE_WHATSAPP_APEX en el deploy (WhatsApp del operador).");
+      setDetalle("Falta WhatsApp del operador en el servidor (APEX_ADMIN_WHATSAPP).");
       setEstado("pendiente");
       return;
     }
@@ -62,7 +76,7 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
       try {
         if (sessionStorage.getItem(VINCULO_SESSION_KEY) === tel) {
           setEstado("ok");
-          setDetalle("Avisos activos en este dispositivo.");
+          setDetalle("Este dispositivo vinculado al operador. Pulsa «Probar» para confirmar.");
           return;
         }
       } catch {
@@ -76,27 +90,27 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
             // ignore
           }
           setEstado("ok");
-          setDetalle("Avisos activos. Usa «Probar» para confirmar sin actualizar la página.");
+          setDetalle("Vinculado. Pulsa «Probar» para confirmar en este dispositivo.");
           onVinculado?.();
         } else {
           setEstado("pendiente");
           setDetalle(
             res.reason === "vapid_no_configurado"
               ? "Push no configurado en servidor."
-              : `Activa de nuevo: ${res.reason}`,
+              : `Pulsa «Activar avisos»: ${res.reason}`,
           );
         }
       });
       return;
     }
     setEstado("pendiente");
-    setDetalle("Pulsa activar para recibir aviso cuando un taller haga un pedido.");
-  }, [tel, onVinculado]);
+    setDetalle("Pulsa «Activar avisos» — el navegador pedirá permiso una vez.");
+  }, [tel, cargandoTel, onVinculado]);
 
   async function activar(renovar: boolean) {
     if (!tel) return;
     setEstado("busy");
-    setDetalle(renovar ? "Renovando suscripción…" : "Activando…");
+    setDetalle(renovar ? "Renovando suscripción…" : "Solicitando permiso…");
     try {
       const res = await withTimeout(
         subscribeAndRegisterPush({ telefono: tel, renovar }),
@@ -110,17 +124,13 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
           // ignore
         }
         setEstado("ok");
-        setDetalle(
-          renovar
-            ? "Listo. Pulsa «Probar» — debe llegar en unos segundos."
-            : "Listo. Pulsa «Probar» para confirmar.",
-        );
+        setDetalle("Listo en este dispositivo. Pulsa «Probar» ahora.");
         onVinculado?.();
         return;
       }
       if (res.reason === "permiso_denegado") {
         setEstado("denegado");
-        setDetalle("Permiso denegado en el navegador. Actívalo en configuración del sitio.");
+        setDetalle("Permiso denegado. Brave → Configuración del sitio → Notificaciones → Permitir.");
         return;
       }
       setEstado("pendiente");
@@ -136,8 +146,13 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
       setDetalle("Inicia sesión de nuevo en admin.");
       return;
     }
+    if (Notification.permission !== "granted") {
+      setDetalle("Primero pulsa «Activar avisos» y acepta el permiso del navegador.");
+      setEstado("pendiente");
+      return;
+    }
     setProbando(true);
-    setDetalle("Enviando prueba al servidor…");
+    setDetalle("Enviando prueba…");
     try {
       const res = await withTimeout(
         probarPushOperadorAdmin({ data: { adminPin } }),
@@ -147,25 +162,29 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
       if (!res.ok) {
         setDetalle(
           res.reason === "sin_telefono_admin"
-            ? "Falta WhatsApp del operador en el servidor (APEX_ADMIN_WHATSAPP)."
+            ? "Falta WhatsApp del operador en el servidor."
             : `Prueba falló: ${res.reason}`,
         );
         return;
       }
       if (res.matched === 0) {
-        setDetalle(`Sin dispositivo vinculado a ${res.telefono}. Pulsa «Renovar» y prueba otra vez.`);
+        setDetalle(
+          `Ningún dispositivo registrado para ${res.telefono}. Pulsa «Activar avisos» en este PC/celular.`,
+        );
         setEstado("pendiente");
+        onVinculado?.();
         return;
       }
       if (res.sent === 0) {
         setDetalle(
-          `${res.matched} suscripción(es) pero ninguna respondió. Pulsa «Renovar» y prueba de nuevo.`,
+          `${res.matched} registro(s) pero no respondió. Pulsa «Renovar» y «Probar» otra vez.`,
         );
         setEstado("pendiente");
         return;
       }
       setEstado("ok");
       setDetalle(`Enviado a ${res.sent} dispositivo(s). Revisa la barra de notificaciones.`);
+      onVinculado?.();
     } catch (e) {
       setDetalle(e instanceof Error ? e.message : "No se pudo enviar la prueba");
     } finally {
@@ -180,7 +199,7 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
         size="sm"
         variant="outline"
         className="border-emerald-600/50 text-emerald-200 text-xs min-h-11 touch-manipulation w-full sm:w-auto"
-        disabled={estado === "busy" || probando}
+        disabled={estado === "busy" || probando || !tel}
         onClick={() => void activar(true)}
       >
         {estado === "busy" ? "Espera…" : "Renovar"}
@@ -238,8 +257,13 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
           <Bell className="h-5 w-5 text-orange-400 shrink-0 mt-0.5" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-orange-100">Avisos al operador</p>
+            {tel && (
+              <p className="text-[10px] text-orange-300/70 mt-0.5">Operador ***{tel.slice(-4)}</p>
+            )}
             <p className="text-xs text-orange-200/80 mt-1 leading-relaxed break-words">
-              {detalle ?? "Activa para saber cuando un taller pide, sin tener el panel abierto."}
+              {cargandoTel
+                ? "Cargando…"
+                : detalle ?? "Activa para saber cuando un taller pide, sin tener el panel abierto."}
             </p>
           </div>
         </div>
@@ -248,7 +272,7 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
             <Button
               type="button"
               size="sm"
-              disabled={estado === "busy" || probando}
+              disabled={estado === "busy" || probando || cargandoTel}
               className="min-h-11 touch-manipulation bg-orange-600 hover:bg-orange-500 text-white font-semibold w-full sm:w-auto"
               onClick={() => void activar(false)}
             >
@@ -273,7 +297,7 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
   );
 }
 
-/** Para el botón del header: solo lleva al bloque de avisos (evita doble renovación lenta). */
+/** Para el botón del header: scroll al bloque de avisos. */
 export function scrollToAvisosOperadorAdmin(): void {
   document.getElementById("admin-avisos-operador")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
