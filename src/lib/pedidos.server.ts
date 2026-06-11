@@ -1,4 +1,6 @@
-import { getProductoIdBySlug } from "./inventario-admin.server";
+import { getProductoAdminBySlug, registrarMovimientoStock } from "./inventario-admin.server";
+import { notificarAdminStockBajo } from "./pedidos-alerta.server";
+import { refPedidoCorta } from "./pedidos-estado-taller";
 import { normalizeSupabaseUrl } from "./supabase-env";
 
 type SupabaseEnv = {
@@ -80,10 +82,14 @@ export async function createPedido(
   if (!pedidoId) return { ok: false, reason: "Pedido creado sin id" };
 
   const lineas = opts?.lineas ?? [];
+  const refPedido = refPedidoCorta(pedidoId);
+  const descontarStock = !opts?.esPrueba;
+
   for (const linea of lineas) {
     if (linea.cantidad <= 0) continue;
-    const productoId = await getProductoIdBySlug(linea.slug);
-    if (!productoId) continue;
+    const producto = await getProductoAdminBySlug(linea.slug);
+    if (!producto) continue;
+    const productoId = producto.id;
 
     const lineRes = await fetch(`${env.url}/rest/v1/pedido_lineas`, {
       method: "POST",
@@ -106,6 +112,26 @@ export async function createPedido(
         ok: false,
         reason: `Pedido creado pero línea falló (${lineRes.status}) ${text}`.slice(0, 200),
       };
+    }
+
+    if (descontarStock) {
+      void registrarMovimientoStock({
+        productoId,
+        delta: -linea.cantidad,
+        motivo: `Pedido portal #${refPedido}`,
+      })
+        .then((mov) => {
+          if (mov.ok) {
+            void notificarAdminStockBajo({
+              referencia: producto.referencia,
+              nombre: producto.nombre,
+              stockActual: mov.stockActual,
+            });
+          }
+        })
+        .catch(() => {
+          // El pedido ya quedó guardado; operador revisa stock manual si falla el movimiento.
+        });
     }
   }
 

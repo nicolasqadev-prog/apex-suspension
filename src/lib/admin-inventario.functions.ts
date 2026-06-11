@@ -3,9 +3,11 @@ import { z } from "zod";
 
 import { verifyAdminPinValue } from "./admin-auth.server";
 import {
+  STOCK_UMBRAL_ALERTA,
   buscarProductosAdmin,
   buscarProductosJsonLocal,
   getResumenCatalogoAdmin,
+  listarProductosStockBajo,
   registrarMovimientoStock,
 } from "./inventario-admin.server";
 
@@ -54,6 +56,21 @@ export const buscarProductosInventarioAdmin = createServerFn({ method: "POST" })
       productos: local,
       fuente: "json" as const,
       aviso: res.reason,
+    };
+  });
+
+export const listarAlertasStockAdmin = createServerFn({ method: "POST" })
+  .inputValidator(PinSchema)
+  .handler(async ({ data }) => {
+    const auth = verifyAdminPinValue(data.adminPin);
+    if (!auth.ok) return { ok: false as const, reason: auth.reason };
+
+    const res = await listarProductosStockBajo(STOCK_UMBRAL_ALERTA, 40);
+    if (!res.ok) return { ok: false as const, reason: res.reason };
+    return {
+      ok: true as const,
+      productos: res.productos,
+      umbral: STOCK_UMBRAL_ALERTA,
     };
   });
 

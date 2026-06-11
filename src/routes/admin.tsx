@@ -6,7 +6,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import AdminCatalogoStatus from "@/components/AdminCatalogoStatus";
 import AdminDispatchPanel, { ActiveRouteBanner } from "@/components/AdminDispatchPanel";
 import AdminInventarioPanel from "@/components/AdminInventarioPanel";
+import AdminOperadorAvisos from "@/components/AdminOperadorAvisos";
 import AdminPushPanel from "@/components/AdminPushPanel";
+import AdminStockAlertas from "@/components/AdminStockAlertas";
 import AdminSoportePwaPanel from "@/components/AdminSoportePwaPanel";
 import AdminTalleresPanel from "@/components/AdminTalleresPanel";
 import { Button } from "@/components/ui/button";
@@ -15,7 +17,7 @@ import { ADMIN_REFRESH_MS } from "@/lib/admin-despachos";
 import { ADMIN_PREPARACION_EVENT, isModoPreparacion } from "@/lib/admin-preparacion";
 import { googleMapsRouteUrl } from "@/lib/maps-ruta";
 import { listarPedidosRecientes } from "@/lib/pedidos.functions";
-import { canSuggestNotifications, subscribeAndRegisterPush } from "@/lib/pwa-engagement";
+import { subscribeAndRegisterPush, vincularPushConTelefonoTaller } from "@/lib/pwa-engagement";
 
 type Pedido = {
   id: string;
@@ -108,6 +110,8 @@ function AdminPage() {
         window.sessionStorage.setItem(STORAGE_KEY, "1");
         window.sessionStorage.setItem(PIN_STORAGE_KEY, pin);
         setStatus("allowed");
+        const telOp = (import.meta.env.VITE_WHATSAPP_APEX as string | undefined)?.trim();
+        if (telOp) void vincularPushConTelefonoTaller(telOp);
         return;
       }
       setStatus("denied");
@@ -179,6 +183,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [pedidosRefreshKey, setPedidosRefreshKey] = useState(0);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const pedidosConocidosRef = useRef<Set<string>>(new Set());
   const primeraCargaPedidosRef = useRef(true);
@@ -223,6 +228,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
       for (const p of lista) pedidosConocidosRef.current.add(p.id);
       primeraCargaPedidosRef.current = false;
       setPedidos(lista);
+      setPedidosRefreshKey((k) => k + 1);
       if (!silent) setSelected({});
     } catch (e) {
       if (!silent) {
@@ -242,6 +248,12 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
     return () => window.clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modoPreparacion]);
+
+  useEffect(() => {
+    const tel = (import.meta.env.VITE_WHATSAPP_APEX as string | undefined)?.trim();
+    if (!tel) return;
+    void vincularPushConTelefonoTaller(tel);
+  }, []);
 
   const selectedPedidos = pedidos.filter((p) => selected[p.id]);
   const routeUrl = googleMapsRouteUrl(
@@ -278,17 +290,15 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
             <AdminCatalogoStatus adminPin={adminPin} />
           </div>
           <div className="flex items-center gap-2">
-            {canSuggestNotifications() && (
-              <Button
-                variant="outline"
-                onClick={() => void activarNotificacionesAdmin()}
-                className="border-emerald-600/50 text-emerald-200"
-                title="Para recibir push cuando entra un pedido nuevo"
-              >
-                <Bell className="h-4 w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Avisos pedidos</span>
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              onClick={() => void activarNotificacionesAdmin()}
+              className="border-emerald-600/50 text-emerald-200 min-h-10 touch-manipulation"
+              title="Vincular este dispositivo para avisos de pedidos nuevos"
+            >
+              <Bell className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">Avisos operador</span>
+            </Button>
             <Button
               variant="outline"
               onClick={() => void refresh()}
@@ -351,6 +361,8 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
 
         {tab === "operacion" && (
           <>
+            <AdminOperadorAvisos />
+            <AdminStockAlertas adminPin={adminPin} refreshKey={pedidosRefreshKey} />
             {pedidosPendientes > 0 && (
               <p className="mb-4 text-sm text-emerald-100 rounded-lg border border-emerald-500/40 bg-emerald-950/40 px-4 py-3">
                 <strong className="text-emerald-300">{pedidosPendientes}</strong>{" "}

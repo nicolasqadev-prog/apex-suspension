@@ -115,19 +115,58 @@ export async function buscarProductosAdmin(
   return { ok: true, productos: rows.map(mapProducto) };
 }
 
-export async function getProductoIdBySlug(slug: string): Promise<string | null> {
+/** Productos con stock en o por debajo de este umbral (alerta operador). */
+export const STOCK_UMBRAL_ALERTA = 2;
+
+export async function listarProductosStockBajo(
+  umbral = STOCK_UMBRAL_ALERTA,
+  limit = 30,
+): Promise<{ ok: true; productos: ProductoAdmin[] } | { ok: false; reason: string }> {
+  const env = getSupabaseEnv();
+  if (!env) return { ok: false, reason: "Supabase no configurado" };
+
+  const url = new URL(`${env.url}/rest/v1/productos`);
+  url.searchParams.set(
+    "select",
+    "id,slug,referencia,nombre,marca,precio_lista,stock_actual,activo",
+  );
+  url.searchParams.set("activo", "eq.true");
+  url.searchParams.set("stock_actual", `lte.${Math.max(0, umbral)}`);
+  url.searchParams.set("order", "stock_actual.asc,referencia.asc");
+  url.searchParams.set("limit", String(Math.min(80, Math.max(1, limit))));
+
+  const res = await fetch(url.toString(), { headers: headers(env) });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return { ok: false, reason: `Alertas stock falló (${res.status}) ${text}`.slice(0, 180) };
+  }
+
+  const rows = (await res.json()) as ProductoRow[];
+  return { ok: true, productos: rows.map(mapProducto) };
+}
+
+export async function getProductoAdminBySlug(slug: string): Promise<ProductoAdmin | null> {
   const env = getSupabaseEnv();
   if (!env) return null;
 
   const url = new URL(`${env.url}/rest/v1/productos`);
-  url.searchParams.set("select", "id");
+  url.searchParams.set(
+    "select",
+    "id,slug,referencia,nombre,marca,precio_lista,stock_actual,activo",
+  );
   url.searchParams.set("slug", `eq.${slug}`);
   url.searchParams.set("limit", "1");
 
   const res = await fetch(url.toString(), { headers: headers(env) });
   if (!res.ok) return null;
-  const rows = (await res.json()) as { id: string }[];
-  return rows[0]?.id ?? null;
+  const rows = (await res.json()) as ProductoRow[];
+  const row = rows[0];
+  return row ? mapProducto(row) : null;
+}
+
+export async function getProductoIdBySlug(slug: string): Promise<string | null> {
+  const p = await getProductoAdminBySlug(slug);
+  return p?.id ?? null;
 }
 
 export async function registrarMovimientoStock(input: {

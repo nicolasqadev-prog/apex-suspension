@@ -55,6 +55,38 @@ export async function notificarApexNuevoPedido(input: {
   return { ok: true, sent: res.sent, matched: res.matched };
 }
 
+/** Avisa al operador por push cuando el stock queda bajo o agotado tras un pedido. */
+export async function notificarAdminStockBajo(input: {
+  referencia: string;
+  nombre: string;
+  stockActual: number;
+}): Promise<{ ok: true; sent: number } | { ok: false; reason: string }> {
+  if (input.stockActual > 2) {
+    return { ok: false, reason: "sin_alerta" };
+  }
+  if (!isWebPushConfigured()) {
+    return { ok: false, reason: "vapid_no_configurado" };
+  }
+  const tel = telefonoAdminApex();
+  if (!tel) return { ok: false, reason: "sin_telefono_admin" };
+
+  const titulo =
+    input.stockActual <= 0 ? "Stock agotado · Apex" : "Stock bajo · Apex";
+  const cuerpo =
+    input.stockActual <= 0
+      ? `${input.referencia} sin unidades. Revisa inventario y pedidos pendientes.`
+      : `${input.referencia} quedó con ${input.stockActual} u. (${input.nombre.slice(0, 40)})`;
+
+  const res = await sendPushToTelefono(tel, {
+    title: titulo,
+    body: cuerpo,
+    url: "/admin",
+    tag: `apex-stock-${input.referencia}`,
+  });
+  if (!res.ok) return { ok: false, reason: res.reason };
+  return { ok: true, sent: res.sent };
+}
+
 export function mensajePushPedidoEnviadoTaller(pedidoId: string): PushPayload {
   const ref = refPedidoCorta(pedidoId);
   return {

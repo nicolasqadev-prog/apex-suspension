@@ -8,6 +8,7 @@ import {
   enviarNotificacionPushAdmin,
   estadoPushServidor,
 } from "@/lib/push.functions";
+
 const ESTADOS = [
   "borrador",
   "cotizado",
@@ -53,17 +54,37 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    estadoPushServidor().then((r) => {
-      if (r.ok) setVapidOk(r.webPushConfigured);
-    });
+    let cancelled = false;
+    const fallback = window.setTimeout(() => {
+      if (!cancelled) setVapidOk((v) => (v === null ? true : v));
+    }, 6000);
+
+    estadoPushServidor()
+      .then((r) => {
+        if (cancelled) return;
+        if (r.ok) setVapidOk(r.webPushConfigured);
+        else setVapidOk(false);
+      })
+      .catch(() => {
+        if (!cancelled) setVapidOk(true);
+      });
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   async function onBroadcast() {
+    if (!adminPin.trim()) {
+      setMessage("Sesión sin PIN. Cierra sesión y vuelve a entrar al admin.");
+      return;
+    }
     setBusy("broadcast");
     setMessage(null);
     try {
       const res = await enviarNotificacionPushAdmin({
-        data: { adminPin, title, body, url: "/catalogo" },
+        data: { adminPin, title: title.trim(), body: body.trim(), url: "/catalogo" },
       });
       if (!res.ok) {
         setMessage(res.reason);
@@ -73,7 +94,7 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
         `Enviado a ${res.sent} dispositivo(s). Fallos: ${res.failed}. Caducados: ${res.expired}.`,
       );
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Error al enviar");
+      setMessage(e instanceof Error ? e.message : "Error al enviar. Revisa conexión e intenta de nuevo.");
     } finally {
       setBusy(null);
     }
@@ -81,6 +102,10 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
 
   async function onUpdatePedido(pedidoId: string, estado: string, notificar: boolean) {
     if (!(ESTADOS as readonly string[]).includes(estado)) return;
+    if (!adminPin.trim()) {
+      setMessage("Sesión sin PIN. Cierra sesión y vuelve a entrar al admin.");
+      return;
+    }
     setBusy(pedidoId);
     setMessage(null);
     try {
@@ -110,6 +135,14 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
     }
   }
 
+  const broadcastDisabled = busy !== null || vapidOk === false;
+  const broadcastLabel =
+    busy === "broadcast"
+      ? "Enviando…"
+      : vapidOk === null
+        ? "Comprobando servidor…"
+        : "Enviar a todos los suscriptores";
+
   return (
     <section className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-5 mb-6">
       <div className="flex items-start gap-2">
@@ -117,14 +150,11 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
         <div className="flex-1">
           <p className="text-sm font-semibold text-white">Notificaciones push (PWA)</p>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-            Avisos a clientes que activaron notificaciones en la app instalada. Cambia el estado del
-            pedido y opcionalmente notifica al teléfono registrado.
+            Difusión a todos los talleres suscritos. Cambia estado del pedido y avisa al cliente.
           </p>
           {vapidOk === false && (
             <p className="mt-2 text-xs text-amber-200/90">
-              VAPID no configurado en el Worker. Ejecuta{" "}
-              <code className="font-mono text-[11px]">npm run vapid:keys</code> y agrega los
-              secretos en GitHub / Cloudflare (ver docs/push-notificaciones.md).
+              VAPID no configurado en el Worker. Revisa secretos en GitHub / Cloudflare.
             </p>
           )}
           {vapidOk === true && (
@@ -139,7 +169,7 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white"
+            className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white min-h-11"
           />
         </label>
         <label className="text-xs text-gray-400 block sm:col-span-2">
@@ -147,20 +177,20 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
           <Input
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white"
+            className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white min-h-11"
           />
         </label>
       </div>
 
       <Button
         type="button"
-        size="sm"
-        disabled={busy !== null || vapidOk === false}
-        className="mt-3 bg-emerald-600 hover:bg-emerald-500 text-white"
+        size="default"
+        disabled={broadcastDisabled}
+        className="mt-3 w-full sm:w-auto min-h-12 touch-manipulation bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
         onClick={() => void onBroadcast()}
       >
         <Send className="h-4 w-4 mr-1.5" />
-        {busy === "broadcast" ? "Enviando…" : "Enviar a todos los suscriptores"}
+        {broadcastLabel}
       </Button>
 
       {pedidos.length > 0 && (
@@ -181,7 +211,7 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
                 <div className="flex items-center gap-2">
                   <select
                     defaultValue={p.estado}
-                    className="text-xs rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2"
+                    className="text-xs rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2.5 min-h-11"
                     id={`estado-${p.id}`}
                   >
                     {ESTADOS.map((e) => (
@@ -195,7 +225,7 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
                     size="sm"
                     variant="outline"
                     disabled={busy !== null || vapidOk === false}
-                    className="border-gray-600 text-gray-200 text-xs shrink-0"
+                    className="border-gray-600 text-gray-200 text-xs shrink-0 min-h-11 touch-manipulation"
                     onClick={() => {
                       const sel = document.getElementById(
                         `estado-${p.id}`,
@@ -214,7 +244,11 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
       )}
 
       {message && (
-        <p className="mt-3 text-xs text-gray-300 leading-relaxed" role="status">
+        <p
+          className="mt-4 text-sm text-gray-100 leading-relaxed rounded-lg border border-white/10 bg-black/40 px-3 py-3"
+          role="status"
+          aria-live="polite"
+        >
           {message}
         </p>
       )}

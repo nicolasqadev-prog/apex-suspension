@@ -19,6 +19,11 @@ export default function ServiceWorkerNavigation() {
         return;
       }
 
+      if (path.startsWith("/admin")) {
+        router.history.push(path);
+        return;
+      }
+
       router.history.push(path);
     }
 
