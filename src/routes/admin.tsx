@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import AdminCatalogoStatus from "@/components/AdminCatalogoStatus";
 import AdminDispatchPanel, { ActiveRouteBanner } from "@/components/AdminDispatchPanel";
+import AdminHistorialPanel from "@/components/AdminHistorialPanel";
 import AdminInventarioPanel from "@/components/AdminInventarioPanel";
 import AdminOperadorAvisos, { activarAvisosOperadorAdmin } from "@/components/AdminOperadorAvisos";
 import AdminPushPanel from "@/components/AdminPushPanel";
@@ -173,7 +174,7 @@ function AdminPage() {
   return <AdminAuthed onLogout={onLogout} />;
 }
 
-type AdminTab = "talleres" | "inventario" | "operacion" | "soporte";
+type AdminTab = "talleres" | "inventario" | "operacion" | "historial" | "soporte";
 
 function AdminAuthed({ onLogout }: { onLogout: () => void }) {
   const adminPin =
@@ -329,6 +330,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
               ["talleres", "Talleres"],
               ["inventario", "Inventario"],
               ["operacion", "Operación y pedidos"],
+              ["historial", "Historial"],
               ["soporte", "Soporte PWA"],
             ] as const
           ).map(([id, label]) => (
@@ -359,6 +361,10 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
         )}
 
         {tab === "inventario" && <AdminInventarioPanel adminPin={adminPin} />}
+
+        {tab === "historial" && (
+          <AdminHistorialPanel adminPin={adminPin} modoPreparacion={modoPreparacion} />
+        )}
 
         {tab === "soporte" && (
           <AdminSoportePwaPanel

@@ -1,7 +1,10 @@
+import { inicioDiaBogotaIso, rangoDiaBogotaIso } from "./fecha-bogota";
 import { registrarMovimientoStock, resolverProductoPedido } from "./inventario-admin.server";
 import { notificarAdminStockBajo } from "./pedidos-alerta.server";
 import { refPedidoCorta } from "./pedidos-estado-taller";
 import { normalizeSupabaseUrl } from "./supabase-env";
+
+export { fechaCalendarioBogota, inicioDiaBogotaIso, rangoDiaBogotaIso } from "./fecha-bogota";
 
 type SupabaseEnv = {
   url: string;
@@ -205,18 +208,92 @@ export async function ultimosPedidosPorTelefonos(
   return { ok: true, pedidos };
 }
 
-/** Medianoche de hoy en Colombia (America/Bogota), en ISO para filtros Supabase. */
-export function inicioDiaBogotaIso(ahora = new Date()): string {
-  const partes = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Bogota",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(ahora);
-  const y = partes.find((p) => p.type === "year")!.value;
-  const m = partes.find((p) => p.type === "month")!.value;
-  const d = partes.find((p) => p.type === "day")!.value;
-  return `${y}-${m}-${d}T00:00:00-05:00`;
+export type PedidoHistorialRow = PedidoRow & {
+  lineas: PedidoLineaRow[];
+  totalCop: number;
+};
+
+export async function listPedidosHistorial(opts: {
+  fechaDesde: string;
+  fechaHasta: string;
+  busqueda?: string;
+  soloProduccion?: boolean;
+  incluirLineas?: boolean;
+  limit?: number;
+}): Promise<
+  | { ok: true; pedidos: PedidoHistorialRow[]; total: number }
+  | { ok: false; reason: string }
+> {
+  const env = getSupabaseEnv();
+  if (!env) return { ok: false, reason: "Supabase no configurado en servidor" };
+
+  const rangoDesde = rangoDiaBogotaIso(opts.fechaDesde);
+  const rangoHasta = rangoDiaBogotaIso(opts.fechaHasta);
+  if (!rangoDesde || !rangoHasta) {
+    return { ok: false, reason: "Fechas inválidas (usa formato AAAA-MM-DD)" };
+  }
+  if (opts.fechaDesde > opts.fechaHasta) {
+    return { ok: false, reason: "La fecha inicial no puede ser posterior a la final" };
+  }
+
+  const limit = Math.min(150, Math.max(1, opts.limit ?? 100));
+
+  const url = new URL(`${env.url}/rest/v1/pedidos`);
+  url.searchParams.set(
+    "select",
+    "id,estado,taller_nombre,telefono,direccion,notas,created_at,es_prueba",
+  );
+  url.searchParams.set("created_at", `gte.${rangoDesde.desde}`);
+  url.searchParams.append("created_at", `lte.${rangoHasta.hasta}`);
+  if (opts.soloProduccion !== false) url.searchParams.set("es_prueba", "eq.false");
+  url.searchParams.set("order", "created_at.desc");
+  url.searchParams.set("limit", String(limit));
+
+  const res = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      apikey: env.serviceRoleKey,
+      Authorization: `Bearer ${env.serviceRoleKey}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return { ok: false, reason: `Historial falló (${res.status}) ${text}`.slice(0, 220) };
+  }
+
+  let pedidos = (await res.json()) as PedidoRow[];
+
+  const q = opts.busqueda?.trim().toLowerCase();
+  if (q) {
+    const digits = q.replace(/\D/g, "");
+    pedidos = pedidos.filter((p) => {
+      const nom = p.taller_nombre.toLowerCase().includes(q);
+      const tel = digits.length >= 4 && p.telefono.replace(/\D/g, "").includes(digits);
+      const ref = refPedidoCorta(p.id).toLowerCase().includes(q.replace(/#/g, ""));
+      const id = p.id.toLowerCase().includes(q);
+      return nom || tel || ref || id;
+    });
+  }
+
+  if (!opts.incluirLineas) {
+    return {
+      ok: true,
+      pedidos: pedidos.map((p) => ({ ...p, lineas: [], totalCop: 0 })),
+      total: pedidos.length,
+    };
+  }
+
+  const conLineas: PedidoHistorialRow[] = await Promise.all(
+    pedidos.map(async (p) => {
+      const lineasRes = await getPedidoLineas(p.id);
+      const lineas = lineasRes.ok ? lineasRes.lineas : [];
+      const totalCop = lineas.reduce((s, l) => s + l.cantidad * Number(l.precio_unitario), 0);
+      return { ...p, lineas, totalCop };
+    }),
+  );
+
+  return { ok: true, pedidos: conLineas, total: conLineas.length };
 }
 
 export type VentanaPedidosAdmin = "dia" | "minutos";
