@@ -119,18 +119,28 @@ export async function sendPushToTelefono(
   const list = await listPushSubscriptionsByTelefono(rawTelefono);
   if (!list.ok) return { ok: false, reason: list.reason };
 
+  const results = await Promise.all(
+    list.rows.map(async (row) => {
+      try {
+        return await Promise.race([
+          sendPushToRow(row, payload),
+          new Promise<{ ok: false; expired: false }>((resolve) => {
+            setTimeout(() => resolve({ ok: false, expired: false }), 8_000);
+          }),
+        ]);
+      } catch {
+        return { ok: false as const, expired: false as const };
+      }
+    }),
+  );
+
   let sent = 0;
   let failed = 0;
   let expired = 0;
-
-  for (const row of list.rows) {
-    try {
-      const res = await sendPushToRow(row, payload);
-      if (res.ok) sent += 1;
-      else expired += 1;
-    } catch {
-      failed += 1;
-    }
+  for (const res of results) {
+    if (res.ok) sent += 1;
+    else if (res.expired) expired += 1;
+    else failed += 1;
   }
 
   return { ok: true, sent, failed, expired, matched: list.rows.length };

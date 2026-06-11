@@ -43,17 +43,20 @@ export default function AdminCatalogoStatus({ adminPin }: Props) {
 
   if (fuente === "supabase") {
     return (
-      <p className="text-[11px] text-emerald-400/90 flex items-center gap-1.5">
+      <div className="text-[11px] text-emerald-400/90 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1 max-w-full">
         <Database className="h-3.5 w-3.5 shrink-0" />
-        Catálogo en vivo: {total} productos · {conStock} con stock
+        <span className="break-words">
+          Catálogo: {total} refs · {conStock} con stock
+        </span>
         <button
           type="button"
           onClick={() => void refresh()}
-          className="text-gray-500 hover:text-gray-300 ml-1 underline"
+          disabled={loading}
+          className="text-gray-500 hover:text-gray-300 underline shrink-0 disabled:opacity-50"
         >
-          actualizar
+          {loading ? "…" : "actualizar"}
         </button>
-      </p>
+      </div>
     );
   }
 

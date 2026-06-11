@@ -7,7 +7,7 @@ import AdminCatalogoStatus from "@/components/AdminCatalogoStatus";
 import AdminDispatchPanel, { ActiveRouteBanner } from "@/components/AdminDispatchPanel";
 import AdminHistorialPanel from "@/components/AdminHistorialPanel";
 import AdminInventarioPanel from "@/components/AdminInventarioPanel";
-import AdminOperadorAvisos, { activarAvisosOperadorAdmin } from "@/components/AdminOperadorAvisos";
+import AdminOperadorAvisos, { scrollToAvisosOperadorAdmin } from "@/components/AdminOperadorAvisos";
 import AdminPushPanel from "@/components/AdminPushPanel";
 import AdminStockAlertas from "@/components/AdminStockAlertas";
 import AdminSoportePwaPanel from "@/components/AdminSoportePwaPanel";
@@ -185,7 +185,6 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [pedidosRefreshKey, setPedidosRefreshKey] = useState(0);
-  const [avisoOperadorMsg, setAvisoOperadorMsg] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const pedidosConocidosRef = useRef<Set<string>>(new Set());
   const primeraCargaPedidosRef = useRef(true);
@@ -269,84 +268,84 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
     window.open(routeUrl, "_blank", "noopener,noreferrer");
   }
 
-  async function activarNotificacionesAdmin() {
-    setAvisoOperadorMsg(null);
-    const msg = await activarAvisosOperadorAdmin();
-    setAvisoOperadorMsg(msg);
+  function irAAvisosOperador() {
+    scrollToAvisosOperadorAdmin();
   }
 
   return (
     <div className="min-h-screen bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
       <ActiveRouteBanner pedidosEnRuta={pedidosEnRuta} />
-      <header className="border-b border-white/10 px-4 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-white tracking-tight">Administración</h1>
-            <p className="text-xs text-gray-500 mt-1">
+      <header className="border-b border-white/10 px-3 sm:px-4 py-3 sm:py-4">
+        <div className="max-w-4xl mx-auto flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">Administración</h1>
+            <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 leading-snug">
               {modoPreparacion
-                ? "Modo prueba · ventana 2 h · actualización cada 15 min"
-                : "Operación real · pedidos del día (Colombia) · actualización cada 15 min"}
+                ? "Modo prueba · 2 h · refresh 15 min"
+                : "Pedidos del día · Colombia · refresh 15 min"}
             </p>
             <AdminCatalogoStatus adminPin={adminPin} />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Button
               variant="outline"
-              onClick={() => void activarNotificacionesAdmin()}
-              className="border-emerald-600/50 text-emerald-200 min-h-10 touch-manipulation"
-              title="Vincular este dispositivo para avisos de pedidos nuevos"
+              size="sm"
+              onClick={irAAvisosOperador}
+              className="border-emerald-600/50 text-emerald-200 min-h-10 px-2.5 sm:px-3 touch-manipulation"
+              title="Ir a avisos de pedidos"
             >
-              <Bell className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline">Avisos operador</span>
+              <Bell className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only sm:ml-1 sm:inline text-xs">Avisos</span>
             </Button>
             <Button
               variant="outline"
+              size="sm"
               onClick={() => void refresh()}
-              className="border-gray-600 text-gray-300"
+              className="border-gray-600 text-gray-300 min-h-10 px-2.5 sm:px-3 text-xs touch-manipulation"
               disabled={loading}
             >
-              {loading ? "Actualizando…" : "Actualizar"}
+              {loading ? "…" : "Actualizar"}
             </Button>
-            <Button variant="outline" onClick={onLogout} className="border-gray-600 text-gray-300">
-              Cerrar sesión
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onLogout}
+              className="border-gray-600 text-gray-300 min-h-10 px-2.5 sm:px-3 text-xs touch-manipulation"
+            >
+              Salir
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <AdminOperadorAvisos adminPin={adminPin} />
-        {avisoOperadorMsg && (
-          <p
-            className="mb-4 text-xs rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-gray-200"
-            role="status"
-          >
-            {avisoOperadorMsg}
-          </p>
-        )}
-        <nav className="flex flex-wrap gap-2 mb-6 border-b border-white/10 pb-3">
+        <nav className="mb-4 sm:mb-6 border-b border-white/10 pb-2 -mx-3 sm:-mx-4 px-3 sm:px-4 overflow-x-auto overscroll-x-contain">
+          <div className="flex gap-1.5 min-w-max pb-1">
           {(
             [
-              ["talleres", "Talleres"],
-              ["inventario", "Inventario"],
-              ["operacion", "Operación y pedidos"],
-              ["historial", "Historial"],
-              ["soporte", "Soporte PWA"],
+              ["talleres", "Talleres", "Talleres"],
+              ["inventario", "Inventario", "Stock"],
+              ["operacion", "Operación", "Operación y pedidos"],
+              ["historial", "Historial", "Historial"],
+              ["soporte", "Soporte", "Soporte PWA"],
             ] as const
-          ).map(([id, label]) => (
+          ).map(([id, labelMobile, labelDesktop]) => (
             <button
               key={id}
               type="button"
               onClick={() => setTab(id)}
-              className={`text-xs sm:text-sm font-semibold px-3 py-2 rounded-md transition-colors ${
+              className={`text-xs font-semibold px-3 py-2 rounded-md transition-colors whitespace-nowrap touch-manipulation ${
                 tab === id
                   ? "bg-[oklch(0.7_0.2_40)] text-white"
                   : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
             >
-              {label}
+              <span className="sm:hidden">{labelMobile}</span>
+              <span className="hidden sm:inline">{labelDesktop}</span>
             </button>
           ))}
+          </div>
         </nav>
 
         {modoPreparacion && (
