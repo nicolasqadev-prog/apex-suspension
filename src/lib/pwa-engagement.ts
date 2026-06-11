@@ -70,14 +70,33 @@ export function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return out;
 }
 
-export async function subscribeToPushIfConfigured(): Promise<PushSubscription | null> {
+async function ensureServiceWorkerReady(): Promise<ServiceWorkerRegistration | null> {
+  if (!("serviceWorker" in navigator)) return null;
+  try {
+    await navigator.serviceWorker.register("/sw.js");
+    return await navigator.serviceWorker.ready;
+  } catch {
+    return null;
+  }
+}
+
+export async function subscribeToPushIfConfigured(renovar = false): Promise<PushSubscription | null> {
   const vapidPublic = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
   if (!vapidPublic?.trim()) return null;
   if (!("PushManager" in window)) return null;
 
-  const reg = await navigator.serviceWorker.ready;
+  const reg = await ensureServiceWorkerReady();
+  if (!reg) return null;
+
   const existing = await reg.pushManager.getSubscription();
-  if (existing) return existing;
+  if (existing && !renovar) return existing;
+  if (existing && renovar) {
+    try {
+      await existing.unsubscribe();
+    } catch {
+      // Continúa con nueva suscripción.
+    }
+  }
 
   return reg.pushManager.subscribe({
     userVisibleOnly: true,
@@ -135,19 +154,28 @@ export async function vincularPushConTelefonoTaller(
     : leerTelefonoTallerParaPush();
   if (!telefono || telefono.length < 10) return { ok: false, reason: "sin_telefono" };
 
-  return subscribeAndRegisterPush({ telefono });
+  return subscribeAndRegisterPush({ telefono, renovar: false });
 }
 
 /** Suscribe al push del navegador y guarda la suscripción en Supabase. */
 export async function subscribeAndRegisterPush(opts?: {
   telefono?: string;
+  /** Regenera la suscripción push (útil tras cambio de VAPID o en Brave). */
+  renovar?: boolean;
 }): Promise<{ ok: true } | { ok: false; reason: string }> {
-  const permission = await requestNotificationPermission();
+  if (!("serviceWorker" in navigator)) {
+    return { ok: false, reason: "sin_service_worker" };
+  }
+
+  const permission =
+    Notification.permission === "granted"
+      ? "granted"
+      : await requestNotificationPermission();
   if (permission !== "granted") {
     return { ok: false, reason: "permiso_denegado" };
   }
 
-  const sub = await subscribeToPushIfConfigured();
+  const sub = await subscribeToPushIfConfigured(opts?.renovar === true);
   if (!sub) {
     return { ok: false, reason: "vapid_no_configurado" };
   }

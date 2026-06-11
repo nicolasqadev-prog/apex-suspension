@@ -220,7 +220,7 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "pedido_fallo" as const };
     }
 
-    void notificarApexNuevoPedido({
+    await notificarApexNuevoPedido({
       pedidoId: pedido.pedidoId,
       tallerNombre: catalogo.taller.nombreTaller,
       totalCop: total,
@@ -229,7 +229,7 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
       // No bloquea el pedido si falla la alerta push al operador.
     });
 
-    void notificarTallerPedidoEnviado({
+    await notificarTallerPedidoEnviado({
       pedidoId: pedido.pedidoId,
       tallerWhatsapp: catalogo.taller.whatsapp,
       esPrueba,

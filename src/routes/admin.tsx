@@ -315,7 +315,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <AdminOperadorAvisos />
+        <AdminOperadorAvisos adminPin={adminPin} />
         {avisoOperadorMsg && (
           <p
             className="mb-4 text-xs rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-gray-200"

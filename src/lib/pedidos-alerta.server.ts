@@ -35,10 +35,6 @@ export async function notificarApexNuevoPedido(input: {
   totalCop: number;
   esPrueba?: boolean;
 }): Promise<{ ok: true; sent: number; matched: number } | { ok: false; reason: string }> {
-  if (input.esPrueba) {
-    return { ok: false, reason: "pedido_prueba" };
-  }
-
   if (!isWebPushConfigured()) {
     return { ok: false, reason: "vapid_no_configurado" };
   }
@@ -48,7 +44,15 @@ export async function notificarApexNuevoPedido(input: {
     return { ok: false, reason: "sin_telefono_admin" };
   }
 
-  const payload = mensajePushNuevoPedidoAdmin(input);
+  const ref = refPedidoCorta(input.pedidoId);
+  const payload: PushPayload = input.esPrueba
+    ? {
+        title: "Pedido de prueba · Apex",
+        body: `${input.tallerNombre} · #${ref} · ${formatoPrecioCop(input.totalCop)} · modo preparación`,
+        url: "/admin",
+        tag: `apex-pedido-admin-prueba-${input.pedidoId}`,
+      }
+    : mensajePushNuevoPedidoAdmin(input);
   const res = await sendPushToTelefono(tel, payload);
   if (!res.ok) return { ok: false, reason: res.reason };
 

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { verifyAdminPinValue } from "./admin-auth.server";
+import { telefonoAdminApex } from "./pedidos-alerta.server";
 import { esEstadoPedidoValido, getPedidoById, updatePedidoEstado } from "./pedidos.server";
 import { upsertPushSubscription } from "./push-subscriptions.server";
 import {
@@ -123,3 +124,36 @@ export const estadoPushServidor = createServerFn({ method: "GET" }).handler(asyn
     webPushConfigured: isWebPushConfigured(),
   };
 });
+
+export const probarPushOperadorAdmin = createServerFn({ method: "POST" })
+  .inputValidator(AdminPinSchema)
+  .handler(async ({ data }) => {
+    const auth = verifyAdminPinValue(data.adminPin);
+    if (!auth.ok) return { ok: false as const, reason: auth.reason };
+
+    if (!isWebPushConfigured()) {
+      return { ok: false as const, reason: "VAPID no configurado en el servidor" };
+    }
+
+    const tel = telefonoAdminApex();
+    if (!tel) {
+      return { ok: false as const, reason: "sin_telefono_admin" };
+    }
+
+    const res = await sendPushToTelefono(tel, {
+      title: "Prueba · Apex operador",
+      body: "Si ves esto sin actualizar la pestaña, el push funciona en este dispositivo.",
+      url: "/admin",
+      tag: "apex-push-test-operador",
+    });
+    if (!res.ok) return { ok: false as const, reason: res.reason };
+
+    return {
+      ok: true as const,
+      telefono: tel,
+      matched: res.matched,
+      sent: res.sent,
+      failed: res.failed,
+      expired: res.expired,
+    };
+  });

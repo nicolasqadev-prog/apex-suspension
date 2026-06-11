@@ -1,5 +1,5 @@
 // Increment this when shipping a new release to force cache refresh.
-const CACHE_NAME = "apex-suspension-pwa-v54";
+const CACHE_NAME = "apex-suspension-pwa-v55";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -63,6 +63,7 @@ self.addEventListener("push", (event) => {
       badge: "/icon-192.png",
       data: { url },
       tag,
+      renotify: true,
     }),
   );
 });
