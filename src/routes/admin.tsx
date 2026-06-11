@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import AdminCatalogoStatus from "@/components/AdminCatalogoStatus";
 import AdminDispatchPanel, { ActiveRouteBanner } from "@/components/AdminDispatchPanel";
 import AdminInventarioPanel from "@/components/AdminInventarioPanel";
-import AdminOperadorAvisos from "@/components/AdminOperadorAvisos";
+import AdminOperadorAvisos, { activarAvisosOperadorAdmin } from "@/components/AdminOperadorAvisos";
 import AdminPushPanel from "@/components/AdminPushPanel";
 import AdminStockAlertas from "@/components/AdminStockAlertas";
 import AdminSoportePwaPanel from "@/components/AdminSoportePwaPanel";
@@ -17,7 +17,7 @@ import { ADMIN_REFRESH_MS } from "@/lib/admin-despachos";
 import { ADMIN_PREPARACION_EVENT, isModoPreparacion } from "@/lib/admin-preparacion";
 import { googleMapsRouteUrl } from "@/lib/maps-ruta";
 import { listarPedidosRecientes } from "@/lib/pedidos.functions";
-import { subscribeAndRegisterPush, vincularPushConTelefonoTaller } from "@/lib/pwa-engagement";
+import { vincularPushConTelefonoTaller } from "@/lib/pwa-engagement";
 
 type Pedido = {
   id: string;
@@ -184,6 +184,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [pedidosRefreshKey, setPedidosRefreshKey] = useState(0);
+  const [avisoOperadorMsg, setAvisoOperadorMsg] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const pedidosConocidosRef = useRef<Set<string>>(new Set());
   const primeraCargaPedidosRef = useRef(true);
@@ -268,11 +269,9 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
   }
 
   async function activarNotificacionesAdmin() {
-    if (typeof Notification !== "undefined" && Notification.permission === "default") {
-      await Notification.requestPermission();
-    }
-    const telOperador = (import.meta.env.VITE_WHATSAPP_APEX as string | undefined)?.trim();
-    await subscribeAndRegisterPush(telOperador ? { telefono: telOperador } : undefined);
+    setAvisoOperadorMsg(null);
+    const msg = await activarAvisosOperadorAdmin();
+    setAvisoOperadorMsg(msg);
   }
 
   return (
@@ -315,6 +314,15 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
+        <AdminOperadorAvisos />
+        {avisoOperadorMsg && (
+          <p
+            className="mb-4 text-xs rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-gray-200"
+            role="status"
+          >
+            {avisoOperadorMsg}
+          </p>
+        )}
         <nav className="flex flex-wrap gap-2 mb-6 border-b border-white/10 pb-3">
           {(
             [
@@ -361,7 +369,6 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
 
         {tab === "operacion" && (
           <>
-            <AdminOperadorAvisos />
             <AdminStockAlertas adminPin={adminPin} refreshKey={pedidosRefreshKey} />
             {pedidosPendientes > 0 && (
               <p className="mb-4 text-sm text-emerald-100 rounded-lg border border-emerald-500/40 bg-emerald-950/40 px-4 py-3">

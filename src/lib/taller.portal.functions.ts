@@ -209,6 +209,7 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
         esPrueba,
         lineas: lineasValidadas.map((l) => ({
           slug: l.slug,
+          referencia: l.referencia,
           cantidad: l.cantidad,
           precioUnitario: l.precioUnitarioCop,
         })),

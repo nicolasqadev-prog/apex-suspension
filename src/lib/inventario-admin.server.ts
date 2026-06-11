@@ -145,16 +145,17 @@ export async function listarProductosStockBajo(
   return { ok: true, productos: rows.map(mapProducto) };
 }
 
-export async function getProductoAdminBySlug(slug: string): Promise<ProductoAdmin | null> {
-  const env = getSupabaseEnv();
-  if (!env) return null;
-
+async function fetchProductoAdmin(
+  env: SupabaseEnv,
+  campo: "slug" | "referencia",
+  valor: string,
+): Promise<ProductoAdmin | null> {
   const url = new URL(`${env.url}/rest/v1/productos`);
   url.searchParams.set(
     "select",
     "id,slug,referencia,nombre,marca,precio_lista,stock_actual,activo",
   );
-  url.searchParams.set("slug", `eq.${slug}`);
+  url.searchParams.set(campo, `eq.${valor}`);
   url.searchParams.set("limit", "1");
 
   const res = await fetch(url.toString(), { headers: headers(env) });
@@ -162,6 +163,42 @@ export async function getProductoAdminBySlug(slug: string): Promise<ProductoAdmi
   const rows = (await res.json()) as ProductoRow[];
   const row = rows[0];
   return row ? mapProducto(row) : null;
+}
+
+export async function getProductoAdminBySlug(slug: string): Promise<ProductoAdmin | null> {
+  const env = getSupabaseEnv();
+  if (!env) return null;
+
+  const raw = slug.trim();
+  const lower = raw.toLowerCase();
+  let p = await fetchProductoAdmin(env, "slug", lower);
+  if (p) return p;
+  if (raw !== lower) {
+    p = await fetchProductoAdmin(env, "slug", raw);
+  }
+  return p;
+}
+
+export async function getProductoAdminByReferencia(referencia: string): Promise<ProductoAdmin | null> {
+  const env = getSupabaseEnv();
+  if (!env) return null;
+
+  const ref = referencia.trim().toUpperCase();
+  if (!ref) return null;
+  return fetchProductoAdmin(env, "referencia", ref);
+}
+
+/** Resuelve producto en Supabase por slug y, si falla, por referencia. */
+export async function resolverProductoPedido(input: {
+  slug: string;
+  referencia?: string;
+}): Promise<ProductoAdmin | null> {
+  const porSlug = await getProductoAdminBySlug(input.slug);
+  if (porSlug) return porSlug;
+  if (input.referencia?.trim()) {
+    return getProductoAdminByReferencia(input.referencia);
+  }
+  return null;
 }
 
 export async function getProductoIdBySlug(slug: string): Promise<string | null> {

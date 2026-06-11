@@ -1,4 +1,4 @@
-import { getProductoAdminBySlug, registrarMovimientoStock } from "./inventario-admin.server";
+import { registrarMovimientoStock, resolverProductoPedido } from "./inventario-admin.server";
 import { notificarAdminStockBajo } from "./pedidos-alerta.server";
 import { refPedidoCorta } from "./pedidos-estado-taller";
 import { normalizeSupabaseUrl } from "./supabase-env";
@@ -24,6 +24,13 @@ type PedidoRow = {
   notas: string | null;
   created_at: string;
   es_prueba?: boolean;
+};
+
+export type LineaPedidoInput = {
+  slug: string;
+  referencia?: string;
+  cantidad: number;
+  precioUnitario: number;
 };
 
 export type CreatePedidoInput = {
@@ -87,7 +94,10 @@ export async function createPedido(
 
   for (const linea of lineas) {
     if (linea.cantidad <= 0) continue;
-    const producto = await getProductoAdminBySlug(linea.slug);
+    const producto = await resolverProductoPedido({
+      slug: linea.slug,
+      referencia: linea.referencia,
+    });
     if (!producto) continue;
     const productoId = producto.id;
 
@@ -115,23 +125,18 @@ export async function createPedido(
     }
 
     if (descontarStock) {
-      void registrarMovimientoStock({
+      const mov = await registrarMovimientoStock({
         productoId,
         delta: -linea.cantidad,
         motivo: `Pedido portal #${refPedido}`,
-      })
-        .then((mov) => {
-          if (mov.ok) {
-            void notificarAdminStockBajo({
-              referencia: producto.referencia,
-              nombre: producto.nombre,
-              stockActual: mov.stockActual,
-            });
-          }
-        })
-        .catch(() => {
-          // El pedido ya quedó guardado; operador revisa stock manual si falla el movimiento.
+      });
+      if (mov.ok) {
+        await notificarAdminStockBajo({
+          referencia: producto.referencia,
+          nombre: producto.nombre,
+          stockActual: mov.stockActual,
         });
+      }
     }
   }
 
