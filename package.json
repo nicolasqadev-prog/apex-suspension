@@ -17,6 +17,7 @@
     "icons:pwa": "node scripts/generate-pwa-assets.mjs",
     "vapid:keys": "node scripts/generate-vapid-keys.mjs",
     "sync:inventory": "node scripts/sync-inventario-json-to-supabase.mjs",
+    "imagenes:catalogo": "python scripts/extraer-imagenes-catalogo.py",
     "qa:audit": "node scripts/qa-audit.mjs",
     "qa:datos": "node scripts/qa-datos-maestros.mjs",
     "db:migrate:datos": "node scripts/apply-migration-sql.mjs",

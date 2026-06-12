@@ -6,6 +6,7 @@ import {
   type PiezaInventario,
 } from "./inventario";
 import { completarPieza } from "./inventario-normalizar";
+import { imagenUrlParaPieza } from "./catalogo-imagenes";
 import { normalizeSupabaseUrl } from "./supabase-env";
 
 type ProductoRow = {
@@ -45,7 +46,7 @@ async function resolverSelectCampos(cfg: {
 }
 
 function mapRow(r: ProductoRow): PiezaInventario {
-  return completarPieza({
+  const pieza = completarPieza({
     slug: r.slug,
     referencia: r.referencia,
     nombre: r.nombre,
@@ -59,6 +60,8 @@ function mapRow(r: ProductoRow): PiezaInventario {
     precioTallerRef: r.precio_taller != null ? Number(r.precio_taller) : undefined,
     stock: Math.max(0, Math.floor(Number(r.stock_actual))),
   });
+  const imagenUrl = imagenUrlParaPieza(pieza);
+  return imagenUrl ? { ...pieza, imagenUrl } : pieza;
 }
 
 const SUPABASE_PAGE_SIZE = 1000;
@@ -123,7 +126,10 @@ export async function loadCatalogo(): Promise<CatalogoLoaderData> {
     };
   }
   return {
-    piezas: listarPiezas(),
+    piezas: listarPiezas().map((p) => {
+      const imagenUrl = imagenUrlParaPieza(p);
+      return imagenUrl ? { ...p, imagenUrl } : p;
+    }),
     moneda: monedaInventario(),
     fuente: "json",
   };

@@ -14,6 +14,7 @@ import { obtenerPiezaTaller } from "@/lib/taller.portal.functions";
 import type { PiezaCatalogoTaller } from "@/lib/taller.types";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 import StudioFooterSignature from "@/components/StudioFooterSignature";
+import PiezaCatalogoImagen from "@/components/PiezaCatalogoImagen";
 
 export const Route = createFileRoute("/repuesto/$slug")({
   loader: ({ params }) => loadPiezaBySlug(params.slug),
@@ -105,6 +106,7 @@ function RepuestoDetallePage() {
 
       <main className="max-w-lg mx-auto w-full flex-1 px-4 py-8">
         <TallerBanner />
+        <PiezaCatalogoImagen nombre={pieza.nombre} imagenUrl={pieza.imagenUrl} className="mb-4" />
         <p className="text-xs font-mono text-[oklch(0.7_0.2_40)]">{pieza.referencia}</p>
         <h1 className="text-2xl font-bold text-white mt-1">{pieza.nombre}</h1>
         <p className="text-gray-400 mt-2">{pieza.aplicacion}</p>

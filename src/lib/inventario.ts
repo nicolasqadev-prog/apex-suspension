@@ -21,6 +21,8 @@ export type PiezaInventario = {
   /** Marca proveedor del repuesto (KTC, Districamiones…). */
   marcaProducto: string;
   lineaVehiculo: LineaVehiculo;
+  /** Foto de referencia (solo KTC/DMB en bodega; opcional). */
+  imagenUrl?: string;
 };
 
 type InventarioJson = {

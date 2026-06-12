@@ -28,6 +28,7 @@ import { obtenerCatalogoTaller } from "@/lib/taller.portal.functions";
 import type { PiezaCatalogoTaller } from "@/lib/taller.types";
 import { enlaceWhatsApp } from "@/lib/whatsapp";
 import StudioFooterSignature from "@/components/StudioFooterSignature";
+import PiezaCatalogoImagen from "@/components/PiezaCatalogoImagen";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/catalogo")({
@@ -601,7 +602,13 @@ function PiezaCard({
       >
         <Link to="/repuesto/$slug" params={{ slug: p.slug }} className="block p-4">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-            <div className="min-w-0">
+            <PiezaCatalogoImagen
+              nombre={p.nombre}
+              imagenUrl={p.imagenUrl}
+              compact
+              className="sm:mr-3 mb-2 sm:mb-0"
+            />
+            <div className="min-w-0 flex-1">
               <p className="text-[11px] font-semibold text-gray-400">
                 {marcaVehiculoDePieza(p)}
                 {catGrupo ? ` · ${catGrupo}` : ""}
