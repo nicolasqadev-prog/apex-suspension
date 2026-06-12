@@ -1,12 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Maximize2, Package, X } from "lucide-react";
 
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type Variant = "compact" | "card" | "hero";
@@ -36,6 +30,15 @@ export default function PiezaCatalogoImagen({
 }: Props) {
   const [abierta, setAbierta] = useState(false);
   const puedeExpandir = expandible ?? variant === "hero";
+
+  useEffect(() => {
+    if (!abierta) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [abierta]);
 
   if (!imagenUrl) return null;
 
@@ -78,39 +81,66 @@ export default function PiezaCatalogoImagen({
     <>
       <button
         type="button"
-        className={cn("block w-full text-left cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.7_0.2_40)] rounded-xl", className)}
+        className={cn(
+          "block w-full text-left cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.7_0.2_40)] rounded-xl",
+          className,
+        )}
         onClick={() => setAbierta(true)}
         aria-label={`Ver imagen completa de ${nombre}`}
       >
         {frame}
       </button>
 
-      <Dialog open={abierta} onOpenChange={setAbierta}>
-        <DialogContent className="max-w-[min(96vw,42rem)] border-gray-700 bg-[oklch(0.12_0.04_250)] p-0 gap-0 overflow-hidden">
-          <DialogTitle className="sr-only">
-            {referencia ? `${referencia} — ${nombre}` : nombre}
-          </DialogTitle>
-          <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
-            <div className="min-w-0">
-              {referencia && (
-                <p className="text-xs font-mono text-[oklch(0.7_0.2_40)] truncate">{referencia}</p>
-              )}
-              <p className="text-sm font-semibold text-white truncate">{nombre}</p>
+      {abierta ? (
+        <div
+          className="fixed inset-0 z-[110] flex flex-col bg-[oklch(0.08_0.04_250)]"
+          role="dialog"
+          aria-modal="true"
+          aria-label={referencia ? `${referencia} — ${nombre}` : nombre}
+          data-apex-lightbox-open
+        >
+          <div
+            className="shrink-0 flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3 bg-[oklch(0.12_0.04_250)]"
+            style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
+          >
+            <div className="min-w-0 flex-1 pr-2">
+              {referencia ? (
+                <p className="text-xs font-mono text-[oklch(0.7_0.2_40)]">{referencia}</p>
+              ) : null}
+              <p className="text-sm font-semibold text-white leading-snug line-clamp-3">{nombre}</p>
             </div>
-            <DialogClose className="shrink-0 rounded-md p-2 text-gray-400 hover:bg-white/10 hover:text-white">
+            <button
+              type="button"
+              className="shrink-0 rounded-lg p-2.5 text-gray-300 hover:bg-white/10 hover:text-white"
+              onClick={() => setAbierta(false)}
+              aria-label="Cerrar imagen"
+            >
               <X className="h-5 w-5" />
-              <span className="sr-only">Cerrar</span>
-            </DialogClose>
+            </button>
           </div>
-          <div className="bg-white p-4 sm:p-6 max-h-[min(78vh,640px)] flex items-center justify-center">
+
+          <button
+            type="button"
+            className="flex-1 min-h-0 flex items-center justify-center bg-white p-4 sm:p-8 touch-manipulation"
+            onClick={() => setAbierta(false)}
+            aria-label="Cerrar imagen"
+          >
             <img
               src={imagenUrl}
               alt={nombre}
-              className="max-h-[min(72vh,580px)] w-full object-contain"
+              className="block max-h-[calc(100dvh-7rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] max-w-[min(100%,42rem)] w-auto h-auto object-contain"
+              draggable={false}
             />
-          </div>
-        </DialogContent>
-      </Dialog>
+          </button>
+
+          <p
+            className="shrink-0 text-center text-[11px] text-gray-500 py-2"
+            style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+          >
+            Toca fuera de la pieza o ✕ para cerrar
+          </p>
+        </div>
+      ) : null}
     </>
   );
 }
