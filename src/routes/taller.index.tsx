@@ -4,6 +4,7 @@ import { BadgeCheck, ClipboardList, LogOut, Package, ShoppingCart, Wrench } from
 
 import { Button } from "@/components/ui/button";
 import TallerNotificacionesAviso from "@/components/TallerNotificacionesAviso";
+import TallerPwaInstalarAviso from "@/components/TallerPwaInstalarAviso";
 import { useTallerSession } from "@/components/TallerSessionProvider";
 import StudioFooterSignature from "@/components/StudioFooterSignature";
 import { leerCarritoTaller } from "@/lib/taller-carrito";
@@ -102,6 +103,7 @@ function TallerPanelPage() {
               </p>
             </div>
 
+            <TallerPwaInstalarAviso />
             <TallerNotificacionesAviso />
 
             <nav className="grid gap-3" aria-label="Acciones del taller">

@@ -41,12 +41,13 @@ export default function PwaEngagementPrompt() {
       pathname.startsWith("/taller") ||
       (typeof window !== "undefined" &&
         Boolean(localStorage.getItem("apex.taller.whatsapp")?.replace(/\D/g, "").length));
+    const puedeInstalar = canSuggestPwaInstall();
+    const puedeNotifPublica = canSuggestNotifications() && !enFlujoTaller;
     const show =
       !isAdminPreviewMode() &&
-      !enFlujoTaller &&
+      !pathname.startsWith("/admin") &&
       shouldShowEngagementPrompt() &&
-      (canSuggestPwaInstall() || canSuggestNotifications()) &&
-      !pathname.startsWith("/admin");
+      (puedeInstalar || puedeNotifPublica);
     setVisible(show);
     if (typeof Notification !== "undefined") {
       setNotifPermission(Notification.permission);
@@ -77,8 +78,13 @@ export default function PwaEngagementPrompt() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deferredPrompt]);
 
+  const enFlujoTaller =
+    pathname.startsWith("/taller") ||
+    (typeof window !== "undefined" &&
+      Boolean(localStorage.getItem("apex.taller.whatsapp")?.replace(/\D/g, "").length));
+
   const needsInstall = canSuggestPwaInstall();
-  const needsNotif = canSuggestNotifications() && notifPermission !== "granted";
+  const needsNotif = canSuggestNotifications() && notifPermission !== "granted" && !enFlujoTaller;
 
   if (!visible || (!needsInstall && !needsNotif)) return null;
 

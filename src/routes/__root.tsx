@@ -6,6 +6,7 @@ import AdminPreviewBanner from "@/components/AdminPreviewBanner";
 import CarritoAgregadoAviso from "@/components/CarritoAgregadoAviso";
 import MostradorChat from "@/components/MostradorChat";
 import ServiceWorkerNavigation from "@/components/ServiceWorkerNavigation";
+import PwaEngagementPrompt from "@/components/PwaEngagementPrompt";
 import { TallerSessionProvider } from "@/components/TallerSessionProvider";
 import { siteOriginForHead } from "@/lib/site-url";
 
@@ -70,6 +71,10 @@ export const Route = createRootRoute({
       return [
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { name: "mobile-web-app-capable", content: "yes" },
+        { name: "apple-mobile-web-app-capable", content: "yes" },
+        { name: "apple-mobile-web-app-title", content: "Apex" },
+        { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
         { title: "Apex Suspensión" },
         {
           name: "description",
@@ -153,6 +158,7 @@ function RootComponent() {
         <TallerSessionProvider>
           <ServiceWorkerNavigation />
           <Outlet />
+          <PwaEngagementPrompt />
           <CarritoAgregadoAviso />
           <MostradorChat />
         </TallerSessionProvider>
