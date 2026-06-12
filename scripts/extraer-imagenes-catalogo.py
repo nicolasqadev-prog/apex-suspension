@@ -16,6 +16,7 @@ import json
 import re
 import sys
 from datetime import date
+from io import BytesIO
 from pathlib import Path
 
 try:
@@ -227,15 +228,63 @@ def locate_in_index(
     return pno, rect
 
 
-def render_crop(page: fitz.Page, rect: fitz.Rect, padding: float = 4) -> Image.Image:
+def extract_embedded_image(
+    doc: fitz.Document, page: fitz.Page, rect: fitz.Rect
+) -> Image.Image | None:
+    """Preferir bitmap embebido (KTC ~600px) en lugar de recorte rasterizado pequeño."""
+    best: tuple[float, int] | None = None
+    for img in page.get_images():
+        xref = img[0]
+        for r in page.get_image_rects(xref):
+            if r.width < 35 or r.height < 35 or r.width > 260:
+                continue
+            overlap_x = min(rect.x1, r.x1) - max(rect.x0, r.x0)
+            overlap_y = min(rect.y1, r.y1) - max(rect.y0, r.y0)
+            if overlap_x <= 0 or overlap_y <= 0:
+                continue
+            score = overlap_x * overlap_y
+            if best is None or score > best[0]:
+                best = (score, xref)
+
+    if not best:
+        return None
+
+    info = doc.extract_image(best[1])
+    im = Image.open(BytesIO(info["image"]))
+    if im.mode == "RGBA":
+        bg = Image.new("RGB", im.size, (255, 255, 255))
+        bg.paste(im, mask=im.split()[3])
+        return bg
+    if im.mode == "P" and "transparency" in im.info:
+        im = im.convert("RGBA")
+        bg = Image.new("RGB", im.size, (255, 255, 255))
+        bg.paste(im, mask=im.split()[3])
+        return bg
+    if im.mode != "RGB":
+        im = im.convert("RGB")
+    return im
+
+
+def render_crop(doc: fitz.Document, page: fitz.Page, rect: fitz.Rect, padding: float = 6) -> Image.Image:
+    embedded = extract_embedded_image(doc, page, rect)
+    if embedded is not None:
+        return embedded
+
     clip = fitz.Rect(
         max(0, rect.x0 - padding),
         max(0, rect.y0 - padding),
         min(page.rect.width, rect.x1 + padding),
         min(page.rect.height, rect.y1 + padding),
     )
-    pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), clip=clip, alpha=False)
+    pix = page.get_pixmap(matrix=fitz.Matrix(4, 4), clip=clip, alpha=False)
     return Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+
+
+def guardar_webp(im: Image.Image, out_path: Path, *, max_lado: int = 720) -> None:
+    img = im.copy()
+    if max(img.size) > max_lado:
+        img.thumbnail((max_lado, max_lado), Image.Resampling.LANCZOS)
+    img.save(out_path, format="WEBP", quality=92, method=4)
 
 
 def main() -> int:
@@ -295,9 +344,9 @@ def main() -> int:
             manifest_imagenes[item["slug"]] = rel_url
             continue
 
-        img = render_crop(page, rect)
+        img = render_crop(doc, page, rect)
         out_path = OUT_DIR / f"{item['slug']}.webp"
-        img.save(out_path, format="WEBP", quality=82, method=4)
+        guardar_webp(img, out_path)
         manifest_imagenes[item["slug"]] = rel_url
         ok.append(item["referencia"])
 
