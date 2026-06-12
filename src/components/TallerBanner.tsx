@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingCart, Wrench } from "lucide-react";
+import { LogOut, ShoppingCart, Wrench } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useTallerSession } from "@/components/TallerSessionProvider";
 import { leerCarritoTaller } from "@/lib/taller-carrito";
+import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
 export default function TallerBanner() {
@@ -26,47 +27,59 @@ export default function TallerBanner() {
 
   if (!taller) return null;
 
+  const linkClass =
+    "inline-flex items-center justify-center rounded-lg border border-emerald-500/25 bg-emerald-950/40 px-3 py-2 text-xs font-medium text-emerald-100 hover:bg-emerald-900/50 hover:text-white transition-colors";
+
   return (
-    <div className="mb-6 rounded-lg border border-emerald-500/40 bg-emerald-950/30 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div className="flex items-start gap-2">
-        <Wrench className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-semibold text-emerald-100">
+    <div className="mb-6 rounded-xl border border-emerald-500/35 bg-emerald-950/25 overflow-hidden">
+      <div className="px-3 py-3 sm:px-4 sm:py-3.5 flex items-start gap-2.5 border-b border-emerald-500/15">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15">
+          <Wrench className="h-4 w-4 text-emerald-400" aria-hidden />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-emerald-50 leading-snug truncate">
             Modo taller · {taller.nombreTaller}
           </p>
-          <p className="text-xs text-emerald-200/80 mt-0.5">
+          <p className="text-[11px] sm:text-xs text-emerald-200/75 mt-1 leading-relaxed">
             Precio especial taller · stock en bodega y referencias bajo pedido.
           </p>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2 shrink-0">
-        <Link
-          to="/taller"
-          className="text-xs text-emerald-300/90 hover:text-emerald-200 px-2 py-1 font-medium"
-        >
+
+      <div
+        className={cn(
+          "grid gap-2 p-3 sm:p-3.5",
+          "grid-cols-2 sm:grid-cols-[1fr_1fr_auto_auto]",
+          "sm:items-center",
+        )}
+      >
+        <Link to="/taller" className={cn(linkClass, "col-span-1")}>
           Mi panel
         </Link>
-        <Link
-          to="/taller/pedidos"
-          className="text-xs text-emerald-300/90 hover:text-emerald-200 px-2 py-1 font-medium"
-        >
+        <Link to="/taller/pedidos" className={cn(linkClass, "col-span-1")}>
           Mis pedidos
         </Link>
         <Button
           asChild
           size="sm"
-          className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+          className={cn(
+            "col-span-2 sm:col-span-1 h-9 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-sm",
+          )}
         >
           <Link to="/taller/pedido">
-            <ShoppingCart className="h-4 w-4 mr-1.5" />
+            <ShoppingCart className="h-4 w-4 mr-1.5 shrink-0" />
             Pedido{itemsCarrito > 0 ? ` (${itemsCarrito})` : ""}
           </Link>
         </Button>
         <button
           type="button"
           onClick={logout}
-          className="text-xs text-gray-400 hover:text-white px-2 py-1"
+          className={cn(
+            linkClass,
+            "col-span-2 sm:col-span-1 border-transparent bg-transparent text-gray-400 hover:text-white hover:bg-white/5",
+          )}
         >
+          <LogOut className="h-3.5 w-3.5 mr-1.5 inline shrink-0" aria-hidden />
           Cerrar sesión
         </button>
       </div>

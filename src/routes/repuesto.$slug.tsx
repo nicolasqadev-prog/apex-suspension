@@ -139,22 +139,41 @@ function RepuestoDetallePage() {
   return (
     <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
       <header className="border-b border-white/10 px-4 py-4 shrink-0">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-3xl mx-auto">
           <Link to="/catalogo" className="text-xs text-gray-500 hover:text-[oklch(0.7_0.2_40)]">
             ← Catálogo
           </Link>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto w-full flex-1 px-4 py-8">
+      <main className="max-w-3xl mx-auto w-full flex-1 px-4 py-6 sm:py-8">
         <TallerBanner />
-        <PiezaCatalogoImagen nombre={pieza.nombre} imagenUrl={pieza.imagenUrl} className="mb-4" />
-        <p className="text-xs font-mono text-[oklch(0.7_0.2_40)]">{pieza.referencia}</p>
-        <h1 className="text-2xl font-bold text-white mt-1">{pieza.nombre}</h1>
-        <p className="text-gray-400 mt-2">{pieza.aplicacion}</p>
-        <p className="text-xs text-gray-500 mt-2">{pieza.categoria}</p>
 
-        <div className="mt-8 rounded-lg border border-gray-800 bg-[oklch(0.14_0.04_250)] p-4 space-y-2">
+        <div
+          className={
+            pieza.imagenUrl
+              ? "grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:items-start"
+              : "max-w-xl"
+          }
+        >
+          {pieza.imagenUrl ? (
+            <div className="md:sticky md:top-4">
+              <PiezaCatalogoImagen
+                nombre={pieza.nombre}
+                referencia={pieza.referencia}
+                imagenUrl={pieza.imagenUrl}
+                variant="hero"
+              />
+            </div>
+          ) : null}
+
+          <div className="min-w-0">
+            <p className="text-xs font-mono text-[oklch(0.7_0.2_40)] break-all">{pieza.referencia}</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white mt-1 leading-snug">{pieza.nombre}</h1>
+            <p className="text-gray-400 mt-2 text-sm leading-relaxed">{pieza.aplicacion}</p>
+            <p className="text-xs text-gray-500 mt-2">{pieza.categoria}</p>
+
+        <div className="mt-6 rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-4 space-y-2">
           {precioTaller != null ? (
             <>
               <div className="flex justify-between text-sm">
@@ -236,8 +255,10 @@ function RepuestoDetallePage() {
             <Link to="/catalogo">Seguir buscando</Link>
           </Button>
         </div>
+          </div>
+        </div>
 
-        <div className="mt-10 space-y-4 rounded-xl border border-white/10 bg-black/20 p-4 text-xs text-gray-400 leading-relaxed">
+        <div className="mt-8 sm:mt-10 space-y-4 rounded-xl border border-white/10 bg-black/20 p-4 text-xs text-gray-400 leading-relaxed">
           <div>
             <p className="text-sm font-semibold text-white mb-1">Compatibilidad</p>
             <p>

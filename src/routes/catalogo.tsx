@@ -604,6 +604,7 @@ function PiezaCard({
   bajoPedido?: boolean;
 }) {
   const catGrupo = categoriaDePieza(p);
+  const conImagen = Boolean(p.imagenUrl);
 
   return (
     <li className="min-h-0">
@@ -612,14 +613,29 @@ function PiezaCard({
           bajoPedido ? "border-gray-800/80 opacity-95" : "border-emerald-900/40"
         }`}
       >
-        <Link to="/repuesto/$slug" params={{ slug: p.slug }} className="block p-4">
+        <Link to="/repuesto/$slug" params={{ slug: p.slug }} className="block">
+          {conImagen && (
+            <div className="p-3 pb-0">
+              <PiezaCatalogoImagen
+                nombre={p.nombre}
+                referencia={p.referencia}
+                imagenUrl={p.imagenUrl}
+                variant="card"
+                expandible={false}
+              />
+            </div>
+          )}
+          <div className={`p-4 ${conImagen ? "pt-3" : ""}`}>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-            <PiezaCatalogoImagen
-              nombre={p.nombre}
-              imagenUrl={p.imagenUrl}
-              compact
-              className="sm:mr-3 mb-2 sm:mb-0"
-            />
+            {!conImagen && (
+              <PiezaCatalogoImagen
+                nombre={p.nombre}
+                imagenUrl={p.imagenUrl}
+                variant="compact"
+                expandible={false}
+                className="sm:mr-3 mb-2 sm:mb-0"
+              />
+            )}
             <div className="min-w-0 flex-1">
               <p className="text-[11px] font-semibold text-gray-400">
                 {marcaVehiculoDePieza(p)}
@@ -660,6 +676,7 @@ function PiezaCard({
                 {p.stock > 0 ? "Disponible" : "Bajo pedido"}
               </p>
             </div>
+          </div>
           </div>
         </Link>
         {taller && p.precioTaller != null && (
