@@ -1,11 +1,12 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import TallerBanner from "@/components/TallerBanner";
 import { useTallerSession } from "@/components/TallerSessionProvider";
-import { loadPiezaBySlug } from "@/lib/inventario.server";
+import type { PiezaInventario } from "@/lib/inventario";
+import { obtenerPiezaCatalogoPublico } from "@/lib/catalogo.public.functions";
 import { canonicalHref } from "@/lib/site-url";
 import { formatoPrecioCop } from "@/lib/formato-cop";
 import { agregarAlCarritoTaller } from "@/lib/taller-carrito";
@@ -17,7 +18,8 @@ import StudioFooterSignature from "@/components/StudioFooterSignature";
 import PiezaCatalogoImagen from "@/components/PiezaCatalogoImagen";
 
 export const Route = createFileRoute("/repuesto/$slug")({
-  loader: ({ params }) => loadPiezaBySlug(params.slug),
+  loader: ({ params }) => obtenerPiezaCatalogoPublico({ data: { slug: params.slug } }),
+  staleTime: 0,
   component: RepuestoDetallePage,
   head: ({ loaderData, params }) => {
     const pieza = loaderData?.pieza;
@@ -39,7 +41,10 @@ function RepuestoDetallePage() {
   const { pieza: piezaPublica, moneda } = Route.useLoaderData();
   const { taller, whatsappGuardado } = useTallerSession();
   const slug = Route.useParams().slug;
+  const router = useRouter();
   const [piezaTaller, setPiezaTaller] = useState<PiezaCatalogoTaller | null>(null);
+  const [piezaRescate, setPiezaRescate] = useState<PiezaInventario | null>(null);
+  const [rescatando, setRescatando] = useState(false);
 
   useEffect(() => {
     if (!taller || !whatsappGuardado || !slug) {
@@ -63,17 +68,54 @@ function RepuestoDetallePage() {
     };
   }, [taller, whatsappGuardado, slug]);
 
-  const pieza = piezaTaller ?? piezaPublica;
+  useEffect(() => {
+    if (piezaPublica || !slug) {
+      setPiezaRescate(null);
+      return;
+    }
+    let cancelled = false;
+    setRescatando(true);
+    obtenerPiezaCatalogoPublico({ data: { slug } })
+      .then((res) => {
+        if (cancelled) return;
+        if (res.pieza) setPiezaRescate(res.pieza);
+      })
+      .finally(() => {
+        if (!cancelled) setRescatando(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [piezaPublica, slug]);
+
+  const pieza = piezaTaller ?? piezaRescate ?? piezaPublica;
   const precioTaller = piezaTaller?.precioTaller;
 
   if (!pieza) {
     return (
       <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200">
         <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
-          <p className="text-white font-semibold">No encontramos esa referencia.</p>
-          <Button asChild className="mt-6 bg-[oklch(0.7_0.2_40)]">
-            <Link to="/catalogo">Ir al catálogo</Link>
-          </Button>
+          {rescatando ? (
+            <>
+              <Loader2 className="h-8 w-8 animate-spin text-[oklch(0.7_0.2_40)] mb-4" />
+              <p className="text-gray-300 text-sm">Cargando referencia…</p>
+            </>
+          ) : (
+            <>
+              <p className="text-white font-semibold">No encontramos esa referencia.</p>
+              <Button asChild className="mt-6 bg-[oklch(0.7_0.2_40)]">
+                <Link to="/catalogo">Ir al catálogo</Link>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-3 border-gray-600 text-gray-300"
+                onClick={() => void router.invalidate()}
+              >
+                Reintentar
+              </Button>
+            </>
+          )}
         </div>
         <StudioFooterSignature pinBottom />
       </div>

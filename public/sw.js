@@ -1,5 +1,5 @@
 // Increment this when shipping a new release to force cache refresh.
-const CACHE_NAME = "apex-suspension-pwa-v59";
+const CACHE_NAME = "apex-suspension-pwa-v60";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -96,6 +96,8 @@ self.addEventListener("fetch", (event) => {
   if (
     url.pathname.startsWith("/admin") ||
     url.pathname.startsWith("/taller") ||
+    url.pathname.startsWith("/catalogo") ||
+    url.pathname.startsWith("/repuesto") ||
     url.pathname === "/sitemap.xml" ||
     url.pathname === "/robots.txt"
   ) {

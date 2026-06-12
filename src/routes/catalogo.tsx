@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Package, Plus, Search } from "lucide-react";
 
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import TallerBanner from "@/components/TallerBanner";
 import { useTallerSession } from "@/components/TallerSessionProvider";
-import { loadCatalogo } from "@/lib/inventario.server";
+import { obtenerCatalogoPublico } from "@/lib/catalogo.public.functions";
 import { canonicalHref } from "@/lib/site-url";
 import type { PiezaInventario } from "@/lib/inventario";
 import {
@@ -32,7 +32,8 @@ import PiezaCatalogoImagen from "@/components/PiezaCatalogoImagen";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/catalogo")({
-  loader: () => loadCatalogo(),
+  loader: () => obtenerCatalogoPublico(),
+  staleTime: 0,
   component: CatalogoPage,
   head: () => {
     const href = canonicalHref("/catalogo");
@@ -87,6 +88,7 @@ function mensajeConsultaStock(p: PiezaInventario, moneda: string): string {
 
 function CatalogoPage() {
   const { piezas: piezasPublicas, moneda } = Route.useLoaderData();
+  const router = useRouter();
   const isMobile = useIsMobile();
   const porPagina = isMobile ? POR_PAGINA_MOVIL : POR_PAGINA_ESCRITORIO;
   const { taller, whatsappGuardado: whatsappTaller } = useTallerSession();
@@ -102,6 +104,16 @@ function CatalogoPage() {
   const [paginaBajoPedido, setPaginaBajoPedido] = useState(1);
   const seccionBodegaRef = useRef<HTMLElement | null>(null);
   const seccionBajoPedidoRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const refrescarSiVisible = () => {
+      if (document.visibilityState === "visible") {
+        void router.invalidate({ filter: (match) => match.routeId === Route.id });
+      }
+    };
+    document.addEventListener("visibilitychange", refrescarSiVisible);
+    return () => document.removeEventListener("visibilitychange", refrescarSiVisible);
+  }, [router]);
 
   useEffect(() => {
     if (!taller || !whatsappTaller) {

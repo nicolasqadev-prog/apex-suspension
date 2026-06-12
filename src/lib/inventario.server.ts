@@ -166,6 +166,7 @@ export async function loadPiezaBySlug(slug: string): Promise<PiezaLoaderData> {
       if (rows[0]) {
         return { pieza: mapRow(rows[0]), moneda: "COP", fuente: "supabase" };
       }
+      return { pieza: null, moneda: "COP", fuente: "supabase" };
     }
   }
 
