@@ -1,3 +1,4 @@
+import { esReferenciaBodega } from "./inventario-bodega";
 import { listarPiezas } from "./inventario";
 import { loadCatalogo } from "./inventario.server";
 import { normalizeSupabaseUrl } from "./supabase-env";
@@ -131,9 +132,10 @@ export async function listarProductosStockBajo(
     "id,slug,referencia,nombre,marca,precio_lista,stock_actual,activo",
   );
   url.searchParams.set("activo", "eq.true");
+  url.searchParams.set("marca_producto", "in.(KTC,DMB)");
   url.searchParams.set("stock_actual", `lte.${Math.max(0, umbral)}`);
   url.searchParams.set("order", "stock_actual.asc,referencia.asc");
-  url.searchParams.set("limit", String(Math.min(80, Math.max(1, limit))));
+  url.searchParams.set("limit", String(Math.min(200, Math.max(1, limit * 4))));
 
   const res = await fetch(url.toString(), { headers: headers(env) });
   if (!res.ok) {
@@ -142,7 +144,8 @@ export async function listarProductosStockBajo(
   }
 
   const rows = (await res.json()) as ProductoRow[];
-  return { ok: true, productos: rows.map(mapProducto) };
+  const bodega = rows.filter((r) => esReferenciaBodega(r.referencia)).map(mapProducto);
+  return { ok: true, productos: bodega.slice(0, Math.min(80, Math.max(1, limit))) };
 }
 
 async function fetchProductoAdmin(

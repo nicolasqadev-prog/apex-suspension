@@ -25,6 +25,7 @@ type Props = {
 const emptyForm = {
   whatsapp: "",
   nombreTaller: "",
+  nit: "",
   municipio: "",
   direccionEntrega: "",
   contraEntregaHabilitada: true,
@@ -72,6 +73,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
         adminPin,
         whatsapp: form.whatsapp,
         nombreTaller: form.nombreTaller,
+        nit: form.nit,
         municipio: form.municipio,
         direccionEntrega: form.direccionEntrega,
         contraEntregaHabilitada: form.contraEntregaHabilitada,
@@ -98,6 +100,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
     setForm({
       whatsapp: t.whatsapp,
       nombreTaller: t.nombreTaller,
+      nit: t.nit,
       municipio: t.municipio,
       direccionEntrega: t.direccionEntrega,
       contraEntregaHabilitada: t.contraEntregaHabilitada,
@@ -207,6 +210,15 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
           />
         </label>
         <label className="text-xs text-gray-400 block">
+          NIT de la empresa
+          <Input
+            value={form.nit}
+            onChange={(e) => setForm((f) => ({ ...f, nit: e.target.value }))}
+            placeholder="Ej. 900123456-1"
+            className="mt-1 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white"
+          />
+        </label>
+        <label className="text-xs text-gray-400 block">
           Municipio de entrega
           <Input
             value={form.municipio}
@@ -295,6 +307,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
               <div>
                 <p className="font-semibold text-white">{t.nombreTaller}</p>
                 <p className="text-xs text-gray-400 font-mono mt-0.5">{t.whatsapp}</p>
+                {t.nit && <p className="text-xs text-gray-500 mt-0.5">NIT: {t.nit}</p>}
                 {t.municipio && (
                   <p className="text-xs text-gray-500 mt-0.5">
                     {t.municipio}

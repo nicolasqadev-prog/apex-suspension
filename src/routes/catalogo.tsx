@@ -13,12 +13,11 @@ import {
   categoriasOpciones,
   categoriaDePieza,
   filtrarPiezas,
-  hayFiltrosActivos,
+  hayFiltrosActivosSeccion,
   marcasVehiculoOpciones,
   marcaVehiculoDePieza,
   ordenarBajoPedido,
   ordenarPiezas,
-  particionarPorBodega,
   type OrdenCatalogo,
 } from "@/lib/catalogo-filtros";
 import { formatoPrecioCop } from "@/lib/formato-cop";
@@ -96,8 +95,10 @@ function CatalogoPage() {
   const [fuenteTaller, setFuenteTaller] = useState<"supabase" | "json" | null>(null);
   const [cargandoTaller, setCargandoTaller] = useState(false);
   const [q, setQ] = useState("");
-  const [marcaVehiculo, setMarcaVehiculo] = useState("");
-  const [categoria, setCategoria] = useState("");
+  const [marcaVehiculoBodega, setMarcaVehiculoBodega] = useState("");
+  const [categoriaBodega, setCategoriaBodega] = useState("");
+  const [marcaVehiculoBajoPedido, setMarcaVehiculoBajoPedido] = useState("");
+  const [categoriaBajoPedido, setCategoriaBajoPedido] = useState("");
   const [orden, setOrden] = useState<OrdenCatalogo>("stock-desc");
   const [verBajoPedido, setVerBajoPedido] = useState(false);
   const [paginaBodega, setPaginaBodega] = useState(1);
@@ -155,36 +156,69 @@ function CatalogoPage() {
     return piezasPublicas;
   }, [piezasPublicas, piezasTaller, taller]);
 
-  const marcasOpts = useMemo(() => marcasVehiculoOpciones(piezasBase), [piezasBase]);
-  const categoriasOpts = useMemo(() => categoriasOpciones(piezasBase), [piezasBase]);
+  const piezasConStock = useMemo(() => piezasBase.filter((p) => p.stock > 0), [piezasBase]);
+  const piezasSinStock = useMemo(() => piezasBase.filter((p) => p.stock <= 0), [piezasBase]);
 
-  const filtros = useMemo(
+  const marcasOptsBodega = useMemo(() => marcasVehiculoOpciones(piezasConStock), [piezasConStock]);
+  const categoriasOptsBodega = useMemo(
+    () => categoriasOpciones(piezasConStock),
+    [piezasConStock],
+  );
+  const marcasOptsBajoPedido = useMemo(() => marcasVehiculoOpciones(piezasBase), [piezasBase]);
+  const categoriasOptsBajoPedido = useMemo(() => categoriasOpciones(piezasBase), [piezasBase]);
+
+  const filtrosBodega = useMemo(
     () => ({
       q,
-      marcaVehiculo,
+      marcaVehiculo: marcaVehiculoBodega,
       marcaProducto: "",
-      categoria,
+      categoria: categoriaBodega,
       lineaVehiculo: "todos" as const,
       stockFiltro: "todos" as const,
     }),
-    [q, marcaVehiculo, categoria],
+    [q, marcaVehiculoBodega, categoriaBodega],
   );
 
-  const filtrosActivos = hayFiltrosActivos(filtros);
+  const filtrosBajoPedido = useMemo(
+    () => ({
+      q,
+      marcaVehiculo: marcaVehiculoBajoPedido,
+      marcaProducto: "",
+      categoria: categoriaBajoPedido,
+      lineaVehiculo: "todos" as const,
+      stockFiltro: "todos" as const,
+    }),
+    [q, marcaVehiculoBajoPedido, categoriaBajoPedido],
+  );
+
+  const filtrosActivosBodega = hayFiltrosActivosSeccion(filtrosBodega);
+  const filtrosActivosBajoPedido = hayFiltrosActivosSeccion(filtrosBajoPedido);
 
   const { bodega, bajoPedido } = useMemo(() => {
-    const filtradas = filtrarPiezas(piezasBase, filtros);
-    const partes = particionarPorBodega(filtradas);
+    const bodegaFiltrada = filtrarPiezas(piezasConStock, filtrosBodega);
+    const bajoPedidoFiltrado = filtrarPiezas(piezasSinStock, filtrosBajoPedido);
     return {
-      bodega: ordenarPiezas(partes.bodega, orden, q, precioMostrar),
-      bajoPedido: ordenarBajoPedido(partes.bajoPedido, orden, q, precioMostrar),
+      bodega: ordenarPiezas(bodegaFiltrada, orden, q, precioMostrar),
+      bajoPedido: ordenarBajoPedido(bajoPedidoFiltrado, orden, q, precioMostrar),
     };
-  }, [piezasBase, filtros, orden, q]);
+  }, [piezasConStock, piezasSinStock, filtrosBodega, filtrosBajoPedido, orden, q]);
+
+  useEffect(() => {
+    if (marcaVehiculoBodega && !marcasOptsBodega.includes(marcaVehiculoBodega)) {
+      setMarcaVehiculoBodega("");
+    }
+  }, [marcaVehiculoBodega, marcasOptsBodega]);
+
+  useEffect(() => {
+    if (categoriaBodega && !categoriasOptsBodega.includes(categoriaBodega)) {
+      setCategoriaBodega("");
+    }
+  }, [categoriaBodega, categoriasOptsBodega]);
 
   useEffect(() => {
     setPaginaBodega(1);
     setPaginaBajoPedido(1);
-  }, [q, marcaVehiculo, categoria, orden, porPagina]);
+  }, [q, marcaVehiculoBodega, categoriaBodega, marcaVehiculoBajoPedido, categoriaBajoPedido, orden, porPagina]);
 
   const bodegaPag = useMemo(
     () => paginar(bodega, paginaBodega, porPagina),
@@ -203,8 +237,8 @@ function CatalogoPage() {
     if (paginaBajoPedido !== bajoPedidoPag.pagina) setPaginaBajoPedido(bajoPedidoPag.pagina);
   }, [paginaBajoPedido, bajoPedidoPag.pagina]);
 
-  /** Colapsado por defecto; se abre al buscar/filtrar o al pulsar "Ver bajo pedido". */
-  const mostrarBajoPedido = verBajoPedido || filtrosActivos;
+  /** Colapsado por defecto; se abre al buscar, filtrar bajo pedido o al pulsar "Ver bajo pedido". */
+  const mostrarBajoPedido = verBajoPedido || filtrosActivosBajoPedido;
 
   const sinResultados = bodega.length === 0 && (!mostrarBajoPedido || bajoPedido.length === 0);
 
@@ -263,16 +297,17 @@ function CatalogoPage() {
           </span>
         </button>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-2 text-xs">
           <label className="flex flex-col gap-1 text-gray-500 sm:col-span-1">
             <span className="font-medium text-gray-400">Marca del vehículo</span>
+            <span className="text-[10px] text-emerald-500/80">Solo con stock en bodega</span>
             <select
-              value={marcaVehiculo}
-              onChange={(e) => setMarcaVehiculo(e.target.value)}
+              value={marcaVehiculoBodega}
+              onChange={(e) => setMarcaVehiculoBodega(e.target.value)}
               className="rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2"
             >
               <option value="">Todas</option>
-              {marcasOpts.map((m) => (
+              {marcasOptsBodega.map((m) => (
                 <option key={m} value={m}>
                   {m}
                 </option>
@@ -281,13 +316,14 @@ function CatalogoPage() {
           </label>
           <label className="flex flex-col gap-1 text-gray-500 sm:col-span-1">
             <span className="font-medium text-gray-400">Categoría</span>
+            <span className="text-[10px] text-emerald-500/80">Solo con stock en bodega</span>
             <select
-              value={categoria}
-              onChange={(e) => setCategoria(e.target.value)}
+              value={categoriaBodega}
+              onChange={(e) => setCategoriaBodega(e.target.value)}
               className="rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2"
             >
               <option value="">Todas</option>
-              {categoriasOpts.map((c) => (
+              {categoriasOptsBodega.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
@@ -308,6 +344,10 @@ function CatalogoPage() {
             </select>
           </label>
         </div>
+        <p className="text-[11px] text-gray-600 mb-4 leading-relaxed">
+          Los filtros de arriba aplican solo a <span className="text-emerald-400/90">En bodega</span>.
+          En bajo pedido verás el catálogo completo con sus propios filtros.
+        </p>
         {listaCargando && (
           <p className="text-center text-sm text-emerald-200/80 py-12">
             Cargando catálogo con tu precio de taller…
@@ -359,8 +399,8 @@ function CatalogoPage() {
                 </>
               ) : (
                 <p className="text-sm text-gray-500 rounded-lg border border-dashed border-gray-700 px-4 py-6 text-center">
-                  {filtrosActivos
-                    ? "Nada en bodega con esos filtros. Revisa el catálogo bajo pedido abajo o ajusta la búsqueda."
+                  {filtrosActivosBodega
+                    ? "Nada en bodega con esos filtros. Ajusta la búsqueda o revisa el catálogo bajo pedido abajo."
                     : "No hay piezas con stock en bodega en este momento."}
                 </p>
               )}
@@ -396,6 +436,43 @@ function CatalogoPage() {
                   )}
                 </Button>
               </div>
+
+              {mostrarBajoPedido && (
+                <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
+                  <label className="flex flex-col gap-1 text-gray-500">
+                    <span className="font-medium text-gray-400">Marca del vehículo</span>
+                    <span className="text-[10px] text-gray-600">Catálogo completo · bajo pedido</span>
+                    <select
+                      value={marcaVehiculoBajoPedido}
+                      onChange={(e) => setMarcaVehiculoBajoPedido(e.target.value)}
+                      className="rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2"
+                    >
+                      <option value="">Todas</option>
+                      {marcasOptsBajoPedido.map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex flex-col gap-1 text-gray-500">
+                    <span className="font-medium text-gray-400">Categoría</span>
+                    <span className="text-[10px] text-gray-600">Catálogo completo · bajo pedido</span>
+                    <select
+                      value={categoriaBajoPedido}
+                      onChange={(e) => setCategoriaBajoPedido(e.target.value)}
+                      className="rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2"
+                    >
+                      <option value="">Todas</option>
+                      {categoriasOptsBajoPedido.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              )}
 
               {mostrarBajoPedido && bajoPedido.length > 0 && (
                 <>
@@ -435,7 +512,9 @@ function CatalogoPage() {
 
               {mostrarBajoPedido && bajoPedido.length === 0 && (
                 <p className="text-sm text-gray-500 py-6 text-center">
-                  No hay referencias bajo pedido con esos filtros.
+                  {filtrosActivosBajoPedido
+                    ? "No hay referencias bajo pedido con esos filtros."
+                    : "No hay referencias bajo pedido en este momento."}
                 </p>
               )}
             </section>

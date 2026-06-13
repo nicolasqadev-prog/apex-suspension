@@ -1,4 +1,5 @@
 import { inicioDiaBogotaIso, rangoDiaBogotaIso } from "./fecha-bogota";
+import { esReferenciaBodega } from "./inventario-bodega";
 import { registrarMovimientoStock, resolverProductoPedido } from "./inventario-admin.server";
 import { notificarAdminStockBajo } from "./pedidos-alerta.server";
 import { refPedidoCorta } from "./pedidos-estado-taller";
@@ -110,7 +111,12 @@ export async function createPedido(
         reason: `Producto no encontrado en inventario: ${linea.referencia ?? linea.slug}`,
       };
     }
-    if (descontarStock && producto.stockActual > 0 && producto.stockActual < linea.cantidad) {
+    if (
+      descontarStock &&
+      esReferenciaBodega(producto.referencia) &&
+      producto.stockActual > 0 &&
+      producto.stockActual < linea.cantidad
+    ) {
       return {
         ok: false,
         reason: `Stock insuficiente para ${producto.referencia} (hay ${producto.stockActual}, pediste ${linea.cantidad})`,
@@ -153,7 +159,11 @@ export async function createPedido(
       };
     }
 
-    if (descontarStock && linea.producto.stockActual > 0) {
+    if (
+      descontarStock &&
+      esReferenciaBodega(linea.producto.referencia) &&
+      linea.producto.stockActual > 0
+    ) {
       const mov = await registrarMovimientoStock({
         productoId,
         delta: -linea.cantidad,

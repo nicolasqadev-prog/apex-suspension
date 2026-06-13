@@ -1,3 +1,4 @@
+import { esReferenciaBodega } from "./inventario-bodega";
 import { formatoPrecioCop } from "./formato-cop";
 import { refPedidoCorta } from "./pedidos-estado-taller";
 import { normalizeWhatsapp } from "./talleres.server";
@@ -67,6 +68,9 @@ export async function notificarAdminStockBajo(input: {
 }): Promise<{ ok: true; sent: number } | { ok: false; reason: string }> {
   if (input.stockActual > 2) {
     return { ok: false, reason: "sin_alerta" };
+  }
+  if (!esReferenciaBodega(input.referencia)) {
+    return { ok: false, reason: "fuera_bodega" };
   }
   if (!isWebPushConfigured()) {
     return { ok: false, reason: "vapid_no_configurado" };

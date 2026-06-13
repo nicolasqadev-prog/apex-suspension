@@ -11,6 +11,7 @@ export type TallerFidelizadoAdmin = {
   id: string;
   whatsapp: string;
   nombreTaller: string;
+  nit: string;
   descuentoPorcentaje: number;
   contraEntregaHabilitada: boolean;
   activo: boolean;
@@ -46,13 +47,16 @@ type DbRow = {
   publicado?: boolean;
   municipio?: string | null;
   direccion_entrega?: string | null;
+  nit?: string | null;
   created_at: string;
 };
 
 const SELECT_ADMIN_CON_ENTREGA =
-  "id,whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo,publicado,municipio,direccion_entrega,created_at";
+  "id,whatsapp,nombre_taller,nit,descuento_porcentaje,contra_entrega_habilitada,activo,publicado,municipio,direccion_entrega,created_at";
 const SELECT_ADMIN_SIN_ENTREGA =
-  "id,whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo,publicado,created_at";
+  "id,whatsapp,nombre_taller,nit,descuento_porcentaje,contra_entrega_habilitada,activo,publicado,created_at";
+const SELECT_ADMIN_SIN_NIT =
+  "id,whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo,publicado,municipio,direccion_entrega,created_at";
 
 function mapRow(row: DbRow): TallerFidelizadoAdmin {
   return {
@@ -65,6 +69,7 @@ function mapRow(row: DbRow): TallerFidelizadoAdmin {
     publicado: row.publicado !== false,
     municipio: row.municipio?.trim() ?? "",
     direccionEntrega: row.direccion_entrega?.trim() ?? "",
+    nit: row.nit?.trim() ?? "",
     createdAt: row.created_at,
   };
 }
@@ -84,6 +89,10 @@ export async function listTalleresFidelizadosAdmin(): Promise<
     url.searchParams.set("select", SELECT_ADMIN_SIN_ENTREGA);
     res = await fetch(url.toString(), { headers: headers(env) });
   }
+  if (!res.ok && res.status === 400) {
+    url.searchParams.set("select", SELECT_ADMIN_SIN_NIT);
+    res = await fetch(url.toString(), { headers: headers(env) });
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     return { ok: false, reason: `Listar talleres falló (${res.status}) ${text}`.slice(0, 200) };
@@ -96,6 +105,7 @@ export async function listTalleresFidelizadosAdmin(): Promise<
 export type UpsertTallerInput = {
   whatsapp: string;
   nombreTaller: string;
+  nit?: string;
   contraEntregaHabilitada: boolean;
   municipio: string;
   direccionEntrega: string;
@@ -115,9 +125,11 @@ export async function upsertTallerFidelizado(
 
   const municipio = input.municipio.trim();
   const direccionEntrega = input.direccionEntrega.trim();
+  const nit = input.nit?.trim() ?? "";
   const payload: Record<string, unknown> = {
     whatsapp,
     nombre_taller: input.nombreTaller.trim(),
+    nit: nit || null,
     descuento_porcentaje: DESCUENTO_TALLER_POLITICA,
     contra_entrega_habilitada: input.contraEntregaHabilitada,
     activo: input.activo ?? true,
@@ -139,12 +151,17 @@ export async function upsertTallerFidelizado(
   let res = await postUpsert(payload);
 
   if (!res.ok && res.status === 400) {
-    const { municipio: _m, direccion_entrega: _d, ...sinEntrega } = payload;
+    const { municipio: _m, direccion_entrega: _d, nit: _n, ...sinEntrega } = payload;
     res = await postUpsert(sinEntrega);
   }
 
+  if (!res.ok && res.status === 400) {
+    const { nit: _n, ...sinNit } = payload;
+    res = await postUpsert(sinNit);
+  }
+
   if (!res.ok && res.status === 400 && payload.publicado !== undefined) {
-    const { publicado: _p, municipio: _m, direccion_entrega: _d, ...minimo } = payload;
+    const { publicado: _p, municipio: _m, direccion_entrega: _d, nit: _n, ...minimo } = payload;
     res = await postUpsert(minimo);
   }
 

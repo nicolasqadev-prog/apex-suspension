@@ -52,8 +52,8 @@ export default function AdminStockAlertas({ adminPin, refreshKey = 0 }: Props) {
             {productos.length === 1 ? "" : "s"})
           </p>
           <p className="text-xs text-amber-200/80 mt-1 leading-relaxed">
-            Stock en {umbral} unidades o menos. Los pedidos del portal ya descontaron bodega
-            automáticamente.
+            Bodega KTC/DMB con {umbral} unidades o menos. Solo el stock físico que mueves; Districamiones
+            no aparece aquí. Los pedidos del portal descontaron bodega automáticamente.
           </p>
           <ul className="mt-3 space-y-1.5 max-h-40 overflow-y-auto">
             {agotados.map((p) => (

@@ -247,3 +247,9 @@ export function particionarPorBodega<T extends PiezaInventario>(piezas: T[]) {
 export function hayFiltrosActivos(filtros: FiltrosCatalogo): boolean {
   return Boolean(filtros.q.trim() || filtros.marcaVehiculo || filtros.categoria);
 }
+
+export function hayFiltrosActivosSeccion(
+  filtros: Pick<FiltrosCatalogo, "q" | "marcaVehiculo" | "categoria">,
+): boolean {
+  return Boolean(filtros.q.trim() || filtros.marcaVehiculo || filtros.categoria);
+}
