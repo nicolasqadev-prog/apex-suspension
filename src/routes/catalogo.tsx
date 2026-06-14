@@ -273,7 +273,10 @@ function CatalogoPage() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto w-full flex-1 px-4 py-8">
+      <main
+        className="max-w-4xl mx-auto w-full flex-1 px-4 py-6 sm:py-8"
+        style={{ paddingBottom: "max(6rem, calc(1.5rem + env(safe-area-inset-bottom)))" }}
+      >
         <TallerBanner />
 
         <div className="relative mb-4">
@@ -289,22 +292,25 @@ function CatalogoPage() {
         <button
           type="button"
           onClick={() => window.dispatchEvent(new Event("apex:mostrador:open"))}
-          className="mb-6 inline-flex text-xs text-gray-500 text-left"
+          className="mb-6 block w-full text-left text-xs text-gray-500 leading-relaxed"
         >
           ¿No encuentras lo que buscas o no sabes qué pieza es?
-          <span className="ml-1 font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300">
+          <span className="font-semibold text-[oklch(0.7_0.2_40)] hover:text-orange-300">
+            {" "}
             → Te orientamos con el asistente
           </span>
         </button>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-2 text-xs">
-          <label className="flex flex-col gap-1 text-gray-500 sm:col-span-1">
+        <p className="text-[10px] text-emerald-500/80 mb-2">
+          Filtros de bodega — solo piezas con stock físico (despacho inmediato)
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2 text-xs">
+          <label className="flex flex-col gap-1 text-gray-500 min-w-0">
             <span className="font-medium text-gray-400">Marca del vehículo</span>
-            <span className="text-[10px] text-emerald-500/80">Solo con stock en bodega</span>
             <select
               value={marcaVehiculoBodega}
               onChange={(e) => setMarcaVehiculoBodega(e.target.value)}
-              className="rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2"
+              className="w-full rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2.5"
             >
               <option value="">Todas</option>
               {marcasOptsBodega.map((m) => (
@@ -314,13 +320,12 @@ function CatalogoPage() {
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-gray-500 sm:col-span-1">
+          <label className="flex flex-col gap-1 text-gray-500 min-w-0">
             <span className="font-medium text-gray-400">Categoría</span>
-            <span className="text-[10px] text-emerald-500/80">Solo con stock en bodega</span>
             <select
               value={categoriaBodega}
               onChange={(e) => setCategoriaBodega(e.target.value)}
-              className="rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2"
+              className="w-full rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2.5"
             >
               <option value="">Todas</option>
               {categoriasOptsBodega.map((c) => (
@@ -330,12 +335,12 @@ function CatalogoPage() {
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-gray-500 sm:col-span-1">
+          <label className="flex flex-col gap-1 text-gray-500 min-w-0">
             <span className="font-medium text-gray-400">Orden</span>
             <select
               value={orden}
               onChange={(e) => setOrden(e.target.value as OrdenCatalogo)}
-              className="rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2"
+              className="w-full rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2.5"
             >
               <option value="stock-desc">Más stock primero</option>
               <option value="relevancia">Relevancia (con búsqueda)</option>
@@ -438,14 +443,14 @@ function CatalogoPage() {
               </div>
 
               {mostrarBajoPedido && (
-                <div className="grid grid-cols-2 gap-3 mb-4 text-xs">
-                  <label className="flex flex-col gap-1 text-gray-500">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-xs">
+                  <label className="flex flex-col gap-1 text-gray-500 min-w-0">
                     <span className="font-medium text-gray-400">Marca del vehículo</span>
                     <span className="text-[10px] text-gray-600">Catálogo completo · bajo pedido</span>
                     <select
                       value={marcaVehiculoBajoPedido}
                       onChange={(e) => setMarcaVehiculoBajoPedido(e.target.value)}
-                      className="rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2"
+                      className="w-full rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2.5"
                     >
                       <option value="">Todas</option>
                       {marcasOptsBajoPedido.map((m) => (
@@ -455,13 +460,13 @@ function CatalogoPage() {
                       ))}
                     </select>
                   </label>
-                  <label className="flex flex-col gap-1 text-gray-500">
+                  <label className="flex flex-col gap-1 text-gray-500 min-w-0">
                     <span className="font-medium text-gray-400">Categoría</span>
                     <span className="text-[10px] text-gray-600">Catálogo completo · bajo pedido</span>
                     <select
                       value={categoriaBajoPedido}
                       onChange={(e) => setCategoriaBajoPedido(e.target.value)}
-                      className="rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2"
+                      className="w-full rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2.5"
                     >
                       <option value="">Todas</option>
                       {categoriasOptsBajoPedido.map((c) => (
@@ -705,7 +710,7 @@ function PiezaCard({
             </div>
           )}
           <div className={`p-4 ${conImagen ? "pt-3" : ""}`}>
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             {!conImagen && (
               <PiezaCatalogoImagen
                 nombre={p.nombre}
@@ -726,7 +731,7 @@ function PiezaCard({
                 <p className="text-sm text-gray-400 mt-1 line-clamp-2">{p.aplicacion}</p>
               )}
             </div>
-            <div className="text-right shrink-0">
+            <div className="text-left sm:text-right shrink-0 sm:max-w-[42%]">
               {p.precioTaller != null ? (
                 <>
                   <p className="text-[10px] uppercase tracking-wide text-emerald-400/80">

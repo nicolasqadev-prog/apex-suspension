@@ -53,27 +53,19 @@ export default function TallerBanner() {
         </div>
       </div>
 
-      <div
-        className={cn(
-          "grid gap-2 p-3 sm:p-3.5",
-          "grid-cols-2 sm:grid-cols-[1fr_1fr_auto_auto]",
-          "sm:items-center",
-        )}
-      >
-        <Link to="/taller" className={cn(linkClass, "col-span-1")}>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 sm:p-3.5">
+        <Link to="/taller" className={cn(linkClass, "w-full min-h-9")}>
           Mi panel
         </Link>
-        <Link to="/taller/pedidos" className={cn(linkClass, "col-span-1")}>
+        <Link to="/taller/pedidos" className={cn(linkClass, "w-full min-h-9")}>
           Mis pedidos
         </Link>
         <Button
           asChild
           size="sm"
-          className={cn(
-            "col-span-2 sm:col-span-1 h-9 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-sm",
-          )}
+          className="col-span-2 sm:col-span-1 h-9 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-sm"
         >
-          <Link to="/taller/pedido">
+          <Link to="/taller/pedido" className="w-full">
             <ShoppingCart className="h-4 w-4 mr-1.5 shrink-0" />
             Pedido{itemsCarrito > 0 ? ` (${itemsCarrito})` : ""}
           </Link>
@@ -83,10 +75,10 @@ export default function TallerBanner() {
           onClick={logout}
           className={cn(
             linkClass,
-            "col-span-2 sm:col-span-1 border-transparent bg-transparent text-gray-400 hover:text-white hover:bg-white/5",
+            "col-span-2 sm:col-span-1 w-full min-h-9 border-transparent bg-transparent text-gray-400 hover:text-white hover:bg-white/5",
           )}
         >
-          <LogOut className="h-3.5 w-3.5 mr-1.5 inline shrink-0" aria-hidden />
+          <LogOut className="h-3.5 w-3.5 mr-1.5 shrink-0" aria-hidden />
           Cerrar sesión
         </button>
       </div>
