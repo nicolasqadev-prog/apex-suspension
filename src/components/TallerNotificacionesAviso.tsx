@@ -4,9 +4,11 @@ import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTallerSession } from "@/components/TallerSessionProvider";
 import {
+  isIosDevice,
   subscribeAndRegisterPush,
   vincularPushConTelefonoTaller,
 } from "@/lib/pwa-engagement";
+import { isPwaStandalone } from "@/lib/pwa-standalone";
 
 /**
  * En portal taller: vincula push al WhatsApp y muestra aviso si aún no hay permiso.
@@ -30,6 +32,18 @@ export default function TallerNotificacionesAviso() {
   }, [taller, whatsappGuardado]);
 
   if (!taller || vinculado || permiso === "granted") return null;
+
+  if (isIosDevice() && !isPwaStandalone()) {
+    return (
+      <div className="rounded-lg border border-orange-500/30 bg-orange-950/25 px-3 py-2.5 mb-4">
+        <p className="text-xs text-orange-100/90 leading-relaxed">
+          En iPhone, los avisos de pedido funcionan desde la{" "}
+          <strong>app instalada</strong> (Agregar a inicio). Instala Apex arriba y luego vuelve aquí
+          para activar avisos.
+        </p>
+      </div>
+    );
+  }
 
   async function activar() {
     setBusy(true);

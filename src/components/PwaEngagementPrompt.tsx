@@ -1,20 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
-import { Bell, Download, Share, X } from "lucide-react";
+import { Bell, Download, X } from "lucide-react";
 
+import { openIosInstallGuide } from "@/components/IosPwaInstallSheet";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import {
   canSuggestNotifications,
   canSuggestPwaInstall,
   hideEngagementForSession,
-  isIosSafari,
+  iosInstallMode,
+  isIosDevice,
   shouldShowEngagementPrompt,
   snoozeEngagementPrompt,
   subscribeAndRegisterPush,
@@ -31,7 +26,6 @@ export default function PwaEngagementPrompt() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [visible, setVisible] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [iosGuideOpen, setIosGuideOpen] = useState(false);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>("default");
   const [busy, setBusy] = useState<"install" | "notif" | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -46,6 +40,7 @@ export default function PwaEngagementPrompt() {
     const show =
       !isAdminPreviewMode() &&
       !pathname.startsWith("/admin") &&
+      !pathname.startsWith("/taller") &&
       shouldShowEngagementPrompt() &&
       (puedeInstalar || puedeNotifPublica);
     setVisible(show);
@@ -64,15 +59,12 @@ export default function PwaEngagementPrompt() {
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
     const onRequestInstall = () => void onInstallClick();
-    const onIosGuide = () => setIosGuideOpen(true);
 
     window.addEventListener("beforeinstallprompt", onBip);
     window.addEventListener("apex-pwa-request-install", onRequestInstall);
-    window.addEventListener("apex-pwa-open-ios-guide", onIosGuide);
     return () => {
       window.removeEventListener("beforeinstallprompt", onBip);
       window.removeEventListener("apex-pwa-request-install", onRequestInstall);
-      window.removeEventListener("apex-pwa-open-ios-guide", onIosGuide);
     };
     // onInstallClick is stable enough for this bridge from landing buttons
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,6 +77,8 @@ export default function PwaEngagementPrompt() {
 
   const needsInstall = canSuggestPwaInstall();
   const needsNotif = canSuggestNotifications() && notifPermission !== "granted" && !enFlujoTaller;
+  /** En iPhone el botón flotante (IosInstallFab) guía la instalación. */
+  if (isIosDevice() && needsInstall) return null;
 
   if (!visible || (!needsInstall && !needsNotif)) return null;
 
@@ -104,8 +98,8 @@ export default function PwaEngagementPrompt() {
       }
       return;
     }
-    if (isIosSafari() || /iphone|ipad|ipod/i.test(navigator.userAgent)) {
-      setIosGuideOpen(true);
+    if (iosInstallMode()) {
+      openIosInstallGuide();
       return;
     }
     setFeedback("En Chrome o Edge: menú ⋮ → Instalar aplicación o Agregar a pantalla de inicio.");
@@ -195,7 +189,11 @@ export default function PwaEngagementPrompt() {
                 onClick={() => void onInstallClick()}
               >
                 <Download className="h-4 w-4 mr-1.5 shrink-0" />
-                {busy === "install" ? "Abriendo…" : "Instalar en el celular"}
+                {busy === "install"
+                  ? "Abriendo…"
+                  : isIosDevice()
+                    ? "Cómo instalar (3 pasos)"
+                    : "Instalar en el celular"}
               </Button>
             )}
             {needsNotif && (
@@ -240,42 +238,6 @@ export default function PwaEngagementPrompt() {
           )}
         </div>
       </div>
-
-      <Sheet open={iosGuideOpen} onOpenChange={setIosGuideOpen}>
-        <SheetContent
-          side="bottom"
-          className="bg-[oklch(0.14_0.04_250)] border-gray-800 text-gray-200 rounded-t-2xl"
-        >
-          <SheetHeader>
-            <SheetTitle className="text-white flex items-center gap-2">
-              <Share className="h-5 w-5 text-[oklch(0.7_0.2_40)]" />
-              Instalar en iPhone
-            </SheetTitle>
-            <SheetDescription className="text-gray-400 text-left space-y-3 pt-2">
-              <p>
-                1. Toca el botón <strong className="text-gray-200">Compartir</strong> (cuadrado con
-                flecha).
-              </p>
-              <p>
-                2. Elige <strong className="text-gray-200">Agregar a inicio</strong> o{" "}
-                <strong className="text-gray-200">Añadir a pantalla de inicio</strong>.
-              </p>
-              <p>
-                3. Confirma con <strong className="text-gray-200">Agregar</strong>.
-              </p>
-              <p className="text-xs text-gray-500">
-                Desde la app instalada podrás activar notificaciones con el botón de arriba.
-              </p>
-            </SheetDescription>
-          </SheetHeader>
-          <Button
-            className="mt-4 w-full bg-[oklch(0.7_0.2_40)] hover:bg-orange-600"
-            onClick={() => setIosGuideOpen(false)}
-          >
-            Entendido
-          </Button>
-        </SheetContent>
-      </Sheet>
     </>
   );
 }

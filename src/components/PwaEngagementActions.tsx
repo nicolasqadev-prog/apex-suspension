@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   canSuggestNotifications,
   canSuggestPwaInstall,
-  isIosSafari,
+  iosInstallMode,
   subscribeAndRegisterPush,
 } from "@/lib/pwa-engagement";
 
@@ -29,7 +29,7 @@ export function PwaEngagementActions({ onRequestInstall, compact }: Props) {
       onRequestInstall();
       return;
     }
-    if (isIosSafari() || /iphone|ipad|ipod/i.test(navigator.userAgent)) {
+    if (iosInstallMode()) {
       window.dispatchEvent(new Event("apex-pwa-open-ios-guide"));
       return;
     }

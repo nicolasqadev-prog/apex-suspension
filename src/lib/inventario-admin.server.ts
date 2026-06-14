@@ -1,4 +1,4 @@
-import { esReferenciaBodega } from "./inventario-bodega";
+import { esReferenciaBodega, piezasInventarioVivo } from "./inventario-bodega";
 import { listarPiezas } from "./inventario";
 import { loadCatalogo } from "./inventario.server";
 import { normalizeSupabaseUrl } from "./supabase-env";
@@ -258,6 +258,42 @@ export async function registrarMovimientoStock(input: {
   }
 
   return { ok: true, stockActual: nuevo };
+}
+
+/** Restablece stock de bodega según inventario-vivo.json (tras demos). */
+export async function restablecerStockBodegaDesdeVivo(): Promise<
+  { ok: true; ajustados: number; omitidos: number } | { ok: false; reason: string }
+> {
+  const env = getSupabaseEnv();
+  if (!env) return { ok: false, reason: "Supabase no configurado" };
+
+  let ajustados = 0;
+  let omitidos = 0;
+
+  for (const p of piezasInventarioVivo()) {
+    const producto = await getProductoAdminByReferencia(p.referencia);
+    if (!producto) {
+      omitidos += 1;
+      continue;
+    }
+    const delta = p.stock - producto.stockActual;
+    if (delta === 0) continue;
+
+    const mov = await registrarMovimientoStock({
+      productoId: producto.id,
+      delta,
+      motivo: "Restablecer bodega — inventario vivo",
+    });
+    if (!mov.ok) {
+      return {
+        ok: false,
+        reason: `${p.referencia}: ${mov.reason}`,
+      };
+    }
+    ajustados += 1;
+  }
+
+  return { ok: true, ajustados, omitidos };
 }
 
 /** Fallback cuando no hay Supabase: búsqueda en JSON local (solo lectura). */

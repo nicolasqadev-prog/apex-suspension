@@ -134,7 +134,7 @@ function TallerPanelPage() {
                   <span className="text-left">
                     Mi pedido{itemsCarrito > 0 ? ` (${itemsCarrito})` : ""}
                     <span className="block text-xs font-normal text-gray-400 mt-0.5">
-                      Revisar carrito y enviar por WhatsApp
+                      Revisar carrito y enviar pedido a Apex
                     </span>
                   </span>
                 </Link>

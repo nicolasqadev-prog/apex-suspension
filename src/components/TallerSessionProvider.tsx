@@ -25,6 +25,7 @@ type TallerSessionValue = {
   taller: TallerSesion | null;
   loading: boolean;
   whatsappGuardado: string;
+  modoDemostracion: boolean;
   login: (whatsapp: string) => Promise<{ ok: boolean; reason?: string }>;
   logout: () => void;
 };
@@ -34,6 +35,7 @@ const TallerSessionContext = createContext<TallerSessionValue | null>(null);
 export function TallerSessionProvider({ children }: { children: ReactNode }) {
   const [whatsappGuardado, setWhatsappGuardado] = usePersistentState(TALLER_WHATSAPP_KEY, "");
   const [taller, setTaller] = useState<TallerSesion | null>(null);
+  const [modoDemostracion, setModoDemostracion] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -52,9 +54,11 @@ export function TallerSessionProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         if (res.ok && res.taller) {
           setTaller(res.taller);
+          setModoDemostracion(Boolean(res.modoDemostracion));
           if (w !== whatsappGuardado) setWhatsappGuardado(w);
         } else {
           setTaller(null);
+          setModoDemostracion(false);
           if (res.reason !== "pendiente_certificacion") {
             setWhatsappGuardado("");
           }
@@ -90,9 +94,11 @@ export function TallerSessionProvider({ children }: { children: ReactNode }) {
         });
         if (!res.ok) {
           setTaller(null);
+          setModoDemostracion(false);
           return { ok: false, reason: res.reason ?? "no_autorizado" };
         }
         setTaller(res.taller);
+        setModoDemostracion(Boolean(res.modoDemostracion));
         setWhatsappGuardado(w);
         void vincularPushConTelefonoTaller(w);
         return { ok: true };
@@ -106,6 +112,7 @@ export function TallerSessionProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     setWhatsappGuardado("");
     setTaller(null);
+    setModoDemostracion(false);
     vaciarCarritoTaller();
   }, [setWhatsappGuardado]);
 
@@ -114,10 +121,11 @@ export function TallerSessionProvider({ children }: { children: ReactNode }) {
       taller,
       loading,
       whatsappGuardado,
+      modoDemostracion,
       login,
       logout,
     }),
-    [taller, loading, whatsappGuardado, login, logout],
+    [taller, loading, whatsappGuardado, modoDemostracion, login, logout],
   );
 
   return <TallerSessionContext.Provider value={value}>{children}</TallerSessionContext.Provider>;

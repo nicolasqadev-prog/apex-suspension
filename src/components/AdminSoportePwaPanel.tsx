@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, ExternalLink, Rocket, Smartphone } from "lucide-react";
+import { Eye, EyeOff, ExternalLink, Presentation, Rocket, Smartphone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,13 @@ import {
   isModoPreparacion,
   setModoPreparacion,
 } from "@/lib/admin-preparacion";
-import { publicarOperacionVivoAdmin } from "@/lib/admin-operacion.functions";
+import {
+  estadoModoDemostracionAdmin,
+  limpiarPedidosPruebaAdmin,
+  publicarOperacionVivoAdmin,
+  restablecerStockBodegaAdmin,
+  toggleModoDemostracionAdmin,
+} from "@/lib/admin-operacion.functions";
 import { guardarWhatsappTallerEnCliente } from "@/lib/taller-whatsapp";
 
 type Props = {
@@ -30,6 +36,8 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
   const [bannerMensaje, setBannerMensaje] = useState("");
   const [whatsappPrueba, setWhatsappPrueba] = useState("");
   const [publicando, setPublicando] = useState(false);
+  const [modoDemoOn, setModoDemoOn] = useState(false);
+  const [demoBusy, setDemoBusy] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
 
   useEffect(() => {
@@ -40,7 +48,12 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
       setBannerActivo(draft.activo);
       setBannerMensaje(draft.mensaje);
     }
-  }, []);
+    if (adminPin) {
+      void estadoModoDemostracionAdmin({ data: { adminPin } }).then((res) => {
+        if (res.ok) setModoDemoOn(res.modoDemostracion);
+      });
+    }
+  }, [adminPin]);
 
   function togglePreparacion() {
     const next = !preparacionOn;
@@ -88,6 +101,70 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
       setMensaje(e instanceof Error ? e.message : "No se pudo publicar");
     } finally {
       setPublicando(false);
+    }
+  }
+
+  async function toggleModoDemo() {
+    if (!adminPin) return;
+    setDemoBusy(true);
+    setMensaje(null);
+    try {
+      const res = await toggleModoDemostracionAdmin({
+        data: { adminPin, activo: !modoDemoOn },
+      });
+      if (!res.ok) {
+        setMensaje(res.reason);
+        return;
+      }
+      setModoDemoOn(res.modoDemostracion);
+      setMensaje(
+        res.modoDemostracion
+          ? "Modo demostración ACTIVO: los talleres certificados pueden hacer pedidos de prueba sin descontar stock."
+          : "Modo demostración apagado. Los pedidos vuelven a ser operación real.",
+      );
+    } finally {
+      setDemoBusy(false);
+    }
+  }
+
+  async function onRestablecerStock() {
+    if (!adminPin) return;
+    if (
+      !window.confirm(
+        "¿Restablecer stock de bodega según inventario-vivo.json?\n\nCorrige unidades descontadas en demos.",
+      )
+    ) {
+      return;
+    }
+    setDemoBusy(true);
+    setMensaje(null);
+    try {
+      const res = await restablecerStockBodegaAdmin({ data: { adminPin } });
+      if (!res.ok) {
+        setMensaje(res.reason);
+        return;
+      }
+      setMensaje(
+        `Stock restablecido: ${res.ajustados} referencia(s) corregida(s)${res.omitidos ? `, ${res.omitidos} omitida(s)` : ""}.`,
+      );
+    } finally {
+      setDemoBusy(false);
+    }
+  }
+
+  async function onLimpiarPedidosPrueba() {
+    if (!adminPin) return;
+    setDemoBusy(true);
+    setMensaje(null);
+    try {
+      const res = await limpiarPedidosPruebaAdmin({ data: { adminPin } });
+      if (!res.ok) {
+        setMensaje(res.reason);
+        return;
+      }
+      setMensaje(`Eliminados ${res.eliminados} pedido(s) de prueba.`);
+    } finally {
+      setDemoBusy(false);
     }
   }
 
@@ -171,6 +248,60 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
           >
             <Rocket className="h-4 w-4 mr-1.5" />
             {publicando ? "Publicando…" : "Publicar a operación en vivo"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-orange-500/45 bg-orange-950/30 p-4 space-y-3">
+        <div className="flex items-start gap-2">
+          <Presentation className="h-4 w-4 text-orange-300 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-orange-100">
+              Demostraciones en campo (clientes reales)
+            </p>
+            <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+              Activa esto <strong className="text-gray-300">antes</strong> de mostrar la PWA a un
+              taller certificado. Verán catálogo, precios y pedido completo, pero{" "}
+              <strong className="text-orange-200">no se descuenta stock real</strong>.
+            </p>
+          </div>
+        </div>
+        <ol className="text-[11px] text-gray-400 space-y-1 list-decimal pl-4">
+          <li>Activa modo demostración aquí.</li>
+          <li>El taller entra con su WhatsApp en /taller/acceso (como siempre).</li>
+          <li>Muestra catálogo, carrito y envío de pedido — aparece aviso ámbar en el banner.</li>
+          <li>Al terminar: apaga demostración, restablece stock y limpia pedidos de prueba.</li>
+        </ol>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            disabled={demoBusy || !adminPin}
+            onClick={() => void toggleModoDemo()}
+            className={
+              modoDemoOn
+                ? "bg-orange-600 hover:bg-orange-500 text-white"
+                : "bg-gray-700 hover:bg-gray-600 text-white"
+            }
+          >
+            {modoDemoOn ? "Demostración activa (apagar)" : "Activar modo demostración"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={demoBusy || !adminPin}
+            className="border-emerald-600 text-emerald-200"
+            onClick={() => void onRestablecerStock()}
+          >
+            Restablecer stock bodega
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={demoBusy || !adminPin}
+            className="border-gray-600 text-gray-300"
+            onClick={() => void onLimpiarPedidosPrueba()}
+          >
+            Limpiar pedidos de prueba
           </Button>
         </div>
       </div>

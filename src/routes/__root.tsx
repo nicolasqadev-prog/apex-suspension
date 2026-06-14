@@ -6,7 +6,10 @@ import AdminPreviewBanner from "@/components/AdminPreviewBanner";
 import CarritoAgregadoAviso from "@/components/CarritoAgregadoAviso";
 import MostradorChat from "@/components/MostradorChat";
 import ServiceWorkerNavigation from "@/components/ServiceWorkerNavigation";
+import IosInstallFab from "@/components/IosInstallFab";
+import IosInstallGuideHost from "@/components/IosInstallGuideHost";
 import PwaEngagementPrompt from "@/components/PwaEngagementPrompt";
+import PwaWelcomeSplash from "@/components/PwaWelcomeSplash";
 import { TallerSessionProvider } from "@/components/TallerSessionProvider";
 import { siteOriginForHead } from "@/lib/site-url";
 
@@ -70,7 +73,8 @@ export const Route = createRootRoute({
       const ogImage = base ? `${base}/og-image.png` : "/og-image.png";
       return [
         { charSet: "utf-8" },
-        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+        { name: "theme-color", content: "#1B2B48" },
         { name: "mobile-web-app-capable", content: "yes" },
         { name: "apple-mobile-web-app-capable", content: "yes" },
         { name: "apple-mobile-web-app-title", content: "Apex" },
@@ -158,6 +162,9 @@ function RootComponent() {
         <TallerSessionProvider>
           <ServiceWorkerNavigation />
           <Outlet />
+          <PwaWelcomeSplash />
+          <IosInstallGuideHost />
+          <IosInstallFab />
           <PwaEngagementPrompt />
           <CarritoAgregadoAviso />
           <MostradorChat />

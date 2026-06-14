@@ -7,13 +7,72 @@ import {
 const SESSION_HIDE_KEY = "apex.pwa.engagement.hideSession";
 const SNOOZE_KEY = "apex.pwa.engagement.snoozeUntil";
 
+export function isIosDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+export function isChromeIos(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /crios/i.test(navigator.userAgent);
+}
+
 export function isIosSafari(): boolean {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
-  const isIos = /iphone|ipad|ipod/i.test(ua);
+  const isIos = isIosDevice();
   const isWebkit = /webkit/i.test(ua);
-  const isChromeIos = /crios/i.test(ua);
-  return isIos && isWebkit && !isChromeIos;
+  return isIos && isWebkit && !isChromeIos();
+}
+
+/** WhatsApp, Instagram, etc. — no permiten “Agregar a inicio” de forma fiable. */
+export function isInAppBrowser(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  if (/WhatsApp|Instagram|FBAN|FBAV|FBIOS|Line\/|Twitter|Snapchat|TikTok|LinkedInApp|GSA\//i.test(ua)) {
+    return true;
+  }
+  if (isIosDevice() && !isIosSafari() && !isChromeIos()) {
+    if (/AppleWebKit/i.test(ua) && !/Safari/i.test(ua)) return true;
+  }
+  return false;
+}
+
+export type IosInstallMode = "in-app" | "safari" | "chrome-ios" | "other-ios";
+
+export function iosInstallMode(): IosInstallMode | null {
+  if (!isIosDevice()) return null;
+  if (isInAppBrowser()) return "in-app";
+  if (isIosSafari()) return "safari";
+  if (isChromeIos()) return "chrome-ios";
+  return "other-ios";
+}
+
+export async function copiarEnlaceActual(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  const url = window.location.href;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url);
+      return true;
+    }
+  } catch {
+    // fallback abajo
+  }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = url;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
 }
 
 export function canSuggestPwaInstall(): boolean {

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { allowNoPublicadoEnServidor } from "./admin-preparacion.server";
 import { loadCatalogoTaller, loadPiezaTaller } from "./inventario-taller.server";
+import { getModoDemostracion } from "./operacion-config.server";
 import { notificarApexNuevoPedido, notificarTallerPedidoEnviado } from "./pedidos-alerta.server";
 import { createPedido, getPedidoById, getPedidoLineas, listPedidosPorTelefono } from "./pedidos.server";
 import { getTallerFidelizadoByWhatsapp } from "./talleres.server";
@@ -106,6 +107,7 @@ export const iniciarSesionTaller = createServerFn({ method: "POST" })
         municipio: taller.municipio,
         direccionEntrega: taller.direccionEntrega,
       },
+      modoDemostracion: await getModoDemostracion(),
     };
   });
 
@@ -122,6 +124,7 @@ export const obtenerCatalogoTaller = createServerFn({ method: "POST" })
       piezas: result.piezas,
       moneda: result.moneda,
       fuente: result.fuente,
+      modoDemostracion: await getModoDemostracion(),
     };
   });
 
@@ -190,7 +193,7 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
       )
       .join("\n");
 
-    const esPrueba = !catalogo.taller.publicado;
+    const esPrueba = !catalogo.taller.publicado || (await getModoDemostracion());
 
     const notasPedido = [
       esPrueba ? "[PRUEBA — no operación]" : "Portal taller fidelizado",
@@ -272,6 +275,7 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
       ahorroCop,
       mensajeWhatsapp,
       contraEntregaHabilitada: catalogo.taller.contraEntregaHabilitada,
+      esPrueba,
     };
   });
 
