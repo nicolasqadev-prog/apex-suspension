@@ -9,7 +9,6 @@ import { etiquetaEstadoTaller, refPedidoCorta } from "@/lib/pedidos-estado-talle
 import { fechaCalendarioBogota, restarDiasCalendarioBogota } from "@/lib/fecha-bogota";
 
 type Props = {
-  adminPin: string;
   modoPreparacion: boolean;
 };
 
@@ -98,7 +97,7 @@ function pedidosACsv(pedidos: PedidoHistorial[]): string[][] {
   return filas;
 }
 
-export default function AdminHistorialPanel({ adminPin, modoPreparacion }: Props) {
+export default function AdminHistorialPanel({ modoPreparacion }: Props) {
   const hoy = fechaCalendarioBogota();
   const [fechaDesde, setFechaDesde] = useState(hoy);
   const [fechaHasta, setFechaHasta] = useState(hoy);
@@ -109,13 +108,11 @@ export default function AdminHistorialPanel({ adminPin, modoPreparacion }: Props
   const [expandido, setExpandido] = useState<string | null>(null);
 
   const buscar = useCallback(async () => {
-    if (!adminPin) return;
     setLoading(true);
     setMensaje(null);
     try {
       const res = await buscarPedidosHistorialAdmin({
         data: {
-          adminPin,
           fechaDesde,
           fechaHasta,
           busqueda: busqueda.trim() || undefined,
@@ -137,13 +134,12 @@ export default function AdminHistorialPanel({ adminPin, modoPreparacion }: Props
     } finally {
       setLoading(false);
     }
-  }, [adminPin, busqueda, fechaDesde, fechaHasta, modoPreparacion]);
+  }, [busqueda, fechaDesde, fechaHasta, modoPreparacion]);
 
   useEffect(() => {
     void buscar();
-    // Solo al cambiar rango de fechas o modo; la búsqueda por texto va con el botón.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fechaDesde, fechaHasta, modoPreparacion, adminPin]);
+  }, [fechaDesde, fechaHasta, modoPreparacion]);
 
   function aplicarRango(desde: string, hasta: string) {
     setFechaDesde(desde);

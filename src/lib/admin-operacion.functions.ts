@@ -1,27 +1,24 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { verifyAdminPinValue } from "./admin-auth.server";
+import { AdminAuthSchema } from "./admin-auth.schema";
+import { requireAdminAuth } from "./admin-session.server";
 import { restablecerStockBodegaDesdeVivo } from "./inventario-admin.server";
 import { getModoDemostracion, setModoDemostracion } from "./operacion-config.server";
 import { eliminarPedidosPrueba, publicarTalleresBorrador } from "./talleres-admin.server";
 
-const PinSchema = z.object({
-  adminPin: z.string().min(4).max(64),
-});
-
-const PublicarSchema = PinSchema.extend({
+const PublicarSchema = AdminAuthSchema.extend({
   limpiarPedidosPrueba: z.boolean().optional(),
 });
 
-const ModoDemoSchema = PinSchema.extend({
+const ModoDemoSchema = AdminAuthSchema.extend({
   activo: z.boolean(),
 });
 
 export const estadoModoDemostracionAdmin = createServerFn({ method: "POST" })
-  .inputValidator(PinSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .inputValidator(AdminAuthSchema)
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
     const modoDemostracion = await getModoDemostracion();
     return { ok: true as const, modoDemostracion };
@@ -29,8 +26,8 @@ export const estadoModoDemostracionAdmin = createServerFn({ method: "POST" })
 
 export const toggleModoDemostracionAdmin = createServerFn({ method: "POST" })
   .inputValidator(ModoDemoSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
     const res = await setModoDemostracion(data.activo);
     if (!res.ok) return { ok: false as const, reason: res.reason };
@@ -38,9 +35,9 @@ export const toggleModoDemostracionAdmin = createServerFn({ method: "POST" })
   });
 
 export const restablecerStockBodegaAdmin = createServerFn({ method: "POST" })
-  .inputValidator(PinSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .inputValidator(AdminAuthSchema)
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
     const res = await restablecerStockBodegaDesdeVivo();
     if (!res.ok) return { ok: false as const, reason: res.reason };
@@ -48,9 +45,9 @@ export const restablecerStockBodegaAdmin = createServerFn({ method: "POST" })
   });
 
 export const limpiarPedidosPruebaAdmin = createServerFn({ method: "POST" })
-  .inputValidator(PinSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .inputValidator(AdminAuthSchema)
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
     const res = await eliminarPedidosPrueba();
     if (!res.ok) return { ok: false as const, reason: res.reason };
@@ -59,8 +56,8 @@ export const limpiarPedidosPruebaAdmin = createServerFn({ method: "POST" })
 
 export const publicarOperacionVivoAdmin = createServerFn({ method: "POST" })
   .inputValidator(PublicarSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
 
     const talleres = await publicarTalleresBorrador();

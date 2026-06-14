@@ -18,7 +18,6 @@ import { guardarWhatsappTallerEnCliente } from "@/lib/taller-whatsapp";
 import type { TallerFidelizadoAdmin } from "@/lib/talleres-admin.server";
 
 type Props = {
-  adminPin: string;
   modoPreparacion: boolean;
 };
 
@@ -31,7 +30,7 @@ const emptyForm = {
   contraEntregaHabilitada: true,
 };
 
-export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props) {
+export default function AdminTalleresPanel({ modoPreparacion }: Props) {
   const [talleres, setTalleres] = useState<TallerFidelizadoAdmin[]>([]);
   const [ultimosPedidos, setUltimosPedidos] = useState<UltimoPedidoTaller[]>([]);
   const [loading, setLoading] = useState(false);
@@ -40,11 +39,10 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
   const [editingWhatsapp, setEditingWhatsapp] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!adminPin) return;
     setLoading(true);
     setMessage(null);
     try {
-      const res = await listarTalleresAdmin({ data: { adminPin } });
+      const res = await listarTalleresAdmin({ data: {} });
       if (!res.ok) {
         setMessage(res.reason);
         setTalleres([]);
@@ -57,7 +55,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
     } finally {
       setLoading(false);
     }
-  }, [adminPin]);
+  }, []);
 
   useEffect(() => {
     void refresh();
@@ -65,12 +63,10 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
 
   async function onGuardar(e: React.FormEvent) {
     e.preventDefault();
-    if (!adminPin) return;
     setMessage(null);
     const existing = editingWhatsapp ? talleres.find((t) => t.whatsapp === editingWhatsapp) : null;
     const res = await guardarTallerAdmin({
       data: {
-        adminPin,
         whatsapp: form.whatsapp,
         nombreTaller: form.nombreTaller,
         nit: form.nit,
@@ -108,8 +104,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
   }
 
   async function onDesactivar(whatsapp: string) {
-    if (!adminPin) return;
-    const res = await desactivarTallerAdmin({ data: { adminPin, whatsapp } });
+    const res = await desactivarTallerAdmin({ data: { whatsapp } });
     if (!res.ok) {
       setMessage(res.reason);
       return;
@@ -131,8 +126,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
   }
 
   async function onCertificar(whatsapp: string) {
-    if (!adminPin) return;
-    const res = await certificarTallerAdmin({ data: { adminPin, whatsapp } });
+    const res = await certificarTallerAdmin({ data: { whatsapp } });
     if (!res.ok) {
       setMessage(res.reason);
       return;
@@ -142,8 +136,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
   }
 
   async function onReactivar(whatsapp: string) {
-    if (!adminPin) return;
-    const res = await reactivarTallerAdmin({ data: { adminPin, whatsapp } });
+    const res = await reactivarTallerAdmin({ data: { whatsapp } });
     if (!res.ok) {
       setMessage(res.reason);
       return;
@@ -153,7 +146,6 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
   }
 
   async function onEliminar(whatsapp: string, nombre: string) {
-    if (!adminPin) return;
     if (
       !window.confirm(
         `¿Eliminar permanentemente "${nombre}"? No se puede deshacer. Si solo quieres cortar acceso, usa Desactivar.`,
@@ -161,7 +153,7 @@ export default function AdminTalleresPanel({ adminPin, modoPreparacion }: Props)
     ) {
       return;
     }
-    const res = await eliminarTallerAdmin({ data: { adminPin, whatsapp } });
+    const res = await eliminarTallerAdmin({ data: { whatsapp } });
     if (!res.ok) {
       setMessage(res.reason);
       return;

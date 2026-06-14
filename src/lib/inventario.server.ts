@@ -45,6 +45,11 @@ async function resolverSelectCampos(cfg: {
   return selectCamposCache;
 }
 
+function sinPrecioTallerRef(pieza: PiezaInventario): PiezaInventario {
+  const { precioTallerRef: _omit, ...rest } = pieza;
+  return rest;
+}
+
 function mapRow(r: ProductoRow): PiezaInventario {
   const pieza = completarPieza({
     slug: r.slug,
@@ -114,6 +119,19 @@ export type CatalogoLoaderData = {
   moneda: string;
   fuente: "supabase" | "json";
 };
+
+/** Catálogo público: sin precio de referencia taller (solo precio lista). */
+export async function loadCatalogoPublico(): Promise<CatalogoLoaderData> {
+  const data = await loadCatalogo();
+  return { ...data, piezas: data.piezas.map(sinPrecioTallerRef) };
+}
+
+/** Detalle público por slug: sin precio taller. */
+export async function loadPiezaPublicaBySlug(slug: string): Promise<PiezaLoaderData> {
+  const data = await loadPiezaBySlug(slug);
+  if (!data.pieza) return data;
+  return { ...data, pieza: sinPrecioTallerRef(data.pieza) };
+}
 
 /** Catálogo: Supabase si hay filas; si no, JSON local. */
 export async function loadCatalogo(): Promise<CatalogoLoaderData> {

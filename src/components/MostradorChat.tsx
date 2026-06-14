@@ -130,7 +130,9 @@ export default function MostradorChat() {
         if (whatsapp.replace(/\D/g, "").length >= 10) {
           try {
             const t = await consultarTallerFidelizado({ data: { whatsapp: whatsapp.trim() } });
-            if (t.validado) {
+            if (!t.ok) {
+              setTallerCuenta(undefined);
+            } else if (t.validado) {
               setTallerCuenta({
                 validado: true,
                 contraEntregaHabilitada: t.contraEntregaHabilitada,

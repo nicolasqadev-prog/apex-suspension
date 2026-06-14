@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { Bell } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import AdminCatalogoStatus from "@/components/AdminCatalogoStatus";
 import AdminDemoChecklist from "@/components/AdminDemoChecklist";
@@ -17,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ADMIN_REFRESH_MS } from "@/lib/admin-despachos";
 import { ADMIN_PREPARACION_EVENT, isModoPreparacion } from "@/lib/admin-preparacion";
+import { cerrarSesionAdminFn, iniciarSesionAdmin, sesionAdminActiva } from "@/lib/admin-auth.functions";
 import { googleMapsRouteUrl } from "@/lib/maps-ruta";
 import { listarPedidosRecientes } from "@/lib/pedidos.functions";
 import { vincularPushConTelefonoTaller } from "@/lib/pwa-engagement";
@@ -32,53 +32,6 @@ type Pedido = {
   es_prueba?: boolean;
 };
 
-const RATE_WINDOW_MS = 10 * 60_000;
-const RATE_MAX_FAILS = 5;
-const rateFailsByIp = new Map<string, { count: number; firstAt: number }>();
-
-function getIpFromHeaders(headers: Headers): string {
-  const cf = headers.get("CF-Connecting-IP");
-  if (cf) return cf.trim();
-  const xff = headers.get("X-Forwarded-For");
-  if (xff) return xff.split(",")[0]?.trim() || "unknown";
-  return "unknown";
-}
-
-const verifyAdminPin = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => {
-    if (!data || typeof data !== "object") throw new Error("Datos inválidos");
-    const pin = (data as { pin?: unknown }).pin;
-    if (typeof pin !== "string") throw new Error("PIN inválido");
-    return { pin };
-  })
-  .handler(async (ctx) => {
-    const data = (ctx as { data: { pin: string } }).data;
-    const request = (ctx as { request?: Request }).request;
-    const ip = request ? getIpFromHeaders(request.headers) : "unknown";
-    const now = Date.now();
-    const slot = rateFailsByIp.get(ip);
-    if (slot && now - slot.firstAt <= RATE_WINDOW_MS && slot.count >= RATE_MAX_FAILS) {
-      return { ok: false, reason: "bloqueado" } as const;
-    }
-
-    // En desarrollo, PIN de prueba si no hay variable (cambiar en producción vía ADMIN_PIN).
-    const expected = process.env.ADMIN_PIN ?? (import.meta.env.DEV ? "Panel1234" : undefined);
-    if (!expected) {
-      return { ok: false, reason: "ADMIN_PIN no configurado en el servidor" } as const;
-    }
-    const ok = data.pin === expected;
-    if (!ok) {
-      if (!slot || now - slot.firstAt > RATE_WINDOW_MS) {
-        rateFailsByIp.set(ip, { count: 1, firstAt: now });
-      } else {
-        rateFailsByIp.set(ip, { count: slot.count + 1, firstAt: slot.firstAt });
-      }
-    } else {
-      rateFailsByIp.delete(ip);
-    }
-    return { ok } as const;
-  });
-
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
   head: () => ({
@@ -86,32 +39,41 @@ export const Route = createFileRoute("/admin")({
   }),
 });
 
-const STORAGE_KEY = "apex_admin_session";
-const PIN_STORAGE_KEY = "apex_admin_pin";
+const STORAGE_KEY = "apex_admin_ui";
 
 function AdminPage() {
   const [pin, setPin] = useState("");
-  const [status, setStatus] = useState<"idle" | "checking" | "denied" | "allowed">("idle");
+  const [status, setStatus] = useState<"idle" | "checking" | "denied" | "allowed">("checking");
   const [message, setMessage] = useState<string | null>(null);
 
-  const hasSession = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.sessionStorage.getItem(STORAGE_KEY) === "1";
-  }, []);
-
   useEffect(() => {
-    if (hasSession) setStatus("allowed");
-  }, [hasSession]);
+    void sesionAdminActiva().then((res) => {
+      if (res.ok) {
+        setStatus("allowed");
+        try {
+          sessionStorage.setItem(STORAGE_KEY, "1");
+        } catch {
+          // ignore
+        }
+      } else {
+        setStatus("idle");
+      }
+    });
+  }, []);
 
   async function onLogin() {
     setStatus("checking");
     setMessage(null);
     try {
-      const res = await verifyAdminPin({ data: { pin } });
+      const res = await iniciarSesionAdmin({ data: { pin } });
       if (res.ok) {
-        window.sessionStorage.setItem(STORAGE_KEY, "1");
-        window.sessionStorage.setItem(PIN_STORAGE_KEY, pin);
+        try {
+          sessionStorage.setItem(STORAGE_KEY, "1");
+        } catch {
+          // ignore
+        }
         setStatus("allowed");
+        setPin("");
         const telOp = (import.meta.env.VITE_WHATSAPP_APEX as string | undefined)?.trim();
         if (telOp) void vincularPushConTelefonoTaller(telOp);
         return;
@@ -124,12 +86,24 @@ function AdminPage() {
     }
   }
 
-  function onLogout() {
-    window.sessionStorage.removeItem(STORAGE_KEY);
-    window.sessionStorage.removeItem(PIN_STORAGE_KEY);
+  async function onLogout() {
+    await cerrarSesionAdminFn();
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
     setStatus("idle");
     setPin("");
     setMessage(null);
+  }
+
+  if (status === "checking" && !message) {
+    return (
+      <div className="min-h-screen bg-[oklch(0.18_0.04_250)] text-gray-200 flex items-center justify-center">
+        <p className="text-sm text-gray-400">Verificando sesión…</p>
+      </div>
+    );
   }
 
   if (status !== "allowed") {
@@ -178,8 +152,6 @@ function AdminPage() {
 type AdminTab = "talleres" | "inventario" | "operacion" | "historial" | "soporte";
 
 function AdminAuthed({ onLogout }: { onLogout: () => void }) {
-  const adminPin =
-    typeof window !== "undefined" ? (window.sessionStorage.getItem(PIN_STORAGE_KEY) ?? "") : "";
   const [tab, setTab] = useState<AdminTab>("talleres");
   const [modoPreparacion, setModoPreparacion] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -204,7 +176,6 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
     try {
       const res = await listarPedidosRecientes({
         data: {
-          adminPin,
           ventana: modoPreparacion ? "minutos" : "dia",
           minutes: 120,
           soloPrueba: modoPreparacion,
@@ -287,7 +258,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
                 ? "Modo prueba · 2 h · refresh 15 min"
                 : "Pedidos del día · Colombia · refresh 15 min"}
             </p>
-            <AdminCatalogoStatus adminPin={adminPin} />
+            <AdminCatalogoStatus />
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Button
@@ -323,14 +294,10 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
 
       <main className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <AdminDemoChecklist
-          adminPin={adminPin}
           refreshKey={checklistRefreshKey}
           onIrSoporte={() => setTab("soporte")}
         />
-        <AdminOperadorAvisos
-          adminPin={adminPin}
-          onVinculado={() => setChecklistRefreshKey((k) => k + 1)}
-        />
+        <AdminOperadorAvisos onVinculado={() => setChecklistRefreshKey((k) => k + 1)} />
         <nav className="mb-4 sm:mb-6 border-b border-white/10 pb-2 -mx-3 sm:-mx-4 px-3 sm:px-4 overflow-x-auto overscroll-x-contain">
           <div className="flex gap-1.5 min-w-max pb-1">
           {(
@@ -366,26 +333,19 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
           </p>
         )}
 
-        {tab === "talleres" && (
-          <AdminTalleresPanel adminPin={adminPin} modoPreparacion={modoPreparacion} />
-        )}
+        {tab === "talleres" && <AdminTalleresPanel modoPreparacion={modoPreparacion} />}
 
-        {tab === "inventario" && <AdminInventarioPanel adminPin={adminPin} />}
+        {tab === "inventario" && <AdminInventarioPanel />}
 
-        {tab === "historial" && (
-          <AdminHistorialPanel adminPin={adminPin} modoPreparacion={modoPreparacion} />
-        )}
+        {tab === "historial" && <AdminHistorialPanel modoPreparacion={modoPreparacion} />}
 
         {tab === "soporte" && (
-          <AdminSoportePwaPanel
-            adminPin={adminPin}
-            onPreparacionChange={() => setModoPreparacion(isModoPreparacion())}
-          />
+          <AdminSoportePwaPanel onPreparacionChange={() => setModoPreparacion(isModoPreparacion())} />
         )}
 
         {tab === "operacion" && (
           <>
-            <AdminStockAlertas adminPin={adminPin} refreshKey={pedidosRefreshKey} />
+            <AdminStockAlertas refreshKey={pedidosRefreshKey} />
             {pedidosPendientes > 0 && (
               <p className="mb-4 text-sm text-emerald-100 rounded-lg border border-emerald-500/40 bg-emerald-950/40 px-4 py-3">
                 <strong className="text-emerald-300">{pedidosPendientes}</strong>{" "}
@@ -393,7 +353,7 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
                 enviado). Actualización automática cada 15 min (o push al instante).
               </p>
             )}
-            <AdminPushPanel adminPin={adminPin} pedidos={pedidos} onPedidosChange={() => void refresh()} />
+            <AdminPushPanel pedidos={pedidos} onPedidosChange={() => void refresh()} />
 
             <div className="rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-5 mb-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

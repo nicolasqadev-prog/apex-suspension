@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { verifyAdminPinValue } from "./admin-auth.server";
+import { requireAdminAuth } from "./admin-session.server";
+import { telefonoAutorizadoParaPush } from "./push-auth.server";
+import { getClientIp, checkRateLimit } from "./rate-limit.server";
 import { telefonoAdminApex } from "./pedidos-alerta.server";
 import { esEstadoPedidoValido, getPedidoById, updatePedidoEstado } from "./pedidos.server";
 import { upsertPushSubscription } from "./push-subscriptions.server";
@@ -24,7 +26,17 @@ const SubscriptionSchema = z.object({
 
 export const guardarSuscripcionPush = createServerFn({ method: "POST" })
   .inputValidator(SubscriptionSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ data, request }) => {
+    const ip = getClientIp(request);
+    if (!checkRateLimit("push-subscribe", ip, 20, 10 * 60_000)) {
+      return { ok: false as const, reason: "Demasiados intentos. Espera unos minutos." };
+    }
+
+    if (data.telefono?.trim()) {
+      const authTel = await telefonoAutorizadoParaPush(data.telefono);
+      if (!authTel.ok) return { ok: false as const, reason: authTel.reason };
+    }
+
     return upsertPushSubscription({
       endpoint: data.endpoint,
       keysP256dh: data.keys.p256dh,
@@ -35,7 +47,7 @@ export const guardarSuscripcionPush = createServerFn({ method: "POST" })
   });
 
 const AdminPinSchema = z.object({
-  adminPin: z.string().min(4).max(64),
+  adminPin: z.string().min(4).max(64).optional(),
 });
 
 const BroadcastSchema = AdminPinSchema.extend({
@@ -46,8 +58,8 @@ const BroadcastSchema = AdminPinSchema.extend({
 
 export const enviarNotificacionPushAdmin = createServerFn({ method: "POST" })
   .inputValidator(BroadcastSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
 
     if (!isWebPushConfigured()) {
@@ -72,8 +84,8 @@ const UpdatePedidoSchema = AdminPinSchema.extend({
 
 export const actualizarEstadoPedidoAdmin = createServerFn({ method: "POST" })
   .inputValidator(UpdatePedidoSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
 
     if (!esEstadoPedidoValido(data.estado)) {
@@ -127,8 +139,8 @@ export const estadoPushServidor = createServerFn({ method: "GET" }).handler(asyn
 
 export const probarPushOperadorAdmin = createServerFn({ method: "POST" })
   .inputValidator(AdminPinSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
 
     if (!isWebPushConfigured()) {

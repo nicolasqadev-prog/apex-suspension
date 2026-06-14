@@ -3,21 +3,16 @@ import { Database } from "lucide-react";
 
 import { resumenCatalogoAdmin } from "@/lib/admin-inventario.functions";
 
-type Props = {
-  adminPin: string;
-};
-
-export default function AdminCatalogoStatus({ adminPin }: Props) {
+export default function AdminCatalogoStatus() {
   const [loading, setLoading] = useState(true);
   const [fuente, setFuente] = useState<"supabase" | "json" | null>(null);
   const [total, setTotal] = useState(0);
   const [conStock, setConStock] = useState(0);
 
   const refresh = useCallback(async () => {
-    if (!adminPin) return;
     setLoading(true);
     try {
-      const res = await resumenCatalogoAdmin({ data: { adminPin } });
+      const res = await resumenCatalogoAdmin({ data: {} });
       if (res.ok) {
         setFuente(res.resumen.fuente);
         setTotal(res.resumen.totalProductos);
@@ -26,7 +21,7 @@ export default function AdminCatalogoStatus({ adminPin }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [adminPin]);
+  }, []);
 
   useEffect(() => {
     void refresh();

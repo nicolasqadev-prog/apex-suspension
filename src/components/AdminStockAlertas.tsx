@@ -5,19 +5,17 @@ import { listarAlertasStockAdmin } from "@/lib/admin-inventario.functions";
 import type { ProductoAdmin } from "@/lib/inventario-admin.server";
 
 type Props = {
-  adminPin: string;
   refreshKey?: number;
 };
 
-export default function AdminStockAlertas({ adminPin, refreshKey = 0 }: Props) {
+export default function AdminStockAlertas({ refreshKey = 0 }: Props) {
   const [productos, setProductos] = useState<ProductoAdmin[]>([]);
   const [umbral, setUmbral] = useState(2);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!adminPin) return;
     let cancelled = false;
-    listarAlertasStockAdmin({ data: { adminPin } })
+    listarAlertasStockAdmin({ data: {} })
       .then((res) => {
         if (cancelled) return;
         if (!res.ok) {
@@ -35,7 +33,7 @@ export default function AdminStockAlertas({ adminPin, refreshKey = 0 }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [adminPin, refreshKey]);
+  }, [refreshKey]);
 
   if (error || productos.length === 0) return null;
 

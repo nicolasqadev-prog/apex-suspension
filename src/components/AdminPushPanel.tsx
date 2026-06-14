@@ -39,12 +39,11 @@ type Pedido = {
 };
 
 type Props = {
-  adminPin: string;
   pedidos: Pedido[];
   onPedidosChange: () => void;
 };
 
-export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: Props) {
+export default function AdminPushPanel({ pedidos, onPedidosChange }: Props) {
   const [vapidOk, setVapidOk] = useState<boolean | null>(null);
   const [title, setTitle] = useState("Novedades Apex Suspensión");
   const [body, setBody] = useState(
@@ -76,15 +75,11 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
   }, []);
 
   async function onBroadcast() {
-    if (!adminPin.trim()) {
-      setMessage("Sesión sin PIN. Cierra sesión y vuelve a entrar al admin.");
-      return;
-    }
     setBusy("broadcast");
     setMessage(null);
     try {
       const res = await enviarNotificacionPushAdmin({
-        data: { adminPin, title: title.trim(), body: body.trim(), url: "/catalogo" },
+        data: { title: title.trim(), body: body.trim(), url: "/catalogo" },
       });
       if (!res.ok) {
         setMessage(res.reason);
@@ -102,15 +97,11 @@ export default function AdminPushPanel({ adminPin, pedidos, onPedidosChange }: P
 
   async function onUpdatePedido(pedidoId: string, estado: string, notificar: boolean) {
     if (!(ESTADOS as readonly string[]).includes(estado)) return;
-    if (!adminPin.trim()) {
-      setMessage("Sesión sin PIN. Cierra sesión y vuelve a entrar al admin.");
-      return;
-    }
     setBusy(pedidoId);
     setMessage(null);
     try {
       const res = await actualizarEstadoPedidoAdmin({
-        data: { adminPin, pedidoId, estado, notificarCliente: notificar },
+        data: { pedidoId, estado, notificarCliente: notificar },
       });
       if (!res.ok) {
         setMessage(res.reason);

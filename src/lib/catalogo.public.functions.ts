@@ -1,11 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { loadCatalogo, loadPiezaBySlug } from "./inventario.server";
+import { loadCatalogoPublico, loadPiezaPublicaBySlug } from "./inventario.server";
 
 /** Catálogo público: siempre en servidor (Supabase + imágenes). */
 export const obtenerCatalogoPublico = createServerFn({ method: "GET" }).handler(async () => {
-  return loadCatalogo();
+  return loadCatalogoPublico();
 });
 
 const SlugSchema = z.object({
@@ -16,5 +16,5 @@ const SlugSchema = z.object({
 export const obtenerPiezaCatalogoPublico = createServerFn({ method: "POST" })
   .inputValidator(SlugSchema)
   .handler(async ({ data }) => {
-    return loadPiezaBySlug(data.slug);
+    return loadPiezaPublicaBySlug(data.slug);
   });

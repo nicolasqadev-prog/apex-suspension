@@ -10,11 +10,7 @@ import {
 import type { ProductoAdmin } from "@/lib/inventario-admin.server";
 import { formatoPrecioCop } from "@/lib/formato-cop";
 
-type Props = {
-  adminPin: string;
-};
-
-export default function AdminInventarioPanel({ adminPin }: Props) {
+export default function AdminInventarioPanel() {
   const [query, setQuery] = useState("");
   const [productos, setProductos] = useState<ProductoAdmin[]>([]);
   const [fuente, setFuente] = useState<"supabase" | "json">("supabase");
@@ -27,12 +23,11 @@ export default function AdminInventarioPanel({ adminPin }: Props) {
   const [guardando, setGuardando] = useState(false);
 
   const buscar = useCallback(async () => {
-    if (!adminPin) return;
     setLoading(true);
     setMensaje(null);
     try {
       const res = await buscarProductosInventarioAdmin({
-        data: { adminPin, query, limit: 30 },
+        data: { query, limit: 30 },
       });
       if (!res.ok) {
         setMensaje(res.reason);
@@ -47,7 +42,7 @@ export default function AdminInventarioPanel({ adminPin }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [adminPin, query]);
+  }, [query]);
 
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -58,7 +53,7 @@ export default function AdminInventarioPanel({ adminPin }: Props) {
 
   async function onAjustar(e: React.FormEvent) {
     e.preventDefault();
-    if (!adminPin || !seleccionado) return;
+    if (!seleccionado) return;
     if (fuente !== "supabase") {
       setMensaje("Los movimientos de stock solo funcionan con productos en Supabase.");
       return;
@@ -75,7 +70,6 @@ export default function AdminInventarioPanel({ adminPin }: Props) {
     try {
       const res = await ajustarStockAdmin({
         data: {
-          adminPin,
           productoId: seleccionado.id,
           delta: Math.trunc(d),
           motivo: motivo.trim(),

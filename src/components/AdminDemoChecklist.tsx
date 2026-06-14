@@ -20,7 +20,6 @@ import {
 import { scrollToAvisosOperadorAdmin } from "@/components/AdminOperadorAvisos";
 
 type Props = {
-  adminPin: string;
   onIrSoporte?: () => void;
   /** Incrementar tras activar push para refrescar contadores. */
   refreshKey?: number;
@@ -42,7 +41,7 @@ function badge(estado: ItemEstado) {
   return <CircleAlert className="h-4 w-4 text-red-400 shrink-0" />;
 }
 
-export default function AdminDemoChecklist({ adminPin, onIrSoporte, refreshKey = 0 }: Props) {
+export default function AdminDemoChecklist({ onIrSoporte, refreshKey = 0 }: Props) {
   const [servidor, setServidor] = useState<AdminReadinessServidor | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,12 +58,11 @@ export default function AdminDemoChecklist({ adminPin, onIrSoporte, refreshKey =
   }, []);
 
   const cargar = useCallback(async () => {
-    if (!adminPin) return;
     setLoading(true);
     setError(null);
     leerCliente();
     try {
-      const res = await checklistEstadoAdmin({ data: { adminPin } });
+      const res = await checklistEstadoAdmin({ data: {} });
       if (!res.ok) {
         setError(res.reason);
         setServidor(null);
@@ -77,7 +75,7 @@ export default function AdminDemoChecklist({ adminPin, onIrSoporte, refreshKey =
     } finally {
       setLoading(false);
     }
-  }, [adminPin, leerCliente]);
+  }, [leerCliente]);
 
   useEffect(() => {
     void cargar();

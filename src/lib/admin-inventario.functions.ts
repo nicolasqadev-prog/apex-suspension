@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { verifyAdminPinValue } from "./admin-auth.server";
+import { AdminAuthSchema } from "./admin-auth.schema";
+import { requireAdminAuth } from "./admin-session.server";
 import {
   STOCK_UMBRAL_ALERTA,
   buscarProductosAdmin,
@@ -11,25 +12,21 @@ import {
   registrarMovimientoStock,
 } from "./inventario-admin.server";
 
-const PinSchema = z.object({
-  adminPin: z.string().min(4).max(64),
-});
-
-const BuscarSchema = PinSchema.extend({
+const BuscarSchema = AdminAuthSchema.extend({
   query: z.string().max(80),
   limit: z.number().int().min(1).max(50).optional(),
 });
 
-const MovimientoSchema = PinSchema.extend({
+const MovimientoSchema = AdminAuthSchema.extend({
   productoId: z.string().uuid(),
   delta: z.number().int().min(-9999).max(9999),
   motivo: z.string().min(2).max(200),
 });
 
 export const resumenCatalogoAdmin = createServerFn({ method: "POST" })
-  .inputValidator(PinSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .inputValidator(AdminAuthSchema)
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
     const resumen = await getResumenCatalogoAdmin();
     return { ok: true as const, resumen };
@@ -37,8 +34,8 @@ export const resumenCatalogoAdmin = createServerFn({ method: "POST" })
 
 export const buscarProductosInventarioAdmin = createServerFn({ method: "POST" })
   .inputValidator(BuscarSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
 
     const res = await buscarProductosAdmin(data.query, data.limit ?? 25);
@@ -60,9 +57,9 @@ export const buscarProductosInventarioAdmin = createServerFn({ method: "POST" })
   });
 
 export const listarAlertasStockAdmin = createServerFn({ method: "POST" })
-  .inputValidator(PinSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .inputValidator(AdminAuthSchema)
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
 
     const res = await listarProductosStockBajo(STOCK_UMBRAL_ALERTA, 40);
@@ -76,8 +73,8 @@ export const listarAlertasStockAdmin = createServerFn({ method: "POST" })
 
 export const ajustarStockAdmin = createServerFn({ method: "POST" })
   .inputValidator(MovimientoSchema)
-  .handler(async ({ data }) => {
-    const auth = verifyAdminPinValue(data.adminPin);
+  .handler(async ({ data, request }) => {
+    const auth = await requireAdminAuth(request, data.adminPin);
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
 
     const result = await registrarMovimientoStock({

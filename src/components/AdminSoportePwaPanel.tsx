@@ -25,11 +25,10 @@ import {
 import { guardarWhatsappTallerEnCliente } from "@/lib/taller-whatsapp";
 
 type Props = {
-  adminPin: string;
   onPreparacionChange?: () => void;
 };
 
-export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: Props) {
+export default function AdminSoportePwaPanel({ onPreparacionChange }: Props) {
   const [preparacionOn, setPreparacionOn] = useState(false);
   const [previewOn, setPreviewOn] = useState(false);
   const [bannerActivo, setBannerActivo] = useState(false);
@@ -48,12 +47,10 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
       setBannerActivo(draft.activo);
       setBannerMensaje(draft.mensaje);
     }
-    if (adminPin) {
-      void estadoModoDemostracionAdmin({ data: { adminPin } }).then((res) => {
-        if (res.ok) setModoDemoOn(res.modoDemostracion);
-      });
-    }
-  }, [adminPin]);
+    void estadoModoDemostracionAdmin({ data: {} }).then((res) => {
+      if (res.ok) setModoDemoOn(res.modoDemostracion);
+    });
+  }, []);
 
   function togglePreparacion() {
     const next = !preparacionOn;
@@ -72,7 +69,6 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
   }
 
   async function onPublicarOperacion() {
-    if (!adminPin) return;
     if (
       !window.confirm(
         "¿Publicar a operación en vivo?\n\n· Los talleres en borrador podrán entrar en /taller/acceso.\n· Se borrarán los pedidos marcados como prueba.\n\nLos clientes reales no verán esos pedidos de prueba.",
@@ -84,7 +80,7 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
     setMensaje(null);
     try {
       const res = await publicarOperacionVivoAdmin({
-        data: { adminPin, limpiarPedidosPrueba: true },
+        data: { limpiarPedidosPrueba: true },
       });
       if (!res.ok) {
         setMensaje(res.reason);
@@ -105,12 +101,11 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
   }
 
   async function toggleModoDemo() {
-    if (!adminPin) return;
     setDemoBusy(true);
     setMensaje(null);
     try {
       const res = await toggleModoDemostracionAdmin({
-        data: { adminPin, activo: !modoDemoOn },
+        data: { activo: !modoDemoOn },
       });
       if (!res.ok) {
         setMensaje(res.reason);
@@ -128,7 +123,6 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
   }
 
   async function onRestablecerStock() {
-    if (!adminPin) return;
     if (
       !window.confirm(
         "¿Restablecer stock de bodega según inventario-vivo.json?\n\nCorrige unidades descontadas en demos.",
@@ -139,7 +133,7 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
     setDemoBusy(true);
     setMensaje(null);
     try {
-      const res = await restablecerStockBodegaAdmin({ data: { adminPin } });
+      const res = await restablecerStockBodegaAdmin({ data: {} });
       if (!res.ok) {
         setMensaje(res.reason);
         return;
@@ -153,11 +147,10 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
   }
 
   async function onLimpiarPedidosPrueba() {
-    if (!adminPin) return;
     setDemoBusy(true);
     setMensaje(null);
     try {
-      const res = await limpiarPedidosPruebaAdmin({ data: { adminPin } });
+      const res = await limpiarPedidosPruebaAdmin({ data: {} });
       if (!res.ok) {
         setMensaje(res.reason);
         return;
@@ -243,7 +236,7 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
           <Button
             type="button"
             onClick={() => void onPublicarOperacion()}
-            disabled={publicando || !adminPin}
+            disabled={publicando}
             className="bg-emerald-600 hover:bg-emerald-500 text-white"
           >
             <Rocket className="h-4 w-4 mr-1.5" />
@@ -275,7 +268,7 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            disabled={demoBusy || !adminPin}
+            disabled={demoBusy}
             onClick={() => void toggleModoDemo()}
             className={
               modoDemoOn
@@ -288,7 +281,7 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
           <Button
             type="button"
             variant="outline"
-            disabled={demoBusy || !adminPin}
+            disabled={demoBusy}
             className="border-emerald-600 text-emerald-200"
             onClick={() => void onRestablecerStock()}
           >
@@ -297,7 +290,7 @@ export default function AdminSoportePwaPanel({ adminPin, onPreparacionChange }: 
           <Button
             type="button"
             variant="outline"
-            disabled={demoBusy || !adminPin}
+            disabled={demoBusy}
             className="border-gray-600 text-gray-300"
             onClick={() => void onLimpiarPedidosPrueba()}
           >

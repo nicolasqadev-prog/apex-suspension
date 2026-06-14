@@ -21,7 +21,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number, mensaje: string): Promi
 }
 
 type Props = {
-  adminPin?: string;
   onVinculado?: () => void;
   compact?: boolean;
 };
@@ -30,7 +29,7 @@ type Props = {
  * Avisos push al operador (pedidos nuevos y stock bajo).
  * El WhatsApp se lee del servidor para coincidir con el envío de push.
  */
-export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: Props) {
+export default function AdminOperadorAvisos({ onVinculado, compact }: Props) {
   const [estado, setEstado] = useState<"idle" | "ok" | "pendiente" | "denegado" | "busy">("idle");
   const [detalle, setDetalle] = useState<string | null>(null);
   const [probando, setProbando] = useState(false);
@@ -38,20 +37,15 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
   const [cargandoTel, setCargandoTel] = useState(true);
 
   useEffect(() => {
-    if (!adminPin) {
-      setCargandoTel(false);
-      setTel(null);
-      return;
-    }
     setCargandoTel(true);
-    void telefonoOperadorAdmin({ data: { adminPin } })
+    void telefonoOperadorAdmin({ data: {} })
       .then((res) => {
         if (res.ok) setTel(res.telefono);
         else setTel(null);
       })
       .catch(() => setTel(null))
       .finally(() => setCargandoTel(false));
-  }, [adminPin]);
+  }, []);
 
   useEffect(() => {
     if (cargandoTel) return;
@@ -142,10 +136,6 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
   }
 
   async function probarAviso() {
-    if (!adminPin) {
-      setDetalle("Inicia sesión de nuevo en admin.");
-      return;
-    }
     if (Notification.permission !== "granted") {
       setDetalle("Primero pulsa «Activar avisos» y acepta el permiso del navegador.");
       setEstado("pendiente");
@@ -155,7 +145,7 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
     setDetalle("Enviando prueba…");
     try {
       const res = await withTimeout(
-        probarPushOperadorAdmin({ data: { adminPin } }),
+        probarPushOperadorAdmin({ data: {} }),
         15_000,
         "El servidor tardó mucho. Si llegó la notificación, ya funciona.",
       );
@@ -204,18 +194,16 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
       >
         {estado === "busy" ? "Espera…" : "Renovar"}
       </Button>
-      {adminPin && (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="border-sky-600/50 text-sky-200 text-xs min-h-11 touch-manipulation w-full sm:w-auto"
-          disabled={probando || estado === "busy"}
-          onClick={() => void probarAviso()}
-        >
-          {probando ? "Enviando…" : "Probar"}
-        </Button>
-      )}
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="border-sky-600/50 text-sky-200 text-xs min-h-11 touch-manipulation w-full sm:w-auto"
+        disabled={probando || estado === "busy"}
+        onClick={() => void probarAviso()}
+      >
+        {probando ? "Enviando…" : "Probar"}
+      </Button>
     </div>
   );
 
@@ -279,7 +267,7 @@ export default function AdminOperadorAvisos({ adminPin, onVinculado, compact }: 
               {estado === "busy" ? "Activando…" : "Activar avisos"}
             </Button>
           )}
-          {adminPin && estado !== "denegado" && (
+          {estado !== "denegado" && (
             <Button
               type="button"
               size="sm"
