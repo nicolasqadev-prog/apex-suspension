@@ -3,10 +3,7 @@ import { useEffect, useState } from "react";
 import { Check, ShoppingCart, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  CARRITO_AGREGADO_EVENT,
-  type CarritoAgregadoPayload,
-} from "@/lib/taller-carrito";
+import { CARRITO_AGREGADO_EVENT, type CarritoAgregadoPayload } from "@/lib/taller-carrito";
 
 const DURACION_MS = 5500;
 
@@ -31,7 +28,8 @@ export default function CarritoAgregadoAviso() {
 
   if (!aviso) return null;
 
-  const unidadTxt = aviso.cantidadAgregada === 1 ? "1 unidad" : `${aviso.cantidadAgregada} unidades`;
+  const unidadTxt =
+    aviso.cantidadAgregada === 1 ? "1 unidad" : `${aviso.cantidadAgregada} unidades`;
 
   return (
     <div

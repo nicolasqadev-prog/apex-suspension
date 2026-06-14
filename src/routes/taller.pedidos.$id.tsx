@@ -68,12 +68,13 @@ function DetallePedidoPage() {
     <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
       <header className="border-b border-white/10 px-4 py-4">
         <div className="max-w-lg mx-auto">
-          <Link to="/taller/pedidos" className="text-xs text-gray-500 hover:text-[oklch(0.7_0.2_40)]">
+          <Link
+            to="/taller/pedidos"
+            className="text-xs text-gray-500 hover:text-[oklch(0.7_0.2_40)]"
+          >
             ← Mis pedidos
           </Link>
-          <h1 className="mt-2 text-xl font-bold text-white">
-            Pedido #{refPedidoCorta(id)}
-          </h1>
+          <h1 className="mt-2 text-xl font-bold text-white">Pedido #{refPedidoCorta(id)}</h1>
           <p className="text-sm text-emerald-300 mt-1">{etiquetaEstadoTaller(estado)}</p>
         </div>
       </header>
@@ -94,7 +95,9 @@ function DetallePedidoPage() {
 
             {direccion && (
               <section className="rounded-xl border border-white/10 bg-black/20 p-4">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Entrega</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  Entrega
+                </p>
                 <p className="text-sm text-white mt-1">{direccion}</p>
               </section>
             )}

@@ -182,7 +182,9 @@ export async function getProductoAdminBySlug(slug: string): Promise<ProductoAdmi
   return p;
 }
 
-export async function getProductoAdminByReferencia(referencia: string): Promise<ProductoAdmin | null> {
+export async function getProductoAdminByReferencia(
+  referencia: string,
+): Promise<ProductoAdmin | null> {
   const env = getSupabaseEnv();
   if (!env) return null;
 

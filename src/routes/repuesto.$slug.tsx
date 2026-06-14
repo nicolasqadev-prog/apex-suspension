@@ -168,93 +168,101 @@ function RepuestoDetallePage() {
           ) : null}
 
           <div className="min-w-0">
-            <p className="text-xs font-mono text-[oklch(0.7_0.2_40)] break-all">{pieza.referencia}</p>
-            <h1 className="text-xl sm:text-2xl font-bold text-white mt-1 leading-snug">{pieza.nombre}</h1>
+            <p className="text-xs font-mono text-[oklch(0.7_0.2_40)] break-all">
+              {pieza.referencia}
+            </p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white mt-1 leading-snug">
+              {pieza.nombre}
+            </h1>
             <p className="text-gray-400 mt-2 text-sm leading-relaxed">{pieza.aplicacion}</p>
             <p className="text-xs text-gray-500 mt-2">{pieza.categoria}</p>
 
-        <div className="mt-6 rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-4 space-y-2">
-          {precioTaller != null ? (
-            <>
+            <div className="mt-6 rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-4 space-y-2">
+              {precioTaller != null ? (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-emerald-400/90">Precio taller</span>
+                    <span className="font-semibold text-emerald-200 text-right">
+                      {formatoPrecioCop(precioTaller)}
+                      <span className="block text-[10px] font-normal text-gray-500">c/u</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Precio lista</span>
+                    <span className="text-gray-500 line-through text-right">
+                      {formatoPrecioCop(pieza.precioLista)}
+                      <span className="block text-[10px] font-normal no-underline">c/u</span>
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Precio lista</span>
+                  <span className="font-semibold text-white text-right">
+                    {formatoPrecioCop(pieza.precioLista)}
+                    <span className="block text-[10px] font-normal text-gray-500">c/u</span>
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
-                <span className="text-emerald-400/90">Precio taller</span>
-                <span className="font-semibold text-emerald-200 text-right">
-                  {formatoPrecioCop(precioTaller)}
-                  <span className="block text-[10px] font-normal text-gray-500">c/u</span>
+                <span className="text-gray-500">Stock</span>
+                <span
+                  className={
+                    pieza.stock > 0 ? "text-emerald-400 font-medium" : "text-red-400 font-medium"
+                  }
+                >
+                  {pieza.stock > 0 ? `${pieza.stock} unidades` : "Agotado (consultar llegada)"}
                 </span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Precio lista</span>
-                <span className="text-gray-500 line-through text-right">
-                  {formatoPrecioCop(pieza.precioLista)}
-                  <span className="block text-[10px] font-normal no-underline">c/u</span>
-                </span>
-              </div>
-            </>
-          ) : (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Precio lista</span>
-              <span className="font-semibold text-white text-right">
-                {formatoPrecioCop(pieza.precioLista)}
-                <span className="block text-[10px] font-normal text-gray-500">c/u</span>
-              </span>
             </div>
-          )}
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Stock</span>
-            <span
-              className={
-                pieza.stock > 0 ? "text-emerald-400 font-medium" : "text-red-400 font-medium"
-              }
-            >
-              {pieza.stock > 0 ? `${pieza.stock} unidades` : "Agotado (consultar llegada)"}
-            </span>
-          </div>
-        </div>
 
-        <div className="mt-8 flex flex-col gap-3">
-          {taller && precioTaller != null && (
-            <Button
-              type="button"
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
-              onClick={() => {
-                agregarAlCarritoTaller({
-                  slug: pieza.slug,
-                  referencia: pieza.referencia,
-                  nombre: pieza.nombre,
-                  precioUnitarioCop: precioTaller,
-                  precioListaPublicoCop: pieza.precioLista,
-                  stock: pieza.stock,
-                });
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar al pedido taller
-            </Button>
-          )}
-          <Button
-            asChild
-            className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold"
-          >
-            <a href={enlaceWhatsApp(mensajeWhatsapp)} target="_blank" rel="noreferrer">
-              Pedir por WhatsApp
-            </a>
-          </Button>
-          {taller && (
-            <Button asChild variant="outline" className="border-emerald-600/50 text-emerald-200">
-              <Link to="/taller/pedido">Ver carrito y enviar pedido</Link>
-            </Button>
-          )}
-          {pieza.stock <= 0 && (
-            <p className="text-xs text-amber-200/90 text-center leading-relaxed">
-              Sin stock en catálogo: escribinos por WhatsApp para confirmar llegada, equivalente u
-              otra referencia compatible.
-            </p>
-          )}
-          <Button asChild variant="outline" className="border-gray-600 text-gray-300">
-            <Link to="/catalogo">Seguir buscando</Link>
-          </Button>
-        </div>
+            <div className="mt-8 flex flex-col gap-3">
+              {taller && precioTaller != null && (
+                <Button
+                  type="button"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+                  onClick={() => {
+                    agregarAlCarritoTaller({
+                      slug: pieza.slug,
+                      referencia: pieza.referencia,
+                      nombre: pieza.nombre,
+                      precioUnitarioCop: precioTaller,
+                      precioListaPublicoCop: pieza.precioLista,
+                      stock: pieza.stock,
+                    });
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar al pedido taller
+                </Button>
+              )}
+              <Button
+                asChild
+                className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold"
+              >
+                <a href={enlaceWhatsApp(mensajeWhatsapp)} target="_blank" rel="noreferrer">
+                  Pedir por WhatsApp
+                </a>
+              </Button>
+              {taller && (
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-emerald-600/50 text-emerald-200"
+                >
+                  <Link to="/taller/pedido">Ver carrito y enviar pedido</Link>
+                </Button>
+              )}
+              {pieza.stock <= 0 && (
+                <p className="text-xs text-amber-200/90 text-center leading-relaxed">
+                  Sin stock en catálogo: escribinos por WhatsApp para confirmar llegada, equivalente
+                  u otra referencia compatible.
+                </p>
+              )}
+              <Button asChild variant="outline" className="border-gray-600 text-gray-300">
+                <Link to="/catalogo">Seguir buscando</Link>
+              </Button>
+            </div>
           </div>
         </div>
 

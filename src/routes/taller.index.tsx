@@ -19,8 +19,7 @@ export const Route = createFileRoute("/taller/")({
         { title: "Portal taller | Apex Suspensión" },
         {
           name: "description",
-          content:
-            "Panel para talleres aliados Apex: catálogo con precio taller, stock y pedidos.",
+          content: "Panel para talleres aliados Apex: catálogo con precio taller, stock y pedidos.",
         },
       ],
       links: href ? [{ rel: "canonical", href }] : [],
@@ -61,22 +60,18 @@ function TallerPanelPage() {
           <Wrench className="h-7 w-7 text-emerald-400" />
           <h1 className="text-xl font-bold text-white">Portal taller</h1>
         </div>
-        <p className="text-sm text-gray-500">
-          Solo para talleres aliados registrados por Apex.
-        </p>
+        <p className="text-sm text-gray-500">Solo para talleres aliados registrados por Apex.</p>
 
-        {loading && (
-          <p className="mt-10 text-center text-sm text-gray-400">Verificando sesión…</p>
-        )}
+        {loading && <p className="mt-10 text-center text-sm text-gray-400">Verificando sesión…</p>}
 
         {!loading && !taller && (
           <div className="mt-8 space-y-4">
             <div className="rounded-xl border border-white/10 bg-black/20 p-5">
               <p className="font-semibold text-white">Entrar al programa</p>
               <p className="text-xs text-gray-400 mt-2 leading-relaxed">
-                Si Apex ya registró tu taller, ingresa con el <strong className="text-gray-300">mismo
-                WhatsApp</strong> que quedó en el sistema. Si aún no estás registrado, pide la visita o
-                el alta al equipo Apex.
+                Si Apex ya registró tu taller, ingresa con el{" "}
+                <strong className="text-gray-300">mismo WhatsApp</strong> que quedó en el sistema.
+                Si aún no estás registrado, pide la visita o el alta al equipo Apex.
               </p>
               <Button
                 asChild

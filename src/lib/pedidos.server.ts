@@ -96,7 +96,10 @@ export async function createPedido(
   const refPedido = refPedidoCorta(pedidoId);
   const descontarStock = !opts?.esPrueba;
 
-  type LineaValidada = LineaPedidoInput & { productoId: string; producto: { referencia: string; nombre: string; stockActual: number } };
+  type LineaValidada = LineaPedidoInput & {
+    productoId: string;
+    producto: { referencia: string; nombre: string; stockActual: number };
+  };
   const validadas: LineaValidada[] = [];
 
   for (const linea of lineas) {
@@ -200,7 +203,9 @@ export async function ultimosPedidosPorTelefonos(
   if (!env) return { ok: false, reason: "Supabase no configurado en servidor" };
   if (telefonos.length === 0) return { ok: true, pedidos: [] };
 
-  const unicos = [...new Set(telefonos.map((t) => t.replace(/\D/g, "")).filter((t) => t.length >= 10))];
+  const unicos = [
+    ...new Set(telefonos.map((t) => t.replace(/\D/g, "")).filter((t) => t.length >= 10)),
+  ];
   const url = new URL(`${env.url}/rest/v1/pedidos`);
   url.searchParams.set("select", "telefono,created_at,estado");
   url.searchParams.set("telefono", `in.(${unicos.join(",")})`);
@@ -261,8 +266,7 @@ export async function listPedidosHistorial(opts: {
   incluirLineas?: boolean;
   limit?: number;
 }): Promise<
-  | { ok: true; pedidos: PedidoHistorialRow[]; total: number }
-  | { ok: false; reason: string }
+  { ok: true; pedidos: PedidoHistorialRow[]; total: number } | { ok: false; reason: string }
 > {
   const env = getSupabaseEnv();
   if (!env) return { ok: false, reason: "Supabase no configurado en servidor" };

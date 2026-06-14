@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  CircleAlert,
-  RefreshCw,
-} from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronUp, CircleAlert, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,10 +7,7 @@ import {
   isModoPreparacion,
   setModoPreparacion,
 } from "@/lib/admin-preparacion";
-import {
-  checklistEstadoAdmin,
-  type AdminReadinessServidor,
-} from "@/lib/admin-readiness.functions";
+import { checklistEstadoAdmin, type AdminReadinessServidor } from "@/lib/admin-readiness.functions";
 import { scrollToAvisosOperadorAdmin } from "@/components/AdminOperadorAvisos";
 
 type Props = {
@@ -110,9 +101,7 @@ export default function AdminDemoChecklist({ onIrSoporte, refreshKey = 0 }: Prop
       {
         id: "prep",
         label: "Modo preparación (este navegador)",
-        detalle: modoPrep
-          ? "ACTIVO — solo verás pedidos de prueba"
-          : "Apagado — operación real",
+        detalle: modoPrep ? "ACTIVO — solo verás pedidos de prueba" : "Apagado — operación real",
         estado: modoPrep ? "fail" : "ok",
         accion: modoPrep
           ? {
@@ -127,9 +116,7 @@ export default function AdminDemoChecklist({ onIrSoporte, refreshKey = 0 }: Prop
       {
         id: "pin",
         label: "PIN admin en servidor",
-        detalle: servidor.adminPinServidor
-          ? "Configurado"
-          : "Falta ADMIN_PIN en Cloudflare/GitHub",
+        detalle: servidor.adminPinServidor ? "Configurado" : "Falta ADMIN_PIN en Cloudflare/GitHub",
         estado: servidor.adminPinServidor ? "ok" : "fail",
       },
       {
@@ -180,8 +167,7 @@ export default function AdminDemoChecklist({ onIrSoporte, refreshKey = 0 }: Prop
               : notifPermiso === "unsupported"
                 ? "Navegador sin soporte"
                 : "Pulsa «Activar avisos» abajo (no solo Probar)",
-        estado:
-          notifPermiso === "granted" ? "ok" : notifPermiso === "denied" ? "fail" : "warn",
+        estado: notifPermiso === "granted" ? "ok" : notifPermiso === "denied" ? "fail" : "warn",
         accion:
           notifPermiso !== "granted"
             ? { label: "Activar avisos", onClick: () => scrollToAvisosOperadorAdmin() }

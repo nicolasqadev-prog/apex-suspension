@@ -68,9 +68,7 @@ const demosActivos = await rest(
 const demosInactivos = await rest(
   `/productos?slug=in.(${ejSlugs.map((s) => `"${s}"`).join(",")})&activo=eq.false&select=slug`,
 );
-const columnaPublicado = await rest(
-  "/talleres_fidelizados?select=publicado&limit=1",
-);
+const columnaPublicado = await rest("/talleres_fidelizados?select=publicado&limit=1");
 const tieneColumnaPublicado = columnaPublicado.ok;
 const talleres = await rest(
   "/talleres_fidelizados?activo=eq.true&select=whatsapp,nombre_taller,descuento_porcentaje,contra_entrega_habilitada,activo",

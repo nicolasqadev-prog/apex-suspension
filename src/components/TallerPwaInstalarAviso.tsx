@@ -4,11 +4,7 @@ import { Download, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { openIosInstallGuide } from "@/components/IosPwaInstallSheet";
 import { dispatchPwaInstallRequest } from "@/components/PwaEngagementActions";
-import {
-  canSuggestPwaInstall,
-  iosInstallMode,
-  isInAppBrowser,
-} from "@/lib/pwa-engagement";
+import { canSuggestPwaInstall, iosInstallMode, isInAppBrowser } from "@/lib/pwa-engagement";
 import { isPwaStandalone } from "@/lib/pwa-standalone";
 
 const AUTO_GUIDE_KEY = "apex.pwa.ios.autoGuide.shown";

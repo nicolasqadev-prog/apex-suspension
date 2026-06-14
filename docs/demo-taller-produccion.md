@@ -8,11 +8,11 @@
 
 ## Fuente de datos en producción
 
-| Qué | Archivo / destino |
-|-----|-------------------|
-| Catálogo KTC (~5910 refs) | `data/inventario-catalogo-completo.json` → Supabase |
-| Stock bodega (124 refs) | `data/inventario-vivo.json` → sync aparte |
-| Fallback sin Supabase | `data/inventario.ejemplo.json` (solo 10 demos locales) |
+| Qué                       | Archivo / destino                                      |
+| ------------------------- | ------------------------------------------------------ |
+| Catálogo KTC (~5910 refs) | `data/inventario-catalogo-completo.json` → Supabase    |
+| Stock bodega (124 refs)   | `data/inventario-vivo.json` → sync aparte              |
+| Fallback sin Supabase     | `data/inventario.ejemplo.json` (solo 10 demos locales) |
 
 La PWA **lee Supabase** en servidor. Los JSON grandes no se importan en runtime.
 

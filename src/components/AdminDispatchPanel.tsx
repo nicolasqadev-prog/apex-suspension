@@ -32,7 +32,10 @@ export type PedidoDespacho = {
 
 function municipioDePedido(direccion: string | null): string {
   if (!direccion?.trim()) return "Sin municipio";
-  const partes = direccion.split(",").map((s) => s.trim()).filter(Boolean);
+  const partes = direccion
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (partes.length > 1) return partes[partes.length - 1]!;
   return partes[0] ?? "Sin municipio";
 }
@@ -135,7 +138,8 @@ function ZonaDespacho({
           </span>
           {mostrarNuevo && nuevosEnZona > 0 && (
             <span className="text-[10px] font-semibold text-amber-200/90">
-              · {nuevosEnZona} nuevo{nuevosEnZona === 1 ? "" : "s"} (últimos {PEDIDO_NUEVO_MINUTOS} min)
+              · {nuevosEnZona} nuevo{nuevosEnZona === 1 ? "" : "s"} (últimos {PEDIDO_NUEVO_MINUTOS}{" "}
+              min)
             </span>
           )}
         </div>
@@ -148,7 +152,9 @@ function ZonaDespacho({
               className="border-gray-600 text-gray-300 text-xs"
               onClick={() => onSeleccionarZona(lista)}
             >
-              {marcadosEnZona.length === conDireccion.length ? "Quitar selección" : "Seleccionar zona"}
+              {marcadosEnZona.length === conDireccion.length
+                ? "Quitar selección"
+                : "Seleccionar zona"}
             </Button>
           )}
           <Button
@@ -159,9 +165,7 @@ function ZonaDespacho({
             onClick={() => onAbrirRuta(lista)}
           >
             <Navigation className="w-3.5 h-3.5 mr-1.5" />
-            {marcadosEnZona.length > 0
-              ? `Ruta (${marcadosEnZona.length} paradas)`
-              : "Ruta en Maps"}
+            {marcadosEnZona.length > 0 ? `Ruta (${marcadosEnZona.length} paradas)` : "Ruta en Maps"}
           </Button>
         </div>
       </div>
@@ -239,8 +243,7 @@ export default function AdminDispatchPanel({ pedidos, ventanaDia = true }: Props
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
-  const vacio =
-    enRuta.length === 0 && porDespachar.length === 0 && entregados.length === 0;
+  const vacio = enRuta.length === 0 && porDespachar.length === 0 && entregados.length === 0;
 
   return (
     <div className="space-y-8">
@@ -271,8 +274,8 @@ export default function AdminDispatchPanel({ pedidos, ventanaDia = true }: Props
             </h3>
           </div>
           <p className="text-xs text-gray-500 -mt-1">
-            Entregas en curso. Al llegar al taller, marca <strong className="text-gray-400">Entregado</strong>{" "}
-            arriba en estado del pedido.
+            Entregas en curso. Al llegar al taller, marca{" "}
+            <strong className="text-gray-400">Entregado</strong> arriba en estado del pedido.
           </p>
           {zonasEnRuta.map(([zona, lista]) => (
             <div
@@ -301,7 +304,8 @@ export default function AdminDispatchPanel({ pedidos, ventanaDia = true }: Props
           </h3>
           {nuevosPorDespachar > 0 && (
             <span className="text-xs font-semibold text-amber-200 bg-amber-950/50 border border-amber-500/30 px-2 py-0.5 rounded-full">
-              {nuevosPorDespachar} nuevo{nuevosPorDespachar === 1 ? "" : "s"} últimos {PEDIDO_NUEVO_MINUTOS} min
+              {nuevosPorDespachar} nuevo{nuevosPorDespachar === 1 ? "" : "s"} últimos{" "}
+              {PEDIDO_NUEVO_MINUTOS} min
             </span>
           )}
         </div>

@@ -89,7 +89,9 @@ export default function AdminPushPanel({ pedidos, onPedidosChange }: Props) {
         `Enviado a ${res.sent} dispositivo(s). Fallos: ${res.failed}. Caducados: ${res.expired}.`,
       );
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Error al enviar. Revisa conexión e intenta de nuevo.");
+      setMessage(
+        e instanceof Error ? e.message : "Error al enviar. Revisa conexión e intenta de nuevo.",
+      );
     } finally {
       setBusy(null);
     }

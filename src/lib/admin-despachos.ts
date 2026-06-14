@@ -10,12 +10,7 @@ export function esPedidoNuevoReciente(createdAt: string, ahora = Date.now()): bo
   return ahora - t <= PEDIDO_NUEVO_MINUTOS * 60 * 1000;
 }
 
-export const ESTADOS_POR_DESPACHAR = [
-  "borrador",
-  "cotizado",
-  "confirmado",
-  "empacando",
-] as const;
+export const ESTADOS_POR_DESPACHAR = ["borrador", "cotizado", "confirmado", "empacando"] as const;
 
 export const ESTADO_EN_RUTA = "en_ruta";
 export const ESTADO_ENTREGADO = "entregado";

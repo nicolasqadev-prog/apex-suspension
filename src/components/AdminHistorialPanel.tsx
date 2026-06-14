@@ -320,9 +320,13 @@ export default function AdminHistorialPanel({ modoPreparacion }: Props) {
                   <div className="text-right shrink-0">
                     <p className="text-xs text-sky-300">{etiquetaEstadoTaller(p.estado)}</p>
                     {p.totalCop > 0 && (
-                      <p className="text-xs text-emerald-300 mt-1">{formatoPrecioCop(p.totalCop)}</p>
+                      <p className="text-xs text-emerald-300 mt-1">
+                        {formatoPrecioCop(p.totalCop)}
+                      </p>
                     )}
-                    <p className="text-[10px] text-gray-500 mt-1">{abierto ? "Ocultar" : "Ver líneas"}</p>
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      {abierto ? "Ocultar" : "Ver líneas"}
+                    </p>
                   </div>
                 </div>
               </button>
@@ -350,7 +354,9 @@ export default function AdminHistorialPanel({ modoPreparacion }: Props) {
           );
         })}
         {!loading && pedidos.length === 0 && !mensaje && (
-          <p className="text-xs text-gray-500 py-8 text-center">Selecciona un rango y pulsa buscar.</p>
+          <p className="text-xs text-gray-500 py-8 text-center">
+            Selecciona un rango y pulsa buscar.
+          </p>
         )}
       </div>
     </div>

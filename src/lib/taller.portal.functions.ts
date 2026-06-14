@@ -5,7 +5,12 @@ import { allowNoPublicadoEnServidor } from "./admin-preparacion.server";
 import { loadCatalogoTaller, loadPiezaTaller } from "./inventario-taller.server";
 import { getModoDemostracion } from "./operacion-config.server";
 import { notificarApexNuevoPedido, notificarTallerPedidoEnviado } from "./pedidos-alerta.server";
-import { createPedido, getPedidoById, getPedidoLineas, listPedidosPorTelefono } from "./pedidos.server";
+import {
+  createPedido,
+  getPedidoById,
+  getPedidoLineas,
+  listPedidosPorTelefono,
+} from "./pedidos.server";
 import { getTallerFidelizadoByWhatsapp } from "./talleres.server";
 import type { LineaCarritoTaller } from "./taller.types";
 
@@ -205,10 +210,8 @@ export const enviarPedidoTaller = createServerFn({ method: "POST" })
       .filter(Boolean)
       .join("\n");
 
-    const municipio =
-      catalogo.taller.municipio.trim() || "Por confirmar";
-    const direccion =
-      catalogo.taller.direccionEntrega.trim() || "Por confirmar en WhatsApp";
+    const municipio = catalogo.taller.municipio.trim() || "Por confirmar";
+    const direccion = catalogo.taller.direccionEntrega.trim() || "Por confirmar en WhatsApp";
 
     const pedido = await createPedido(
       {

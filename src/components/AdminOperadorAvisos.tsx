@@ -4,10 +4,7 @@ import { Bell, BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { telefonoOperadorAdmin } from "@/lib/admin-readiness.functions";
 import { probarPushOperadorAdmin } from "@/lib/push.functions";
-import {
-  subscribeAndRegisterPush,
-  vincularPushConTelefonoTaller,
-} from "@/lib/pwa-engagement";
+import { subscribeAndRegisterPush, vincularPushConTelefonoTaller } from "@/lib/pwa-engagement";
 
 const VINCULO_SESSION_KEY = "apex.admin.push.vinculado";
 
@@ -124,7 +121,9 @@ export default function AdminOperadorAvisos({ onVinculado, compact }: Props) {
       }
       if (res.reason === "permiso_denegado") {
         setEstado("denegado");
-        setDetalle("Permiso denegado. Brave → Configuración del sitio → Notificaciones → Permitir.");
+        setDetalle(
+          "Permiso denegado. Brave → Configuración del sitio → Notificaciones → Permitir.",
+        );
         return;
       }
       setEstado("pendiente");
@@ -208,9 +207,7 @@ export default function AdminOperadorAvisos({ onVinculado, compact }: Props) {
   );
 
   if (compact && estado === "ok") {
-    return (
-      <span className="text-[10px] text-emerald-300/90 hidden sm:inline">Avisos activos</span>
-    );
+    return <span className="text-[10px] text-emerald-300/90 hidden sm:inline">Avisos activos</span>;
   }
 
   if (estado === "ok" && !compact) {
@@ -251,7 +248,8 @@ export default function AdminOperadorAvisos({ onVinculado, compact }: Props) {
             <p className="text-xs text-orange-200/80 mt-1 leading-relaxed break-words">
               {cargandoTel
                 ? "Cargando…"
-                : detalle ?? "Activa para saber cuando un taller pide, sin tener el panel abierto."}
+                : (detalle ??
+                  "Activa para saber cuando un taller pide, sin tener el panel abierto.")}
             </p>
           </div>
         </div>
@@ -287,5 +285,7 @@ export default function AdminOperadorAvisos({ onVinculado, compact }: Props) {
 
 /** Para el botón del header: scroll al bloque de avisos. */
 export function scrollToAvisosOperadorAdmin(): void {
-  document.getElementById("admin-avisos-operador")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document
+    .getElementById("admin-avisos-operador")
+    ?.scrollIntoView({ behavior: "smooth", block: "start" });
 }

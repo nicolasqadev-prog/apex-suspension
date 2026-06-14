@@ -37,9 +37,8 @@ export default function TallerNotificacionesAviso() {
     return (
       <div className="rounded-lg border border-orange-500/30 bg-orange-950/25 px-3 py-2.5 mb-4">
         <p className="text-xs text-orange-100/90 leading-relaxed">
-          En iPhone, los avisos de pedido funcionan desde la{" "}
-          <strong>app instalada</strong> (Agregar a inicio). Instala Apex arriba y luego vuelve aquí
-          para activar avisos.
+          En iPhone, los avisos de pedido funcionan desde la <strong>app instalada</strong> (Agregar
+          a inicio). Instala Apex arriba y luego vuelve aquí para activar avisos.
         </p>
       </div>
     );

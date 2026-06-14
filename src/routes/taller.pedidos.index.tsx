@@ -99,9 +99,7 @@ function MisPedidosPage() {
               <li key={p.id}>
                 <button
                   type="button"
-                  onClick={() =>
-                    void navigate({ to: "/taller/pedidos/$id", params: { id: p.id } })
-                  }
+                  onClick={() => void navigate({ to: "/taller/pedidos/$id", params: { id: p.id } })}
                   className="w-full flex items-center justify-between gap-3 rounded-lg border border-gray-800 bg-[oklch(0.14_0.04_250)] p-4 hover:border-emerald-600/40 transition-colors text-left"
                 >
                   <div className="min-w-0 flex-1">

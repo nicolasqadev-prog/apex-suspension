@@ -40,7 +40,9 @@ if (!url || !key) {
   process.exit(1);
 }
 
-const catalog = JSON.parse(readFileSync(join(root, "data/inventario-catalogo-completo.json"), "utf8"));
+const catalog = JSON.parse(
+  readFileSync(join(root, "data/inventario-catalogo-completo.json"), "utf8"),
+);
 const byRef = Object.fromEntries(
   catalog.piezas.filter((p) => REFS.includes(p.referencia)).map((p) => [p.referencia, p]),
 );

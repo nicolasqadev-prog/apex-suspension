@@ -1,13 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  ArrowDown,
-  Check,
-  Copy,
-  PlusSquare,
-  Share,
-  Smartphone,
-  X,
-} from "lucide-react";
+import { ArrowDown, Check, Copy, PlusSquare, Share, Smartphone, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { copiarEnlaceActual, iosInstallMode } from "@/lib/pwa-engagement";
@@ -162,8 +154,8 @@ export default function IosPwaInstallSheet({ open, onOpenChange }: Props) {
               Instalar Apex en tu pantalla de inicio
             </h2>
             <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-              En iPhone no hay botón automático como en Android. Apple pide estos 3 toques en
-              Safari — tarda menos de 10 segundos.
+              En iPhone no hay botón automático como en Android. Apple pide estos 3 toques en Safari
+              — tarda menos de 10 segundos.
             </p>
           </div>
           <button
@@ -180,8 +172,8 @@ export default function IosPwaInstallSheet({ open, onOpenChange }: Props) {
           <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/25 px-3 py-2.5 flex gap-2">
             <Smartphone className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
             <p className="text-xs text-emerald-100/90 leading-relaxed">
-              Desde la app instalada recibes avisos de pedido al instante. En una pestaña de
-              Safari no funcionan las notificaciones.
+              Desde la app instalada recibes avisos de pedido al instante. En una pestaña de Safari
+              no funcionan las notificaciones.
             </p>
           </div>
 

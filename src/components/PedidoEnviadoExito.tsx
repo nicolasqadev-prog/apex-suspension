@@ -29,11 +29,7 @@ type Props = {
   totalCop?: number | null;
 };
 
-export default function PedidoEnviadoExito({
-  pedidoId,
-  mensajeWhatsapp,
-  totalCop = null,
-}: Props) {
+export default function PedidoEnviadoExito({ pedidoId, mensajeWhatsapp, totalCop = null }: Props) {
   const navigate = useNavigate();
   const { whatsappGuardado } = useTallerSession();
   const [notifOk, setNotifOk] = useState(false);
@@ -62,8 +58,12 @@ export default function PedidoEnviadoExito({
 
         <div className="mt-6 rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-4 py-4 text-left">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Estado actual</p>
-          <p className="text-lg font-semibold text-white mt-1">{etiquetaEstadoTaller("borrador")}</p>
-          <p className="text-xs text-emerald-400/90 mt-1 font-medium">✓ Registrado en Apex — en revisión</p>
+          <p className="text-lg font-semibold text-white mt-1">
+            {etiquetaEstadoTaller("borrador")}
+          </p>
+          <p className="text-xs text-emerald-400/90 mt-1 font-medium">
+            ✓ Registrado en Apex — en revisión
+          </p>
           {totalCop != null && (
             <p className="text-sm text-gray-400 mt-2">
               Total referencia:{" "}
@@ -87,9 +87,7 @@ export default function PedidoEnviadoExito({
           <Button
             type="button"
             className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold h-12"
-            onClick={() =>
-              void navigate({ to: "/taller/pedidos/$id", params: { id: pedidoId } })
-            }
+            onClick={() => void navigate({ to: "/taller/pedidos/$id", params: { id: pedidoId } })}
           >
             Ver seguimiento del pedido
           </Button>
@@ -125,7 +123,9 @@ export default function PedidoEnviadoExito({
             </Button>
           )}
           {notifOk && (
-            <p className="text-xs text-emerald-300/90">Notificaciones activadas en este dispositivo.</p>
+            <p className="text-xs text-emerald-300/90">
+              Notificaciones activadas en este dispositivo.
+            </p>
           )}
           <Button asChild variant="outline" className="w-full border-gray-600 text-gray-300 h-11">
             <Link to="/catalogo">Seguir comprando</Link>

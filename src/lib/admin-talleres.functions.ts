@@ -34,9 +34,7 @@ export const listarTalleresAdmin = createServerFn({ method: "POST" })
     if (!auth.ok) return { ok: false as const, reason: auth.reason };
     const talleresRes = await listTalleresFidelizadosAdmin();
     if (!talleresRes.ok) return talleresRes;
-    const actividad = await ultimosPedidosPorTelefonos(
-      talleresRes.talleres.map((t) => t.whatsapp),
-    );
+    const actividad = await ultimosPedidosPorTelefonos(talleresRes.talleres.map((t) => t.whatsapp));
     return {
       ok: true as const,
       talleres: talleresRes.talleres,

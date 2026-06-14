@@ -1,8 +1,5 @@
 import { isPwaStandalone } from "./pwa-standalone";
-import {
-  TALLER_WHATSAPP_STORAGE_KEY,
-  normalizeWhatsappTaller,
-} from "./taller-whatsapp";
+import { TALLER_WHATSAPP_STORAGE_KEY, normalizeWhatsappTaller } from "./taller-whatsapp";
 
 const SESSION_HIDE_KEY = "apex.pwa.engagement.hideSession";
 const SNOOZE_KEY = "apex.pwa.engagement.snoozeUntil";
@@ -29,7 +26,9 @@ export function isIosSafari(): boolean {
 export function isInAppBrowser(): boolean {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
-  if (/WhatsApp|Instagram|FBAN|FBAV|FBIOS|Line\/|Twitter|Snapchat|TikTok|LinkedInApp|GSA\//i.test(ua)) {
+  if (
+    /WhatsApp|Instagram|FBAN|FBAV|FBIOS|Line\/|Twitter|Snapchat|TikTok|LinkedInApp|GSA\//i.test(ua)
+  ) {
     return true;
   }
   if (isIosDevice() && !isIosSafari() && !isChromeIos()) {
@@ -139,7 +138,9 @@ async function ensureServiceWorkerReady(): Promise<ServiceWorkerRegistration | n
   }
 }
 
-export async function subscribeToPushIfConfigured(renovar = false): Promise<PushSubscription | null> {
+export async function subscribeToPushIfConfigured(
+  renovar = false,
+): Promise<PushSubscription | null> {
   const vapidPublic = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
   if (!vapidPublic?.trim()) return null;
   if (!("PushManager" in window)) return null;
@@ -227,9 +228,7 @@ export async function subscribeAndRegisterPush(opts?: {
   }
 
   const permission =
-    Notification.permission === "granted"
-      ? "granted"
-      : await requestNotificationPermission();
+    Notification.permission === "granted" ? "granted" : await requestNotificationPermission();
   if (permission !== "granted") {
     return { ok: false, reason: "permiso_denegado" };
   }

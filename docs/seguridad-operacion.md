@@ -4,11 +4,11 @@ Documento interno: cómo está protegida la PWA en la práctica de Apex (no audi
 
 ## Secretos
 
-| Secreto | Dónde vive | Notas |
-|---------|------------|-------|
-| `ADMIN_PIN` | GitHub Secrets → Cloudflare Wrangler | No va al navegador. Sesión admin = cookie HttpOnly firmada en servidor. |
-| `SUPABASE_SERVICE_ROLE_KEY` | GitHub Secrets + `.env.local` en tu PC | Solo servidor. Nunca `VITE_*`. |
-| `.env.local` | Tu máquina, gitignored | Herramienta de desarrollo; no es superficie pública. |
+| Secreto                     | Dónde vive                             | Notas                                                                   |
+| --------------------------- | -------------------------------------- | ----------------------------------------------------------------------- |
+| `ADMIN_PIN`                 | GitHub Secrets → Cloudflare Wrangler   | No va al navegador. Sesión admin = cookie HttpOnly firmada en servidor. |
+| `SUPABASE_SERVICE_ROLE_KEY` | GitHub Secrets + `.env.local` en tu PC | Solo servidor. Nunca `VITE_*`.                                          |
+| `.env.local`                | Tu máquina, gitignored                 | Herramienta de desarrollo; no es superficie pública.                    |
 
 Si alguien roba el service role, tiene acceso total a la BD. Mitigación: no commitear, no poner en variables `VITE_`, rotar si hubo fuga.
 

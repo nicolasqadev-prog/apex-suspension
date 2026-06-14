@@ -1,6 +1,14 @@
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Package, Plus, Search } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Package,
+  Plus,
+  Search,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -160,10 +168,7 @@ function CatalogoPage() {
   const piezasSinStock = useMemo(() => piezasBase.filter((p) => p.stock <= 0), [piezasBase]);
 
   const marcasOptsBodega = useMemo(() => marcasVehiculoOpciones(piezasConStock), [piezasConStock]);
-  const categoriasOptsBodega = useMemo(
-    () => categoriasOpciones(piezasConStock),
-    [piezasConStock],
-  );
+  const categoriasOptsBodega = useMemo(() => categoriasOpciones(piezasConStock), [piezasConStock]);
   const marcasOptsBajoPedido = useMemo(() => marcasVehiculoOpciones(piezasBase), [piezasBase]);
   const categoriasOptsBajoPedido = useMemo(() => categoriasOpciones(piezasBase), [piezasBase]);
 
@@ -218,7 +223,15 @@ function CatalogoPage() {
   useEffect(() => {
     setPaginaBodega(1);
     setPaginaBajoPedido(1);
-  }, [q, marcaVehiculoBodega, categoriaBodega, marcaVehiculoBajoPedido, categoriaBajoPedido, orden, porPagina]);
+  }, [
+    q,
+    marcaVehiculoBodega,
+    categoriaBodega,
+    marcaVehiculoBajoPedido,
+    categoriaBajoPedido,
+    orden,
+    porPagina,
+  ]);
 
   const bodegaPag = useMemo(
     () => paginar(bodega, paginaBodega, porPagina),
@@ -350,8 +363,9 @@ function CatalogoPage() {
           </label>
         </div>
         <p className="text-[11px] text-gray-600 mb-4 leading-relaxed">
-          Los filtros de arriba aplican solo a <span className="text-emerald-400/90">En bodega</span>.
-          En bajo pedido verás el catálogo completo con sus propios filtros.
+          Los filtros de arriba aplican solo a{" "}
+          <span className="text-emerald-400/90">En bodega</span>. En bajo pedido verás el catálogo
+          completo con sus propios filtros.
         </p>
         {listaCargando && (
           <p className="text-center text-sm text-emerald-200/80 py-12">
@@ -390,15 +404,24 @@ function CatalogoPage() {
                     totalPaginas={bodegaPag.totalPaginas}
                     onAnterior={() => {
                       setPaginaBodega((p) => Math.max(1, p - 1));
-                      seccionBodegaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      seccionBodegaRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
                     }}
                     onSiguiente={() => {
                       setPaginaBodega((p) => Math.min(bodegaPag.totalPaginas, p + 1));
-                      seccionBodegaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      seccionBodegaRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
                     }}
                     onIrAPagina={(n) => {
                       setPaginaBodega(n);
-                      seccionBodegaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      seccionBodegaRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
                     }}
                   />
                 </>
@@ -446,7 +469,9 @@ function CatalogoPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-xs">
                   <label className="flex flex-col gap-1 text-gray-500 min-w-0">
                     <span className="font-medium text-gray-400">Marca del vehículo</span>
-                    <span className="text-[10px] text-gray-600">Catálogo completo · bajo pedido</span>
+                    <span className="text-[10px] text-gray-600">
+                      Catálogo completo · bajo pedido
+                    </span>
                     <select
                       value={marcaVehiculoBajoPedido}
                       onChange={(e) => setMarcaVehiculoBajoPedido(e.target.value)}
@@ -462,7 +487,9 @@ function CatalogoPage() {
                   </label>
                   <label className="flex flex-col gap-1 text-gray-500 min-w-0">
                     <span className="font-medium text-gray-400">Categoría</span>
-                    <span className="text-[10px] text-gray-600">Catálogo completo · bajo pedido</span>
+                    <span className="text-[10px] text-gray-600">
+                      Catálogo completo · bajo pedido
+                    </span>
                     <select
                       value={categoriaBajoPedido}
                       onChange={(e) => setCategoriaBajoPedido(e.target.value)}
@@ -711,56 +738,60 @@ function PiezaCard({
           )}
           <div className={`p-4 ${conImagen ? "pt-3" : ""}`}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            {!conImagen && (
-              <PiezaCatalogoImagen
-                nombre={p.nombre}
-                imagenUrl={p.imagenUrl}
-                variant="compact"
-                expandible={false}
-                className="sm:mr-3 mb-2 sm:mb-0"
-              />
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold text-gray-400">
-                {marcaVehiculoDePieza(p)}
-                {catGrupo ? ` · ${catGrupo}` : ""}
-              </p>
-              <p className="text-xs font-mono text-[oklch(0.7_0.2_40)] break-all">{p.referencia}</p>
-              <p className="font-semibold text-white">{p.nombre}</p>
-              {p.aplicacion !== p.nombre && (
-                <p className="text-sm text-gray-400 mt-1 line-clamp-2">{p.aplicacion}</p>
+              {!conImagen && (
+                <PiezaCatalogoImagen
+                  nombre={p.nombre}
+                  imagenUrl={p.imagenUrl}
+                  variant="compact"
+                  expandible={false}
+                  className="sm:mr-3 mb-2 sm:mb-0"
+                />
               )}
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold text-gray-400">
+                  {marcaVehiculoDePieza(p)}
+                  {catGrupo ? ` · ${catGrupo}` : ""}
+                </p>
+                <p className="text-xs font-mono text-[oklch(0.7_0.2_40)] break-all">
+                  {p.referencia}
+                </p>
+                <p className="font-semibold text-white">{p.nombre}</p>
+                {p.aplicacion !== p.nombre && (
+                  <p className="text-sm text-gray-400 mt-1 line-clamp-2">{p.aplicacion}</p>
+                )}
+              </div>
+              <div className="text-left sm:text-right shrink-0 sm:max-w-[42%]">
+                {p.precioTaller != null ? (
+                  <>
+                    <p className="text-[10px] uppercase tracking-wide text-emerald-400/80">
+                      Precio taller
+                    </p>
+                    <p className="text-sm font-bold text-emerald-200">
+                      {formatoPrecioCop(p.precioTaller)}
+                    </p>
+                    <p className="text-[10px] text-gray-500">c/u</p>
+                    <p className="text-[10px] text-gray-500 line-through">
+                      Público {formatoPrecioCop(p.precioLista)}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[10px] uppercase tracking-wide text-gray-500">
+                      Precio público
+                    </p>
+                    <p className="text-sm font-bold text-white">
+                      {formatoPrecioCop(p.precioLista)}
+                    </p>
+                    <p className="text-[10px] text-gray-500">c/u</p>
+                  </>
+                )}
+                <p
+                  className={`text-xs mt-1 font-medium ${p.stock > 0 ? "text-emerald-400" : "text-amber-500/90"}`}
+                >
+                  {p.stock > 0 ? "Disponible" : "Bajo pedido"}
+                </p>
+              </div>
             </div>
-            <div className="text-left sm:text-right shrink-0 sm:max-w-[42%]">
-              {p.precioTaller != null ? (
-                <>
-                  <p className="text-[10px] uppercase tracking-wide text-emerald-400/80">
-                    Precio taller
-                  </p>
-                  <p className="text-sm font-bold text-emerald-200">
-                    {formatoPrecioCop(p.precioTaller)}
-                  </p>
-                  <p className="text-[10px] text-gray-500">c/u</p>
-                  <p className="text-[10px] text-gray-500 line-through">
-                    Público {formatoPrecioCop(p.precioLista)}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-[10px] uppercase tracking-wide text-gray-500">
-                    Precio público
-                  </p>
-                  <p className="text-sm font-bold text-white">{formatoPrecioCop(p.precioLista)}</p>
-                  <p className="text-[10px] text-gray-500">c/u</p>
-                </>
-              )}
-              <p
-                className={`text-xs mt-1 font-medium ${p.stock > 0 ? "text-emerald-400" : "text-amber-500/90"}`}
-              >
-                {p.stock > 0 ? "Disponible" : "Bajo pedido"}
-              </p>
-            </div>
-          </div>
           </div>
         </Link>
         {taller && p.precioTaller != null && (

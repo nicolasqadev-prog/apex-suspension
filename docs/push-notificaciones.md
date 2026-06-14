@@ -17,12 +17,12 @@ npm run vapid:keys
 
 Copia la salida a **GitHub Actions → Secrets** (y a `.dev.vars` en local):
 
-| Secret | Uso |
-|--------|-----|
-| `VITE_VAPID_PUBLIC_KEY` | Build del frontend (suscribir navegador) |
-| `VAPID_PUBLIC_KEY` | Worker (enviar push) |
-| `VAPID_PRIVATE_KEY` | Worker (enviar push, **nunca** en el cliente) |
-| `VAPID_SUBJECT` | Ej. `mailto:contacto@apex-suspension.com.co` |
+| Secret                  | Uso                                           |
+| ----------------------- | --------------------------------------------- |
+| `VITE_VAPID_PUBLIC_KEY` | Build del frontend (suscribir navegador)      |
+| `VAPID_PUBLIC_KEY`      | Worker (enviar push)                          |
+| `VAPID_PRIVATE_KEY`     | Worker (enviar push, **nunca** en el cliente) |
+| `VAPID_SUBJECT`         | Ej. `mailto:contacto@apex-suspension.com.co`  |
 
 Tras el deploy, en `/admin` verás **“Servidor listo para enviar push”**.
 

@@ -15,7 +15,8 @@ export const Route = createFileRoute("/taller/pedido/recibido")({
   validateSearch: (search) => {
     const parsed = SearchSchema.safeParse(search);
     if (parsed.success) return parsed.data;
-    const raw = typeof (search as { id?: unknown }).id === "string" ? (search as { id: string }).id : "";
+    const raw =
+      typeof (search as { id?: unknown }).id === "string" ? (search as { id: string }).id : "";
     return { id: raw };
   },
   component: PedidoRecibidoPage,
@@ -58,7 +59,5 @@ function PedidoRecibidoPage() {
 
   if (!taller || !id) return null;
 
-  return (
-    <PedidoEnviadoExito pedidoId={id} mensajeWhatsapp={mensajeWa} totalCop={totalCop} />
-  );
+  return <PedidoEnviadoExito pedidoId={id} mensajeWhatsapp={mensajeWa} totalCop={totalCop} />;
 }

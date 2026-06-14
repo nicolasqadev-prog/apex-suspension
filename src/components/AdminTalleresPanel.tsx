@@ -131,7 +131,9 @@ export default function AdminTalleresPanel({ modoPreparacion }: Props) {
       setMessage(res.reason);
       return;
     }
-    setMessage(`Aliado certificado: ${res.taller.nombreTaller}. Ya puede entrar en /taller/acceso.`);
+    setMessage(
+      `Aliado certificado: ${res.taller.nombreTaller}. Ya puede entrar en /taller/acceso.`,
+    );
     void refresh();
   }
 
@@ -175,8 +177,8 @@ export default function AdminTalleresPanel({ modoPreparacion }: Props) {
         <div>
           <p className="text-sm font-semibold text-white">Talleres fidelizados</p>
           <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-            Registra cada taller con su WhatsApp. Certifícalo como aliado cuando cierren acuerdo en la
-            visita. Desactiva si dejan de trabajar con Apex.
+            Registra cada taller con su WhatsApp. Certifícalo como aliado cuando cierren acuerdo en
+            la visita. Desactiva si dejan de trabajar con Apex.
           </p>
         </div>
       </div>
@@ -307,8 +309,8 @@ export default function AdminTalleresPanel({ modoPreparacion }: Props) {
                   </p>
                 )}
                 <p className="text-xs text-emerald-300/90 mt-1">
-                  CE: {t.contraEntregaHabilitada ? "sí" : "no"} ·{" "}
-                  {t.activo ? "activo" : "inactivo"} ·{" "}
+                  CE: {t.contraEntregaHabilitada ? "sí" : "no"} · {t.activo ? "activo" : "inactivo"}{" "}
+                  ·{" "}
                   {t.publicado ? (
                     <span className="text-emerald-400">aliado certificado</span>
                   ) : (

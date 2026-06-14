@@ -78,8 +78,7 @@ export async function notificarAdminStockBajo(input: {
   const tel = telefonoAdminApex();
   if (!tel) return { ok: false, reason: "sin_telefono_admin" };
 
-  const titulo =
-    input.stockActual <= 0 ? "Stock agotado · Apex" : "Stock bajo · Apex";
+  const titulo = input.stockActual <= 0 ? "Stock agotado · Apex" : "Stock bajo · Apex";
   const cuerpo =
     input.stockActual <= 0
       ? `${input.referencia} sin unidades. Revisa inventario y pedidos pendientes.`

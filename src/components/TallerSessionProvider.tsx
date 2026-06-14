@@ -12,10 +12,7 @@ import { allowTallerBorradorEnCliente } from "@/lib/admin-preparacion";
 import { iniciarSesionTaller } from "@/lib/taller.portal.functions";
 import type { TallerSesion } from "@/lib/taller.types";
 import { vaciarCarritoTaller } from "@/lib/taller-carrito";
-import {
-  TALLER_WHATSAPP_STORAGE_KEY,
-  normalizeWhatsappTaller,
-} from "@/lib/taller-whatsapp";
+import { TALLER_WHATSAPP_STORAGE_KEY, normalizeWhatsappTaller } from "@/lib/taller-whatsapp";
 import { vincularPushConTelefonoTaller } from "@/lib/pwa-engagement";
 import { usePersistentState } from "@/lib/usePersistentState";
 

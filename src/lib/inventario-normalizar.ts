@@ -15,7 +15,16 @@ function tipoLegible(raw: string): string {
  * no la descripción. Enriquecemos para catálogo sin tocar Supabase.
  */
 function enriquecerTextoCatalogo(
-  p: Pick<PiezaInventario, "referencia" | "nombre" | "aplicacion" | "categoria" | "categoriaGrupo" | "marca" | "marcaProducto">,
+  p: Pick<
+    PiezaInventario,
+    | "referencia"
+    | "nombre"
+    | "aplicacion"
+    | "categoria"
+    | "categoriaGrupo"
+    | "marca"
+    | "marcaProducto"
+  >,
   marcaVeh: string,
 ): { nombre: string; aplicacion: string } {
   const nombreRaw = p.nombre.trim();
@@ -36,7 +45,10 @@ function enriquecerTextoCatalogo(
   const marcaLabel = marcaVeh && marcaVeh !== "Varios" ? marcaVeh : "";
   const refLine = `Ref. ${ref}${proveedor ? ` · ${proveedor}` : ""}`;
 
-  if (catGrupo === "Cables y guayas" && (mismoTexto || NOMBRE_EXCEL_INVALIDO.has(nombreRaw.toUpperCase()))) {
+  if (
+    catGrupo === "Cables y guayas" &&
+    (mismoTexto || NOMBRE_EXCEL_INVALIDO.has(nombreRaw.toUpperCase()))
+  ) {
     const tipo = tipoLegible(nombreRaw);
     const titulo = marcaLabel ? `Guaya ${tipo} · ${marcaLabel}` : `Guaya ${tipo}`;
     return {

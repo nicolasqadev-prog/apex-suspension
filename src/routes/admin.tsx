@@ -16,7 +16,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ADMIN_REFRESH_MS } from "@/lib/admin-despachos";
 import { ADMIN_PREPARACION_EVENT, isModoPreparacion } from "@/lib/admin-preparacion";
-import { cerrarSesionAdminFn, iniciarSesionAdmin, sesionAdminActiva } from "@/lib/admin-auth.functions";
+import {
+  cerrarSesionAdminFn,
+  iniciarSesionAdmin,
+  sesionAdminActiva,
+} from "@/lib/admin-auth.functions";
 import { googleMapsRouteUrl } from "@/lib/maps-ruta";
 import { listarPedidosRecientes } from "@/lib/pedidos.functions";
 import { vincularPushConTelefonoTaller } from "@/lib/pwa-engagement";
@@ -252,7 +256,9 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
       <header className="border-b border-white/10 px-3 sm:px-4 py-3 sm:py-4">
         <div className="max-w-4xl mx-auto flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">Administración</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+              Administración
+            </h1>
             <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 leading-snug">
               {modoPreparacion
                 ? "Modo prueba · 2 h · refresh 15 min"
@@ -300,29 +306,29 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
         <AdminOperadorAvisos onVinculado={() => setChecklistRefreshKey((k) => k + 1)} />
         <nav className="mb-4 sm:mb-6 border-b border-white/10 pb-2 -mx-3 sm:-mx-4 px-3 sm:px-4 overflow-x-auto overscroll-x-contain">
           <div className="flex gap-1.5 min-w-max pb-1">
-          {(
-            [
-              ["talleres", "Talleres", "Talleres"],
-              ["inventario", "Inventario", "Stock"],
-              ["operacion", "Operación", "Operación y pedidos"],
-              ["historial", "Historial", "Historial"],
-              ["soporte", "Soporte", "Soporte PWA"],
-            ] as const
-          ).map(([id, labelMobile, labelDesktop]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTab(id)}
-              className={`text-xs font-semibold px-3 py-2 rounded-md transition-colors whitespace-nowrap touch-manipulation ${
-                tab === id
-                  ? "bg-[oklch(0.7_0.2_40)] text-white"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <span className="sm:hidden">{labelMobile}</span>
-              <span className="hidden sm:inline">{labelDesktop}</span>
-            </button>
-          ))}
+            {(
+              [
+                ["talleres", "Talleres", "Talleres"],
+                ["inventario", "Inventario", "Stock"],
+                ["operacion", "Operación", "Operación y pedidos"],
+                ["historial", "Historial", "Historial"],
+                ["soporte", "Soporte", "Soporte PWA"],
+              ] as const
+            ).map(([id, labelMobile, labelDesktop]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id)}
+                className={`text-xs font-semibold px-3 py-2 rounded-md transition-colors whitespace-nowrap touch-manipulation ${
+                  tab === id
+                    ? "bg-[oklch(0.7_0.2_40)] text-white"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <span className="sm:hidden">{labelMobile}</span>
+                <span className="hidden sm:inline">{labelDesktop}</span>
+              </button>
+            ))}
           </div>
         </nav>
 
@@ -340,7 +346,9 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
         {tab === "historial" && <AdminHistorialPanel modoPreparacion={modoPreparacion} />}
 
         {tab === "soporte" && (
-          <AdminSoportePwaPanel onPreparacionChange={() => setModoPreparacion(isModoPreparacion())} />
+          <AdminSoportePwaPanel
+            onPreparacionChange={() => setModoPreparacion(isModoPreparacion())}
+          />
         )}
 
         {tab === "operacion" && (
@@ -358,7 +366,9 @@ function AdminAuthed({ onLogout }: { onLogout: () => void }) {
             <div className="rounded-xl border border-gray-800 bg-[oklch(0.14_0.04_250)] p-5 mb-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-white">Todos los pedidos de la ventana</p>
+                  <p className="text-sm font-semibold text-white">
+                    Todos los pedidos de la ventana
+                  </p>
                   <p className="text-xs text-gray-500 mt-1">
                     {modoPreparacion
                       ? "Prueba: últimas 2 h. Cambia estados arriba; enruta en el panel de despachos."

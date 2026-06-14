@@ -288,9 +288,7 @@ function TallerPedidoPage() {
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
                     Entrega registrada
                   </p>
-                  {taller.municipio.trim() && (
-                    <p className="text-white mt-1">{taller.municipio}</p>
-                  )}
+                  {taller.municipio.trim() && <p className="text-white mt-1">{taller.municipio}</p>}
                   {taller.direccionEntrega.trim() && (
                     <p className="text-gray-400 text-xs mt-0.5 leading-relaxed">
                       {taller.direccionEntrega}
@@ -323,7 +321,10 @@ function TallerPedidoPage() {
                 </p>
               )}
               {error && (
-                <p className="text-sm text-red-300 rounded-lg border border-red-900/50 bg-red-950/30 px-3 py-2" role="alert">
+                <p
+                  className="text-sm text-red-300 rounded-lg border border-red-900/50 bg-red-950/30 px-3 py-2"
+                  role="alert"
+                >
                   {error}
                 </p>
               )}
