@@ -45,7 +45,7 @@ export default function PiezaCatalogoImagen({
   const frame = (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border border-white/10 bg-[oklch(0.22_0.02_250)]",
+        "relative overflow-hidden rounded-xl border border-white/10 bg-white shadow-sm",
         variant === "compact" && "h-[4.5rem] w-[4.5rem] sm:h-20 sm:w-20",
         variant === "card" && "aspect-[5/4] w-full max-h-44 sm:max-h-48",
         variant === "hero" &&
