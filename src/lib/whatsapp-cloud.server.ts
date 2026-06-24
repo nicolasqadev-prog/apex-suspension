@@ -22,9 +22,10 @@ export function verificarWebhookChallenge(
   token: string | null,
   challenge: string | null,
 ): string | null {
-  const cfg = whatsappCloudConfig();
-  if (!cfg) return null;
-  if (mode === "subscribe" && token === cfg.verifyToken && challenge) {
+  // Solo hace falta el verify token para el GET de Meta (no el access token).
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN?.trim();
+  if (!verifyToken) return null;
+  if (mode === "subscribe" && token === verifyToken && challenge) {
     return challenge;
   }
   return null;
