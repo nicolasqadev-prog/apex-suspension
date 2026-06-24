@@ -132,7 +132,10 @@ export async function buscarProductosMostrador(
   const q = query.trim();
   if (!q) return { ok: true, productos: [] };
 
-  const safe = q.replace(/[%_,.()]/g, " ").replace(/\s+/g, " ").trim();
+  const safe = q
+    .replace(/[%_,.()]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   if (!safe) return { ok: true, productos: [] };
 
   const pattern = `%${safe}%`;
@@ -238,7 +241,5 @@ export function formatoInventarioParaPrompt(productos: ProductoMostrador[]): str
 }
 
 export function marcasQueVendemosTexto(): string {
-  return [...MARCAS_VENDEMOS]
-    .map((k) => metaMarcaProveedor(k)?.nombre ?? k)
-    .join(", ");
+  return [...MARCAS_VENDEMOS].map((k) => metaMarcaProveedor(k)?.nombre ?? k).join(", ");
 }

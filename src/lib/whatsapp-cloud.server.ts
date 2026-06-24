@@ -5,16 +5,26 @@
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 
+export function whatsappSendConfig(): { token: string; phoneNumberId: string } | null {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
+  if (!token || !phoneNumberId) {
+    if (!token) console.error("WhatsApp send: falta WHATSAPP_ACCESS_TOKEN");
+    if (!phoneNumberId) console.error("WhatsApp send: falta WHATSAPP_PHONE_NUMBER_ID");
+    return null;
+  }
+  return { token, phoneNumberId };
+}
+
 export function whatsappCloudConfig(): {
   token: string;
   phoneNumberId: string;
   verifyToken: string;
 } | null {
-  const token = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
+  const send = whatsappSendConfig();
   const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN?.trim();
-  if (!token || !phoneNumberId || !verifyToken) return null;
-  return { token, phoneNumberId, verifyToken };
+  if (!send || !verifyToken) return null;
+  return { ...send, verifyToken };
 }
 
 export function verificarWebhookChallenge(
@@ -32,7 +42,7 @@ export function verificarWebhookChallenge(
 }
 
 export async function enviarTextoWhatsApp(to: string, body: string): Promise<boolean> {
-  const cfg = whatsappCloudConfig();
+  const cfg = whatsappSendConfig();
   if (!cfg) return false;
 
   const toDigits = to.replace(/\D/g, "");

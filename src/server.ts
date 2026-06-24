@@ -1,6 +1,6 @@
 import handler from "@tanstack/react-start/server-entry";
 
-import { cloudflareExecutionCtx } from "./lib/worker-context.server";
+import { handleWhatsAppWebhookRequest } from "./lib/whatsapp-webhook-http.server";
 
 const SECURITY_HEADERS: Record<string, string> = {
   "X-Frame-Options": "DENY",
@@ -43,9 +43,13 @@ function withSecurityHeaders(request: Request, response: Response): Response {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: ExecutionContext) {
-    return cloudflareExecutionCtx.run(ctx, async () => {
-      const response = await handler.fetch(request, env as never, ctx);
+    const path = new URL(request.url).pathname;
+    if (path === "/api/whatsapp/webhook") {
+      const response = await handleWhatsAppWebhookRequest(request, ctx);
       return withSecurityHeaders(request, response);
-    });
+    }
+
+    const response = await handler.fetch(request, env as never, ctx);
+    return withSecurityHeaders(request, response);
   },
 };

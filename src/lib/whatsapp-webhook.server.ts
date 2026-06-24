@@ -158,5 +158,8 @@ export async function procesarMensajeWhatsAppEntrante(msg: {
   session.history.push({ role: "assistant", content: res.reply });
   saveSession(msg.from, session);
 
-  await enviarTextoWhatsApp(msg.from, texto);
+  const sent = await enviarTextoWhatsApp(msg.from, texto);
+  if (!sent) {
+    console.error("WhatsApp: no se pudo enviar respuesta a", msg.from);
+  }
 }
