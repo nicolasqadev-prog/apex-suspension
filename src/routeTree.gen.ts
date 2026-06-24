@@ -27,6 +27,7 @@ import { Route as RepuestoSlugRouteImport } from './routes/repuesto.$slug'
 import { Route as TallerPedidosIndexRouteImport } from './routes/taller.pedidos.index'
 import { Route as TallerPedidosIdRouteImport } from './routes/taller.pedidos.$id'
 import { Route as TallerPedidoRecibidoRouteImport } from './routes/taller.pedido.recibido'
+import { Route as ApiWhatsappWebhookRouteImport } from './routes/api/whatsapp/webhook'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -118,6 +119,11 @@ const TallerPedidoRecibidoRoute = TallerPedidoRecibidoRouteImport.update({
   path: '/recibido',
   getParentRoute: () => TallerPedidoRoute,
 } as any)
+const ApiWhatsappWebhookRoute = ApiWhatsappWebhookRouteImport.update({
+  id: '/api/whatsapp/webhook',
+  path: '/api/whatsapp/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/taller/pedido': typeof TallerPedidoRouteWithChildren
   '/taller/pedidos': typeof TallerPedidosRouteWithChildren
   '/taller/': typeof TallerIndexRoute
+  '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
   '/taller/pedido/recibido': typeof TallerPedidoRecibidoRoute
   '/taller/pedidos/$id': typeof TallerPedidosIdRoute
   '/taller/pedidos/': typeof TallerPedidosIndexRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/taller/inscripcion': typeof TallerInscripcionRoute
   '/taller/pedido': typeof TallerPedidoRouteWithChildren
   '/taller': typeof TallerIndexRoute
+  '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
   '/taller/pedido/recibido': typeof TallerPedidoRecibidoRoute
   '/taller/pedidos/$id': typeof TallerPedidosIdRoute
   '/taller/pedidos': typeof TallerPedidosIndexRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/taller/pedido': typeof TallerPedidoRouteWithChildren
   '/taller/pedidos': typeof TallerPedidosRouteWithChildren
   '/taller/': typeof TallerIndexRoute
+  '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
   '/taller/pedido/recibido': typeof TallerPedidoRecibidoRoute
   '/taller/pedidos/$id': typeof TallerPedidosIdRoute
   '/taller/pedidos/': typeof TallerPedidosIndexRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/taller/pedido'
     | '/taller/pedidos'
     | '/taller/'
+    | '/api/whatsapp/webhook'
     | '/taller/pedido/recibido'
     | '/taller/pedidos/$id'
     | '/taller/pedidos/'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/taller/inscripcion'
     | '/taller/pedido'
     | '/taller'
+    | '/api/whatsapp/webhook'
     | '/taller/pedido/recibido'
     | '/taller/pedidos/$id'
     | '/taller/pedidos'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/taller/pedido'
     | '/taller/pedidos'
     | '/taller/'
+    | '/api/whatsapp/webhook'
     | '/taller/pedido/recibido'
     | '/taller/pedidos/$id'
     | '/taller/pedidos/'
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   TallerPedidoRoute: typeof TallerPedidoRouteWithChildren
   TallerPedidosRoute: typeof TallerPedidosRouteWithChildren
   TallerIndexRoute: typeof TallerIndexRoute
+  ApiWhatsappWebhookRoute: typeof ApiWhatsappWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -387,6 +400,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TallerPedidoRecibidoRouteImport
       parentRoute: typeof TallerPedidoRoute
     }
+    '/api/whatsapp/webhook': {
+      id: '/api/whatsapp/webhook'
+      path: '/api/whatsapp/webhook'
+      fullPath: '/api/whatsapp/webhook'
+      preLoaderRoute: typeof ApiWhatsappWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -432,6 +452,7 @@ const rootRouteChildren: RootRouteChildren = {
   TallerPedidoRoute: TallerPedidoRouteWithChildren,
   TallerPedidosRoute: TallerPedidosRouteWithChildren,
   TallerIndexRoute: TallerIndexRoute,
+  ApiWhatsappWebhookRoute: ApiWhatsappWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

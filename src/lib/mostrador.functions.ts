@@ -1,7 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { getTallerFidelizadoByWhatsapp } from "./talleres.server";
+import { aplicarDescuento } from "./pricing";
+import {
+  detectarAlcanceMensaje,
+  extraerMarcasMencionadas,
+  formatoInventarioParaPrompt,
+  marcasQueVendemosTexto,
+  resolverBusquedaMostrador,
+  vendemosMarca,
+  type ProductoMostrador,
+} from "./mostrador-inventario.server";
+import type { MostradorCotizacionLinea } from "./mostrador";
+import { notificarApexNuevoPedido } from "./pedidos-alerta.server";
+import { createPedido } from "./pedidos.server";
+import { getTallerFidelizadoByWhatsapp, normalizeWhatsapp } from "./talleres.server";
 
 const InputSchema = z.object({
   history: z
@@ -11,7 +24,7 @@ const InputSchema = z.object({
         content: z.string().min(1).max(2000),
       }),
     )
-    .max(12),
+    .max(20),
   context: z
     .object({
       whatsapp: z.string().optional(),
@@ -19,14 +32,33 @@ const InputSchema = z.object({
       ano: z.string().optional(),
       version: z.string().optional(),
       municipio: z.string().optional(),
-      inventarioSnippet: z.string().max(8000).optional(),
+      piezaPrioritaria: z.string().optional(),
     })
     .optional(),
 });
 
+const ConfirmarPedidoSchema = z.object({
+  whatsapp: z.string().min(7).max(20),
+  nombreCliente: z.string().max(80).optional(),
+  municipio: z.string().max(80).optional(),
+  direccion: z.string().max(200).optional(),
+  notas: z.string().max(500).optional(),
+  lineas: z
+    .array(
+      z.object({
+        slug: z.string().min(1).max(120),
+        cantidad: z.number().int().min(1).max(99),
+      }),
+    )
+    .min(1)
+    .max(20),
+});
+
 const RATE_WINDOW_MS = 10 * 60_000;
-const RATE_MAX_MOSTRADOR_CALLS = 35;
+const RATE_MAX_MOSTRADOR_CALLS = 40;
+const RATE_MAX_PEDIDOS = 10;
 const mostradorCallsByIp = new Map<string, { count: number; firstAt: number }>();
+const pedidoCallsByIp = new Map<string, { count: number; firstAt: number }>();
 
 function getIpFromHeaders(headers: Headers): string {
   const cf = headers.get("CF-Connecting-IP");
@@ -36,85 +68,123 @@ function getIpFromHeaders(headers: Headers): string {
   return "unknown";
 }
 
-type TallerCuenta = { validado: boolean; contraEntregaHabilitada?: boolean };
+function checkRateLimit(
+  ip: string,
+  store: Map<string, { count: number; firstAt: number }>,
+  max: number,
+): boolean {
+  const now = Date.now();
+  const entry = store.get(ip);
+  if (!entry || now - entry.firstAt > RATE_WINDOW_MS) {
+    store.set(ip, { count: 1, firstAt: now });
+    return true;
+  }
+  if (entry.count >= max) return false;
+  entry.count += 1;
+  return true;
+}
+
+type TallerCuenta = {
+  validado: boolean;
+  nombreTaller?: string;
+  descuentoPorcentaje?: number;
+  contraEntregaHabilitada?: boolean;
+  municipio?: string;
+  direccionEntrega?: string;
+};
 
 async function tallerCuentaFromWhatsapp(raw?: string): Promise<TallerCuenta> {
   const w = raw?.trim();
   if (!w) return { validado: false };
   const taller = await getTallerFidelizadoByWhatsapp(w);
   if (!taller) return { validado: false };
-  return { validado: true, contraEntregaHabilitada: taller.contraEntregaHabilitada };
+  return {
+    validado: true,
+    nombreTaller: taller.nombreTaller,
+    descuentoPorcentaje: taller.descuentoPorcentaje,
+    contraEntregaHabilitada: taller.contraEntregaHabilitada,
+    municipio: taller.municipio,
+    direccionEntrega: taller.direccionEntrega,
+  };
 }
 
-function segmentoClienteLines(taller: TallerCuenta): string[] {
-  if (!taller.validado) {
-    return ["Segmento: cliente general (anticipo / política según web de Apex)."];
+function precioParaCliente(p: ProductoMostrador, taller: TallerCuenta): number {
+  if (taller.validado && taller.descuentoPorcentaje != null) {
+    return aplicarDescuento(p.precioPublico, taller.descuentoPorcentaje);
   }
-  const ce =
-    taller.contraEntregaHabilitada === true
-      ? "Contra entrega habilitada en esta cuenta: sí."
-      : "Contra entrega habilitada en esta cuenta: no (confirmar condiciones con el equipo).";
-  return [
-    "Segmento: taller validado en Apex.",
-    ce,
-    "No mencionar porcentajes de descuento ni precios concretos; solo orientación y handoff a WhatsApp.",
-  ];
+  return p.precioPublico;
 }
 
-/** Respuesta expuesta al cliente (sin notas internas del modelo). */
-type MostradorResponsePublic = {
+function mapCotizacion(
+  productos: ProductoMostrador[],
+  taller: TallerCuenta,
+): MostradorCotizacionLinea[] {
+  return productos.map((p) => ({
+    slug: p.slug,
+    referencia: p.referencia,
+    nombre: p.nombre,
+    marcaProducto: p.marcaProducto,
+    precioUnitarioCop: precioParaCliente(p, taller),
+    precioPublicoCop: p.precioPublico,
+    stock: p.stock,
+    disponibilidad: p.disponibilidad,
+    cantidadSugerida: 1,
+  }));
+}
+
+export type MostradorResponsePublic = {
   ok: true;
   reply: string;
   questions: string[];
-  action: "ask_more" | "handoff_whatsapp";
+  action: "ask_more" | "quote" | "out_of_scope" | "handoff_whatsapp";
   handoffTag?: "normal" | "bajo_encargo";
-  /** Una pieza concreta para priorizar la cotización (orientación, no diagnóstico). */
-  primarySuggestion?: string;
-  /** Resuelto en servidor según WhatsApp en contexto (no enviar desde el cliente). */
+  cotizacion?: MostradorCotizacionLinea[];
   tallerCuenta?: TallerCuenta;
+  alcance?: "en_alcance" | "bajo_encargo" | "fuera_alcance";
 };
 
-/** Formato JSON del modelo (puede incluir internalSummary; no se reexpone al navegador). */
 type MostradorGroqPayload = {
   reply?: unknown;
   questions?: unknown;
   action?: unknown;
   handoffTag?: unknown;
-  primarySuggestion?: unknown;
-  internalSummary?: unknown;
+  objecionAtendida?: unknown;
 };
 
-function buildSystemPrompt() {
+function buildSystemPrompt(inventarioJson: string, marcas: string) {
   return [
-    "Eres el agente 'Mostrador Apex' (Colombia) para Apex Suspensión.",
-    "Orientas para cotizar repuestos de suspensión y dirección, pero NO diagnosticas.",
-    "Apex se especializa en suspensión/dirección, pero si el cliente pide algo fuera de esa especialidad, ofreces 'bajo encargo' como Plan B (sin prometer disponibilidad): lo revisamos con proveedor y cotizamos.",
+    "Eres el agente comercial 'Mostrador Apex' de Apex Suspensión (Colombia).",
+    "Vendes repuestos de suspensión y dirección. Hablas natural, como un asesor humano del mostrador — nunca como robot.",
+    "",
+    "MARCAS QUE COMERCIALIZAMOS:",
+    marcas,
+    "",
+    "INVENTARIO REAL (única fuente de precios y stock — NO inventes nada fuera de esto):",
+    inventarioJson,
     "",
     "REGLAS DURAS:",
-    "- Nunca afirmes 'eso es X'. Usa 'podría ser', 'suele asociarse', 'para cotizar lo correcto necesitamos...'.",
-    "- Incluye siempre: 'Confirma el diagnóstico con tu mecánico de confianza.'",
-    "- Da 1–3 hipótesis útiles (posibles piezas/zonas) en tono de 'podría ser' para que el cliente sepa qué confirmar con su mecánico.",
-    "- En la respuesta SIEMPRE incluye una línea explícita: 'Posibles piezas a revisar: ...' con 2–4 ítems (sin afirmar diagnóstico).",
-    "- Incluye SIEMPRE al final una línea: 'Para cotizar primero (orientación, no diagnóstico): ...' con UNA pieza concreta (la más probable para pedir referencia).",
-    "- Devuelve también JSON.primarySuggestion con esa misma pieza (texto corto, 6–18 palabras).",
-    "- Debes usar el mensaje del cliente: evita respuestas genéricas repetidas. Cada respuesta debe referirse al síntoma/pieza mencionada.",
-    "- Si el cliente menciona frenos (frena, freno, pastillas, discos, caliper), responde con hipótesis de frenos y marca handoffTag = 'bajo_encargo'.",
-    "- No inventes stock, precios o tiempos. Si no hay datos, pide evidencia y deriva a WhatsApp humano.",
-    "- Máximo 3 preguntas por turno.",
-    "- Objetivo: 1–2 turnos y cerrar con resumen + WhatsApp humano.",
+    "- Los precios y stock SOLO vienen del inventario inyectado. Repítelos tal cual en COP.",
+    "- stock > 0 = 'en bodega, despacho inmediato'. stock = 0 = 'bajo pedido' (lo traemos, se confirma por WhatsApp).",
+    "- NO diagnosticas. Usa 'podría ser', 'para cotizar necesitamos confirmar'. Incluye: confirma con tu mecánico de confianza.",
+    "- Si el cliente pide marca que NO vendemos (MOOG, Corven, Nakata, etc.) y no está en inventario: dilo con respeto y ofrece alternativa del catálogo si hay.",
+    "- Si el tema es frenos/embrague y no hay match en inventario: ofrece bajo encargo (revisamos con proveedor).",
+    "- Si es motor, transmisión, llantas, radio, A/C: fuera de nuestro alcance — declina con cortesía.",
     "",
-    "SALIDA (JSON estricto):",
-    "{",
-    '  "reply": string,',
-    '  "questions": string[],',
-    '  "action": "ask_more" | "handoff_whatsapp",',
-    '  "handoffTag"?: "normal" | "bajo_encargo",',
-    '  "primarySuggestion"?: string,',
-    '  "internalSummary": string[]',
-    "}",
+    "MANEJO DE OBJECIONES (integra en la respuesta, sin sonar a script):",
+    "- 'Está caro': explica relación calidad/marca, ofrece alternativa más económica del inventario si existe.",
+    "- 'No tengo la referencia': pide foto de la pieza vieja, vehículo, año, lado izq/der.",
+    "- 'Lo consigo más barato': no regatees; destaca stock inmediato o garantía Apex.",
+    "- '¿Cuándo llega?': bodega = mismo día en Sabana si hay cupo; bajo pedido = confirmamos plazo por WhatsApp.",
     "",
-    "EJEMPLO DE SALIDA (solo como referencia de formato, no lo copies literal):",
-    '{ "reply": "Podría estar relacionado con pastillas/discos o un caliper agarrado. Confirma el diagnóstico con tu mecánico de confianza.", "questions": ["¿El ruido es al frenar o también rodando?", "¿Delantera o trasera?", "¿Tienes marca de pastillas o discos actuales?"], "action": "handoff_whatsapp", "handoffTag": "bajo_encargo", "internalSummary": ["Tema: frenos", "Ofrecer bajo encargo"] }',
+    "Taller validado: cotiza precio del inventario (ya viene con descuento aplicado si aplica). No menciones % de descuento.",
+    "",
+    "SALIDA JSON estricta:",
+    '{ "reply": string, "questions": string[], "action": "ask_more"|"quote"|"out_of_scope"|"handoff_whatsapp", "handoffTag"?: "normal"|"bajo_encargo", "objecionAtendida"?: string }',
+    "",
+    "action=quote cuando presentas precios del inventario.",
+    "action=out_of_scope cuando no vendemos esa línea.",
+    "action=handoff_whatsapp cuando el cliente quiere cerrar o necesita humano.",
+    "Máximo 3 preguntas. Mensaje reply: 2-6 oraciones, conversacional.",
   ].join("\n");
 }
 
@@ -126,11 +196,7 @@ function safeJsonParse<T>(raw: string): T | null {
   }
 }
 
-async function callAnthropic(args: {
-  system: string;
-  user: string;
-  apiKey: string;
-}): Promise<string> {
+async function callGroq(args: { system: string; user: string; apiKey: string }): Promise<string> {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -138,9 +204,9 @@ async function callAnthropic(args: {
       Authorization: `Bearer ${args.apiKey}`,
     },
     body: JSON.stringify({
-      model: process.env.GROQ_MODEL?.trim() || "llama-3.1-8b-instant",
-      temperature: 0.3,
-      max_tokens: 450,
+      model: process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile",
+      temperature: 0.45,
+      max_tokens: 650,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: args.system },
@@ -162,46 +228,135 @@ async function callAnthropic(args: {
   return text.trim();
 }
 
-export const responderMostrador = createServerFn({ method: "POST" })
-  .inputValidator(InputSchema)
-  .handler(async (ctx) => {
-    const data = (ctx as { data: z.infer<typeof InputSchema> }).data;
-    const request = (ctx as { request?: Request }).request;
-    const ip = request ? getIpFromHeaders(request.headers) : "unknown";
-    const now = Date.now();
-    const slot = mostradorCallsByIp.get(ip);
-    if (slot && now - slot.firstAt <= RATE_WINDOW_MS && slot.count >= RATE_MAX_MOSTRADOR_CALLS) {
-      const tallerCuenta = await tallerCuentaFromWhatsapp(data.context?.whatsapp);
-      const fallback: MostradorResponsePublic = {
-        ok: true,
-        reply:
-          "Ahora mismo no puedo seguir con el asistente automático desde esta red. Confirma el diagnóstico con tu mecánico de confianza y escríbenos por WhatsApp para cotizar.",
-        questions: [],
-        action: "handoff_whatsapp",
-        handoffTag: "normal",
-        tallerCuenta,
-      };
-      return fallback;
+function respuestaFueraAlcance(): MostradorResponsePublic {
+  return {
+    ok: true,
+    reply:
+      "Esa línea (motor, transmisión, llantas, radio o aire acondicionado) no la manejamos en Apex — nos enfocamos en suspensión y dirección. Si necesitas rótulas, terminales, amortiguadores o bieletas, con gusto te cotizo en segundos.",
+    questions: ["¿Buscas algo de suspensión o dirección para tu vehículo?"],
+    action: "out_of_scope",
+    handoffTag: "normal",
+    alcance: "fuera_alcance",
+  };
+}
+
+function respuestaMarcaNoVendida(marca: string, cotizacion: MostradorCotizacionLinea[]): MostradorResponsePublic {
+  const alt =
+    cotizacion.length > 0
+      ? ` En catálogo tengo alternativas como ${cotizacion[0].referencia} (${cotizacion[0].marcaProducto}).`
+      : "";
+  return {
+    ok: true,
+    reply: `No manejamos la marca ${marca} de forma habitual.${alt} Si me das referencia, vehículo y año, busco el equivalente en las marcas que sí comercializamos.`,
+    questions: ["¿Tienes foto de la pieza o la referencia del repuesto?"],
+    action: cotizacion.length > 0 ? "quote" : "ask_more",
+    handoffTag: "normal",
+    cotizacion: cotizacion.length > 0 ? cotizacion : undefined,
+    alcance: "en_alcance",
+  };
+}
+
+function respuestaCotizacionDeterministica(
+  cotizacion: MostradorCotizacionLinea[],
+  taller: TallerCuenta,
+  alcance: "en_alcance" | "bajo_encargo",
+): string {
+  const lineas = cotizacion
+    .slice(0, 3)
+    .map((l) => {
+      const precio = new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        maximumFractionDigits: 0,
+      }).format(l.precioUnitarioCop);
+      const disp =
+        l.disponibilidad === "bodega"
+          ? `${l.stock} en bodega — despacho inmediato`
+          : "bajo pedido — confirmamos llegada por WhatsApp";
+      return `${l.referencia} (${l.marcaProducto}): ${l.nombre} — ${precio} c/u. ${disp}.`;
+    })
+    .join("\n");
+
+  const intro =
+    alcance === "bajo_encargo"
+      ? "Revisé el catálogo. Para frenos/embrague a veces lo gestionamos bajo encargo; esto es lo más cercano que tengo:"
+      : "Te cotizo con datos del sistema:";
+
+  const pago =
+    taller.validado && taller.contraEntregaHabilitada
+      ? " En tu cuenta de taller aplica contra entrega (confirmamos al cerrar)."
+      : "";
+
+  return `${intro}\n\n${lineas}\n\nConfirma el diagnóstico con tu mecánico de confianza.${pago} ¿Cuántas unidades necesitas?`;
+}
+
+export type MostradorTurnoInput = z.infer<typeof InputSchema>;
+
+/** Lógica compartida: web PWA y webhook WhatsApp. */
+export async function procesarTurnoMostrador(
+  data: MostradorTurnoInput,
+): Promise<MostradorResponsePublic> {
+    const tallerCuenta = await tallerCuentaFromWhatsapp(data.context?.whatsapp);
+
+    const ultimoUsuario = [...data.history].reverse().find((m) => m.role === "user")?.content ?? "";
+    const alcance = detectarAlcanceMensaje(ultimoUsuario);
+
+    if (alcance === "fuera_alcance") {
+      const productos = await resolverBusquedaMostrador(ultimoUsuario, data.context?.piezaPrioritaria);
+      if (productos.length === 0) {
+        return { ...respuestaFueraAlcance(), tallerCuenta };
+      }
     }
-    if (!slot || now - slot.firstAt > RATE_WINDOW_MS) {
-      mostradorCallsByIp.set(ip, { count: 1, firstAt: now });
-    } else {
-      mostradorCallsByIp.set(ip, { count: slot.count + 1, firstAt: slot.firstAt });
+
+    const marcasMencionadas = extraerMarcasMencionadas(ultimoUsuario);
+    const marcaNoVendida = marcasMencionadas.find((m) => !vendemosMarca(m));
+
+    const productos = await resolverBusquedaMostrador(ultimoUsuario, data.context?.piezaPrioritaria);
+    const cotizacion = mapCotizacion(productos, tallerCuenta);
+
+    if (marcaNoVendida && cotizacion.every((c) => c.marcaProducto.toUpperCase() !== marcaNoVendida)) {
+      return { ...respuestaMarcaNoVendida(marcaNoVendida, cotizacion), tallerCuenta };
     }
 
     const apiKey = process.env.GROQ_API_KEY?.trim();
-    const tallerCuenta = await tallerCuentaFromWhatsapp(data.context?.whatsapp);
 
+    if (!apiKey) {
+      if (cotizacion.length > 0) {
+        return {
+          ok: true,
+          reply: respuestaCotizacionDeterministica(cotizacion, tallerCuenta, alcance),
+          questions: ["¿Cuántas unidades necesitas?", "¿Delantera o trasera, izquierda o derecha?"],
+          action: "quote",
+          handoffTag: alcance === "bajo_encargo" ? "bajo_encargo" : "normal",
+          cotizacion,
+          tallerCuenta,
+          alcance,
+        };
+      }
+      return {
+        ok: true,
+        reply:
+          "Te ayudo a cotizar. Cuéntame la pieza o referencia, el vehículo y el año. Confirma el diagnóstico con tu mecánico de confianza.",
+        questions: ["¿Qué pieza buscas o qué síntoma presenta el carro?"],
+        action: "ask_more",
+        handoffTag: "normal",
+        tallerCuenta,
+        alcance,
+      };
+    }
+
+    const inventarioJson = formatoInventarioParaPrompt(productos);
     const contextLines = [
-      ...segmentoClienteLines(tallerCuenta),
-      data.context?.whatsapp ? `WhatsApp (formulario): ${data.context.whatsapp}` : null,
-      data.context?.carro ? `Carro: ${data.context.carro}` : null,
+      tallerCuenta.validado
+        ? `Cliente: taller validado (${tallerCuenta.nombreTaller ?? "registrado"}).`
+        : "Cliente: público general.",
+      data.context?.whatsapp ? `WhatsApp: ${data.context.whatsapp}` : null,
+      data.context?.carro ? `Vehículo: ${data.context.carro}` : null,
       data.context?.ano ? `Año: ${data.context.ano}` : null,
       data.context?.version ? `Versión: ${data.context.version}` : null,
       data.context?.municipio ? `Municipio: ${data.context.municipio}` : null,
-      data.context?.inventarioSnippet
-        ? `Inventario (snippet):\n${data.context.inventarioSnippet}`
-        : null,
+      `Alcance detectado: ${alcance}`,
+      productos.length === 0 ? "Sin coincidencias en catálogo para este mensaje." : null,
     ].filter(Boolean);
 
     const transcript = data.history
@@ -209,62 +364,217 @@ export const responderMostrador = createServerFn({ method: "POST" })
       .join("\n");
 
     const userPrompt = [
-      contextLines.length ? `CONTEXTO\n${contextLines.join("\n")}\n` : null,
+      `CONTEXTO\n${contextLines.join("\n")}`,
+      "",
       "CONVERSACIÓN",
       transcript,
       "",
-      "Instrucción: responde SOLO con el JSON estricto de SALIDA.",
-    ]
-      .filter(Boolean)
-      .join("\n");
+      "Responde SOLO con el JSON de SALIDA. Si hay inventario, cotiza con esos datos.",
+    ].join("\n");
 
-    if (!apiKey) {
-      const fallback: MostradorResponsePublic = {
+    try {
+      const raw = await callGroq({
+        system: buildSystemPrompt(inventarioJson, marcasQueVendemosTexto()),
+        user: userPrompt,
+        apiKey,
+      });
+      const parsed = safeJsonParse<MostradorGroqPayload>(raw);
+
+      if (!parsed || typeof parsed.reply !== "string") {
+        throw new Error("JSON inválido");
+      }
+
+      const actionRaw = parsed.action;
+      let action: MostradorResponsePublic["action"] = "ask_more";
+      if (actionRaw === "quote" || (cotizacion.length > 0 && actionRaw !== "out_of_scope")) {
+        action = "quote";
+      } else if (actionRaw === "out_of_scope") {
+        action = "out_of_scope";
+      } else if (actionRaw === "handoff_whatsapp") {
+        action = "handoff_whatsapp";
+      }
+
+      return {
         ok: true,
-        reply:
-          "Te puedo orientar para cotizar, pero ahora mismo no tengo el asistente automático activo. Confirma el diagnóstico con tu mecánico de confianza y escríbenos por WhatsApp para confirmar la referencia.",
-        questions: [
-          "¿Qué carro es (marca/línea) y de qué año?",
-          "¿Qué síntoma presenta o qué pieza necesitas?",
-        ],
-        action: "handoff_whatsapp",
-        handoffTag: "normal",
+        reply: parsed.reply.slice(0, 900),
+        questions: Array.isArray(parsed.questions)
+          ? parsed.questions.map((q) => String(q).slice(0, 140)).slice(0, 3)
+          : [],
+        action,
+        handoffTag: parsed.handoffTag === "bajo_encargo" ? "bajo_encargo" : "normal",
+        cotizacion: cotizacion.length > 0 ? cotizacion : undefined,
         tallerCuenta,
+        alcance,
       };
-      return fallback;
-    }
-
-    const raw = await callAnthropic({ system: buildSystemPrompt(), user: userPrompt, apiKey });
-    const parsed = safeJsonParse<MostradorGroqPayload>(raw);
-
-    if (!parsed || typeof parsed.reply !== "string" || !Array.isArray(parsed.questions)) {
+    } catch {
+      if (cotizacion.length > 0) {
+        return {
+          ok: true,
+          reply: respuestaCotizacionDeterministica(cotizacion, tallerCuenta, alcance),
+          questions: ["¿Cuántas unidades necesitas?"],
+          action: "quote",
+          handoffTag: alcance === "bajo_encargo" ? "bajo_encargo" : "normal",
+          cotizacion,
+          tallerCuenta,
+          alcance,
+        };
+      }
       return {
         ok: true,
         reply:
-          "Listo, te oriento para cotizar. No hago diagnóstico: confirma con tu mecánico de confianza. Para avanzar rápido: ¿qué carro es (marca/línea), año y qué síntoma presenta? Si puedes, envía foto o video por WhatsApp.",
-        questions: [
-          "¿Qué carro es (marca/línea) y de qué año?",
-          "¿Qué síntoma presenta o qué pieza necesitas?",
-        ],
+          "Dame un momento — para cotizarte bien necesito la referencia o una descripción de la pieza, más el vehículo y año. Confirma el diagnóstico con tu mecánico.",
+        questions: ["¿Qué pieza buscas?", "¿Marca, modelo y año del vehículo?"],
+        action: "ask_more",
+        handoffTag: "normal",
+        tallerCuenta,
+        alcance,
+      };
+    }
+}
+
+export const responderMostrador = createServerFn({ method: "POST" })
+  .inputValidator(InputSchema)
+  .handler(async (ctx) => {
+    const data = (ctx as { data: z.infer<typeof InputSchema> }).data;
+    const request = (ctx as { request?: Request }).request;
+    const ip = request ? getIpFromHeaders(request.headers) : "unknown";
+
+    if (!checkRateLimit(ip, mostradorCallsByIp, RATE_MAX_MOSTRADOR_CALLS)) {
+      const tallerCuenta = await tallerCuentaFromWhatsapp(data.context?.whatsapp);
+      return {
+        ok: true,
+        reply:
+          "Ahora mismo el asistente está saturado. Escríbenos por WhatsApp y te cotizamos al toque.",
+        questions: [],
         action: "handoff_whatsapp",
         handoffTag: "normal",
         tallerCuenta,
       } satisfies MostradorResponsePublic;
     }
 
-    const primarySuggestion =
-      typeof parsed.primarySuggestion === "string"
-        ? parsed.primarySuggestion.slice(0, 180).trim()
-        : "";
+    return procesarTurnoMostrador(data);
+  });
 
-    const safe: MostradorResponsePublic = {
-      ok: true,
-      reply: parsed.reply.slice(0, 700),
-      questions: parsed.questions.map((q) => String(q).slice(0, 140)).slice(0, 3),
-      action: parsed.action === "ask_more" ? "ask_more" : "handoff_whatsapp",
-      handoffTag: parsed.handoffTag === "bajo_encargo" ? "bajo_encargo" : "normal",
-      primarySuggestion: primarySuggestion || undefined,
-      tallerCuenta,
+export const confirmarPedidoMostrador = createServerFn({ method: "POST" })
+  .inputValidator(ConfirmarPedidoSchema)
+  .handler(async (ctx) => {
+    const data = (ctx as { data: z.infer<typeof ConfirmarPedidoSchema> }).data;
+    const request = (ctx as { request?: Request }).request;
+    const ip = request ? getIpFromHeaders(request.headers) : "unknown";
+
+    if (!checkRateLimit(ip, pedidoCallsByIp, RATE_MAX_PEDIDOS)) {
+      return { ok: false as const, reason: "rate_limit" as const };
+    }
+
+    const whatsapp = normalizeWhatsapp(data.whatsapp);
+    const taller = await getTallerFidelizadoByWhatsapp(whatsapp);
+    const { loadPiezaBySlug } = await import("./inventario.server");
+    const lineasValidadas: {
+      slug: string;
+      referencia: string;
+      nombre: string;
+      cantidad: number;
+      precioUnitario: number;
+      disponibilidad: string;
+    }[] = [];
+    let total = 0;
+
+    for (const l of data.lineas) {
+      const piezaData = await loadPiezaBySlug(l.slug);
+      if (!piezaData.pieza) {
+        return { ok: false as const, reason: "linea_invalida" as const };
+      }
+      const p = piezaData.pieza;
+      let qty = l.cantidad;
+      if (p.stock > 0 && qty > p.stock) qty = p.stock;
+
+      const precioUnitario =
+        taller != null
+          ? p.precioTallerRef != null && p.precioTallerRef > 0
+            ? Math.round(p.precioTallerRef)
+            : aplicarDescuento(p.precioLista, taller.descuentoPorcentaje)
+          : p.precioLista;
+
+      lineasValidadas.push({
+        slug: p.slug,
+        referencia: p.referencia,
+        nombre: p.nombre,
+        cantidad: qty,
+        precioUnitario,
+        disponibilidad: p.stock > 0 ? "bodega" : "bajo_pedido",
+      });
+      total += precioUnitario * qty;
+    }
+
+    const formatoCop = (n: number) =>
+      new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        maximumFractionDigits: 0,
+      }).format(n);
+
+    const resumenLineas = lineasValidadas
+      .map(
+        (l) =>
+          `· ${l.referencia} ×${l.cantidad} — ${formatoCop(l.precioUnitario)} c/u` +
+          (l.disponibilidad === "bajo_pedido" ? " (bajo pedido)" : ""),
+      )
+      .join("\n");
+
+    const nombre =
+      taller?.nombreTaller?.trim() ||
+      data.nombreCliente?.trim() ||
+      "Cliente mostrador IA";
+    const municipio =
+      taller?.municipio?.trim() || data.municipio?.trim() || "Por confirmar";
+    const direccion =
+      taller?.direccionEntrega?.trim() || data.direccion?.trim() || "Por confirmar en WhatsApp";
+
+    const notasPedido = [
+      "Pedido desde Mostrador IA (web)",
+      `Total referencia: ${formatoCop(total)}`,
+      "Líneas:",
+      resumenLineas,
+      data.notas?.trim() ? `Notas cliente: ${data.notas.trim()}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const pedido = await createPedido(
+      {
+        tallerNombre: nombre,
+        whatsapp,
+        municipio,
+        direccion,
+        notas: notasPedido,
+        requerimiento: "Pedido mostrador IA",
+      },
+      {
+        esPrueba: false,
+        lineas: lineasValidadas.map((l) => ({
+          slug: l.slug,
+          referencia: l.referencia,
+          cantidad: l.cantidad,
+          precioUnitario: l.precioUnitario,
+        })),
+      },
+    );
+
+    if (!pedido.ok) {
+      return { ok: false as const, reason: "pedido_fallo" as const, detail: pedido.reason };
+    }
+
+    await notificarApexNuevoPedido({
+      pedidoId: pedido.pedidoId,
+      tallerNombre: nombre,
+      totalCop: total,
+      esPrueba: false,
+    }).catch(() => {});
+
+    return {
+      ok: true as const,
+      pedidoId: pedido.pedidoId,
+      totalCop: total,
+      lineas: lineasValidadas,
     };
-    return safe;
   });

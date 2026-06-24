@@ -1,5 +1,7 @@
 import { enlaceWhatsApp, mensajeConfirmacionCotizacion } from "./whatsapp";
 
+export type DisponibilidadMostrador = "bodega" | "bajo_pedido" | "no_catalogo";
+
 export type MostradorDraft = {
   piezaOSintoma: string;
   carro?: string;
@@ -8,11 +10,45 @@ export type MostradorDraft = {
   municipio?: string;
   whatsapp?: string;
   handoffTag?: "normal" | "bajo_encargo";
-  /** Pieza prioritaria para cotizar (orientación). */
   primarySuggestion?: string;
-  /** Solo para texto de WhatsApp; debe venir del servidor (Mostrador / consulta taller). */
   tallerCuenta?: { validado: boolean; contraEntregaHabilitada?: boolean };
+  lineasCotizadas?: MostradorCotizacionLinea[];
 };
+
+export type MostradorCotizacionLinea = {
+  slug: string;
+  referencia: string;
+  nombre: string;
+  marcaProducto: string;
+  precioUnitarioCop: number;
+  precioPublicoCop: number;
+  stock: number;
+  disponibilidad: DisponibilidadMostrador;
+  cantidadSugerida?: number;
+};
+
+export type MostradorCarritoLinea = {
+  slug: string;
+  referencia: string;
+  nombre: string;
+  cantidad: number;
+  precioUnitarioCop: number;
+  disponibilidad: DisponibilidadMostrador;
+};
+
+export function formatoCop(cop: number): string {
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+  }).format(cop);
+}
+
+export function etiquetaDisponibilidad(d: DisponibilidadMostrador): string {
+  if (d === "bodega") return "En bodega — despacho inmediato";
+  if (d === "bajo_pedido") return "Bajo pedido — se confirma por WhatsApp";
+  return "No en catálogo";
+}
 
 export function buildWhatsappHandoffLink(d: MostradorDraft): string {
   const pieza = d.piezaOSintoma?.trim();
@@ -22,6 +58,16 @@ export function buildWhatsappHandoffLink(d: MostradorDraft): string {
       ? `${pieza}\nPrioridad para cotizar (orientación, no diagnóstico): ${prioridad}`
       : pieza;
   const prefix = d.handoffTag === "bajo_encargo" ? "BAJO ENCARGO — " : "";
+
+  const lineasTxt =
+    d.lineasCotizadas?.length &&
+    d.lineasCotizadas
+      .map(
+        (l) =>
+          `· ${l.referencia} ×${l.cantidadSugerida ?? 1} — ${formatoCop(l.precioUnitarioCop)} (${etiquetaDisponibilidad(l.disponibilidad)})`,
+      )
+      .join("\n");
+
   const msg = mensajeConfirmacionCotizacion({
     pieza: piezaConPrioridad
       ? `${prefix}Orientación para cotizar: ${piezaConPrioridad}`
@@ -39,12 +85,21 @@ export function buildWhatsappHandoffLink(d: MostradorDraft): string {
         ? "\nNota: somos taller validado en Apex; en nuestra cuenta aplica contra entrega (confirmar con el equipo)."
         : "\nNota: somos taller validado en Apex (confirmar condiciones de pago/entrega con el equipo)."
       : "";
-  const finalMsg = [municipio ? `${msg}\nMunicipio: ${municipio}` : msg, tallerNote]
-    .filter(Boolean)
-    .join("");
-  return enlaceWhatsApp(finalMsg);
+
+  const bloques = [
+    msg,
+    lineasTxt ? `Cotización referencia:\n${lineasTxt}` : null,
+    municipio ? `Municipio: ${municipio}` : null,
+    tallerNote || null,
+  ].filter(Boolean);
+
+  return enlaceWhatsApp(bloques.join("\n\n"));
 }
 
-export function normalizeShortText(raw: string, max = 80): string {
+export function normalizeShortText(raw: string, max = 280): string {
   return raw.replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+export function totalCarrito(lineas: MostradorCarritoLinea[]): number {
+  return lineas.reduce((s, l) => s + l.precioUnitarioCop * l.cantidad, 0);
 }
