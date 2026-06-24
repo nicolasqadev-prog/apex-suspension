@@ -152,7 +152,8 @@ export default function MostradorChat() {
     const text = normalizeShortText(composer, 280);
     if (!text || loading) return;
 
-    const confirmKeywords = /\b(s[ií]\s*,?\s*(lo\s+)?quiero|confirmo|haz(el)?\s+el\s+pedido|listo\s+el\s+pedido|pedir|ordenar)\b/i;
+    const confirmKeywords =
+      /\b(s[ií]\s*,?\s*(lo\s+)?quiero|confirmo|haz(el)?\s+el\s+pedido|listo\s+el\s+pedido|pedir|ordenar)\b/i;
     if (confirmKeywords.test(text) && carrito.length > 0 && whatsappValido) {
       setComposer("");
       await onConfirmarPedido();
@@ -256,7 +257,8 @@ export default function MostradorChat() {
         ...m,
         {
           role: "assistant",
-          content: "Error al registrar el pedido. Usa el botón de WhatsApp para confirmar con el equipo.",
+          content:
+            "Error al registrar el pedido. Usa el botón de WhatsApp para confirmar con el equipo.",
         },
       ]);
     } finally {
@@ -354,7 +356,9 @@ export default function MostradorChat() {
                       <p className="mt-1 text-[oklch(0.7_0.2_40)] font-bold">
                         {formatoCop(l.precioUnitarioCop)} c/u
                       </p>
-                      <p className="text-gray-500 mt-0.5">{etiquetaDisponibilidad(l.disponibilidad)}</p>
+                      <p className="text-gray-500 mt-0.5">
+                        {etiquetaDisponibilidad(l.disponibilidad)}
+                      </p>
                       <Button
                         type="button"
                         size="sm"
@@ -480,7 +484,12 @@ export default function MostradorChat() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <Button asChild size="sm" variant="outline" className="border-gray-600 text-gray-300 text-xs">
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="border-gray-600 text-gray-300 text-xs"
+                >
                   <a href={whatsappLink} target="_blank" rel="noreferrer">
                     WhatsApp humano →
                   </a>

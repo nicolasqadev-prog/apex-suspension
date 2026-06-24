@@ -240,7 +240,10 @@ function respuestaFueraAlcance(): MostradorResponsePublic {
   };
 }
 
-function respuestaMarcaNoVendida(marca: string, cotizacion: MostradorCotizacionLinea[]): MostradorResponsePublic {
+function respuestaMarcaNoVendida(
+  marca: string,
+  cotizacion: MostradorCotizacionLinea[],
+): MostradorResponsePublic {
   const alt =
     cotizacion.length > 0
       ? ` En catálogo tengo alternativas como ${cotizacion[0].referencia} (${cotizacion[0].marcaProducto}).`
@@ -296,140 +299,143 @@ export type MostradorTurnoInput = z.infer<typeof InputSchema>;
 export async function procesarTurnoMostrador(
   data: MostradorTurnoInput,
 ): Promise<MostradorResponsePublic> {
-    const tallerCuenta = await tallerCuentaFromWhatsapp(data.context?.whatsapp);
+  const tallerCuenta = await tallerCuentaFromWhatsapp(data.context?.whatsapp);
 
-    const ultimoUsuario = [...data.history].reverse().find((m) => m.role === "user")?.content ?? "";
-    const alcance = detectarAlcanceMensaje(ultimoUsuario);
+  const ultimoUsuario = [...data.history].reverse().find((m) => m.role === "user")?.content ?? "";
+  const alcance = detectarAlcanceMensaje(ultimoUsuario);
 
-    if (alcance === "fuera_alcance") {
-      const productos = await resolverBusquedaMostrador(ultimoUsuario, data.context?.piezaPrioritaria);
-      if (productos.length === 0) {
-        return { ...respuestaFueraAlcance(), tallerCuenta };
-      }
+  if (alcance === "fuera_alcance") {
+    const productos = await resolverBusquedaMostrador(
+      ultimoUsuario,
+      data.context?.piezaPrioritaria,
+    );
+    if (productos.length === 0) {
+      return { ...respuestaFueraAlcance(), tallerCuenta };
     }
+  }
 
-    const marcasMencionadas = extraerMarcasMencionadas(ultimoUsuario);
-    const marcaNoVendida = marcasMencionadas.find((m) => !vendemosMarca(m));
+  const marcasMencionadas = extraerMarcasMencionadas(ultimoUsuario);
+  const marcaNoVendida = marcasMencionadas.find((m) => !vendemosMarca(m));
 
-    const productos = await resolverBusquedaMostrador(ultimoUsuario, data.context?.piezaPrioritaria);
-    const cotizacion = mapCotizacion(productos, tallerCuenta);
+  const productos = await resolverBusquedaMostrador(ultimoUsuario, data.context?.piezaPrioritaria);
+  const cotizacion = mapCotizacion(productos, tallerCuenta);
 
-    if (marcaNoVendida && cotizacion.every((c) => c.marcaProducto.toUpperCase() !== marcaNoVendida)) {
-      return { ...respuestaMarcaNoVendida(marcaNoVendida, cotizacion), tallerCuenta };
-    }
+  if (marcaNoVendida && cotizacion.every((c) => c.marcaProducto.toUpperCase() !== marcaNoVendida)) {
+    return { ...respuestaMarcaNoVendida(marcaNoVendida, cotizacion), tallerCuenta };
+  }
 
-    const apiKey = process.env.GROQ_API_KEY?.trim();
+  const apiKey = process.env.GROQ_API_KEY?.trim();
 
-    if (!apiKey) {
-      if (cotizacion.length > 0) {
-        return {
-          ok: true,
-          reply: respuestaCotizacionDeterministica(cotizacion, tallerCuenta, alcance),
-          questions: ["¿Cuántas unidades necesitas?", "¿Delantera o trasera, izquierda o derecha?"],
-          action: "quote",
-          handoffTag: alcance === "bajo_encargo" ? "bajo_encargo" : "normal",
-          cotizacion,
-          tallerCuenta,
-          alcance,
-        };
-      }
+  if (!apiKey) {
+    if (cotizacion.length > 0) {
       return {
         ok: true,
-        reply:
-          "Te ayudo a cotizar. Cuéntame la pieza o referencia, el vehículo y el año. Confirma el diagnóstico con tu mecánico de confianza.",
-        questions: ["¿Qué pieza buscas o qué síntoma presenta el carro?"],
-        action: "ask_more",
-        handoffTag: "normal",
+        reply: respuestaCotizacionDeterministica(cotizacion, tallerCuenta, alcance),
+        questions: ["¿Cuántas unidades necesitas?", "¿Delantera o trasera, izquierda o derecha?"],
+        action: "quote",
+        handoffTag: alcance === "bajo_encargo" ? "bajo_encargo" : "normal",
+        cotizacion,
         tallerCuenta,
         alcance,
       };
     }
+    return {
+      ok: true,
+      reply:
+        "Te ayudo a cotizar. Cuéntame la pieza o referencia, el vehículo y el año. Confirma el diagnóstico con tu mecánico de confianza.",
+      questions: ["¿Qué pieza buscas o qué síntoma presenta el carro?"],
+      action: "ask_more",
+      handoffTag: "normal",
+      tallerCuenta,
+      alcance,
+    };
+  }
 
-    const inventarioJson = formatoInventarioParaPrompt(productos);
-    const contextLines = [
-      tallerCuenta.validado
-        ? `Cliente: taller validado (${tallerCuenta.nombreTaller ?? "registrado"}).`
-        : "Cliente: público general.",
-      data.context?.whatsapp ? `WhatsApp: ${data.context.whatsapp}` : null,
-      data.context?.carro ? `Vehículo: ${data.context.carro}` : null,
-      data.context?.ano ? `Año: ${data.context.ano}` : null,
-      data.context?.version ? `Versión: ${data.context.version}` : null,
-      data.context?.municipio ? `Municipio: ${data.context.municipio}` : null,
-      `Alcance detectado: ${alcance}`,
-      productos.length === 0 ? "Sin coincidencias en catálogo para este mensaje." : null,
-    ].filter(Boolean);
+  const inventarioJson = formatoInventarioParaPrompt(productos);
+  const contextLines = [
+    tallerCuenta.validado
+      ? `Cliente: taller validado (${tallerCuenta.nombreTaller ?? "registrado"}).`
+      : "Cliente: público general.",
+    data.context?.whatsapp ? `WhatsApp: ${data.context.whatsapp}` : null,
+    data.context?.carro ? `Vehículo: ${data.context.carro}` : null,
+    data.context?.ano ? `Año: ${data.context.ano}` : null,
+    data.context?.version ? `Versión: ${data.context.version}` : null,
+    data.context?.municipio ? `Municipio: ${data.context.municipio}` : null,
+    `Alcance detectado: ${alcance}`,
+    productos.length === 0 ? "Sin coincidencias en catálogo para este mensaje." : null,
+  ].filter(Boolean);
 
-    const transcript = data.history
-      .map((m) => `${m.role === "user" ? "Cliente" : "Mostrador"}: ${m.content}`)
-      .join("\n");
+  const transcript = data.history
+    .map((m) => `${m.role === "user" ? "Cliente" : "Mostrador"}: ${m.content}`)
+    .join("\n");
 
-    const userPrompt = [
-      `CONTEXTO\n${contextLines.join("\n")}`,
-      "",
-      "CONVERSACIÓN",
-      transcript,
-      "",
-      "Responde SOLO con el JSON de SALIDA. Si hay inventario, cotiza con esos datos.",
-    ].join("\n");
+  const userPrompt = [
+    `CONTEXTO\n${contextLines.join("\n")}`,
+    "",
+    "CONVERSACIÓN",
+    transcript,
+    "",
+    "Responde SOLO con el JSON de SALIDA. Si hay inventario, cotiza con esos datos.",
+  ].join("\n");
 
-    try {
-      const raw = await callGroq({
-        system: buildSystemPrompt(inventarioJson, marcasQueVendemosTexto()),
-        user: userPrompt,
-        apiKey,
-      });
-      const parsed = safeJsonParse<MostradorGroqPayload>(raw);
+  try {
+    const raw = await callGroq({
+      system: buildSystemPrompt(inventarioJson, marcasQueVendemosTexto()),
+      user: userPrompt,
+      apiKey,
+    });
+    const parsed = safeJsonParse<MostradorGroqPayload>(raw);
 
-      if (!parsed || typeof parsed.reply !== "string") {
-        throw new Error("JSON inválido");
-      }
+    if (!parsed || typeof parsed.reply !== "string") {
+      throw new Error("JSON inválido");
+    }
 
-      const actionRaw = parsed.action;
-      let action: MostradorResponsePublic["action"] = "ask_more";
-      if (actionRaw === "quote" || (cotizacion.length > 0 && actionRaw !== "out_of_scope")) {
-        action = "quote";
-      } else if (actionRaw === "out_of_scope") {
-        action = "out_of_scope";
-      } else if (actionRaw === "handoff_whatsapp") {
-        action = "handoff_whatsapp";
-      }
+    const actionRaw = parsed.action;
+    let action: MostradorResponsePublic["action"] = "ask_more";
+    if (actionRaw === "quote" || (cotizacion.length > 0 && actionRaw !== "out_of_scope")) {
+      action = "quote";
+    } else if (actionRaw === "out_of_scope") {
+      action = "out_of_scope";
+    } else if (actionRaw === "handoff_whatsapp") {
+      action = "handoff_whatsapp";
+    }
 
+    return {
+      ok: true,
+      reply: parsed.reply.slice(0, 900),
+      questions: Array.isArray(parsed.questions)
+        ? parsed.questions.map((q) => String(q).slice(0, 140)).slice(0, 3)
+        : [],
+      action,
+      handoffTag: parsed.handoffTag === "bajo_encargo" ? "bajo_encargo" : "normal",
+      cotizacion: cotizacion.length > 0 ? cotizacion : undefined,
+      tallerCuenta,
+      alcance,
+    };
+  } catch {
+    if (cotizacion.length > 0) {
       return {
         ok: true,
-        reply: parsed.reply.slice(0, 900),
-        questions: Array.isArray(parsed.questions)
-          ? parsed.questions.map((q) => String(q).slice(0, 140)).slice(0, 3)
-          : [],
-        action,
-        handoffTag: parsed.handoffTag === "bajo_encargo" ? "bajo_encargo" : "normal",
-        cotizacion: cotizacion.length > 0 ? cotizacion : undefined,
-        tallerCuenta,
-        alcance,
-      };
-    } catch {
-      if (cotizacion.length > 0) {
-        return {
-          ok: true,
-          reply: respuestaCotizacionDeterministica(cotizacion, tallerCuenta, alcance),
-          questions: ["¿Cuántas unidades necesitas?"],
-          action: "quote",
-          handoffTag: alcance === "bajo_encargo" ? "bajo_encargo" : "normal",
-          cotizacion,
-          tallerCuenta,
-          alcance,
-        };
-      }
-      return {
-        ok: true,
-        reply:
-          "Dame un momento — para cotizarte bien necesito la referencia o una descripción de la pieza, más el vehículo y año. Confirma el diagnóstico con tu mecánico.",
-        questions: ["¿Qué pieza buscas?", "¿Marca, modelo y año del vehículo?"],
-        action: "ask_more",
-        handoffTag: "normal",
+        reply: respuestaCotizacionDeterministica(cotizacion, tallerCuenta, alcance),
+        questions: ["¿Cuántas unidades necesitas?"],
+        action: "quote",
+        handoffTag: alcance === "bajo_encargo" ? "bajo_encargo" : "normal",
+        cotizacion,
         tallerCuenta,
         alcance,
       };
     }
+    return {
+      ok: true,
+      reply:
+        "Dame un momento — para cotizarte bien necesito la referencia o una descripción de la pieza, más el vehículo y año. Confirma el diagnóstico con tu mecánico.",
+      questions: ["¿Qué pieza buscas?", "¿Marca, modelo y año del vehículo?"],
+      action: "ask_more",
+      handoffTag: "normal",
+      tallerCuenta,
+      alcance,
+    };
+  }
 }
 
 export const responderMostrador = createServerFn({ method: "POST" })
@@ -522,11 +528,8 @@ export const confirmarPedidoMostrador = createServerFn({ method: "POST" })
       .join("\n");
 
     const nombre =
-      taller?.nombreTaller?.trim() ||
-      data.nombreCliente?.trim() ||
-      "Cliente mostrador IA";
-    const municipio =
-      taller?.municipio?.trim() || data.municipio?.trim() || "Por confirmar";
+      taller?.nombreTaller?.trim() || data.nombreCliente?.trim() || "Cliente mostrador IA";
+    const municipio = taller?.municipio?.trim() || data.municipio?.trim() || "Por confirmar";
     const direccion =
       taller?.direccionEntrega?.trim() || data.direccion?.trim() || "Por confirmar en WhatsApp";
 

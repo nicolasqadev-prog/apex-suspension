@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import {
-  parsearMensajesEntrantes,
-  verificarWebhookChallenge,
-} from "@/lib/whatsapp-cloud.server";
+import { parsearMensajesEntrantes, verificarWebhookChallenge } from "@/lib/whatsapp-cloud.server";
 import { procesarMensajeWhatsAppEntrante } from "@/lib/whatsapp-webhook.server";
 
 export const Route = createFileRoute("/api/whatsapp/webhook")({

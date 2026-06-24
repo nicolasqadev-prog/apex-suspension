@@ -34,11 +34,11 @@ https://apex-suspension.com.co/api/whatsapp/webhook
 
 En **WhatsApp → API Setup** (o “Inicio rápido”):
 
-| Dato | Dónde está | Variable en Apex |
-|------|------------|------------------|
-| **Token de acceso temporal** (luego permanente) | API Setup | `WHATSAPP_ACCESS_TOKEN` |
-| **Phone number ID** | API Setup, debajo del número | `WHATSAPP_PHONE_NUMBER_ID` |
-| **WhatsApp Business Account ID** | API Setup | (solo referencia en Meta) |
+| Dato                                            | Dónde está                   | Variable en Apex           |
+| ----------------------------------------------- | ---------------------------- | -------------------------- |
+| **Token de acceso temporal** (luego permanente) | API Setup                    | `WHATSAPP_ACCESS_TOKEN`    |
+| **Phone number ID**                             | API Setup, debajo del número | `WHATSAPP_PHONE_NUMBER_ID` |
+| **WhatsApp Business Account ID**                | API Setup                    | (solo referencia en Meta)  |
 
 ### Token permanente (producción)
 
@@ -83,12 +83,12 @@ apex-wa-verify-2026-secreto-largo
 
 Agregá en **GitHub → Settings → Secrets → Actions**:
 
-| Secret | Descripción |
-|--------|-------------|
-| `WHATSAPP_ACCESS_TOKEN` | Token permanente de Meta |
+| Secret                     | Descripción                             |
+| -------------------------- | --------------------------------------- |
+| `WHATSAPP_ACCESS_TOKEN`    | Token permanente de Meta                |
 | `WHATSAPP_PHONE_NUMBER_ID` | ID numérico del número (no el teléfono) |
-| `WHATSAPP_VERIFY_TOKEN` | La frase secreta que elegiste |
-| `GROQ_API_KEY` | IA del mostrador (ya deberías tenerla) |
+| `WHATSAPP_VERIFY_TOKEN`    | La frase secreta que elegiste           |
+| `GROQ_API_KEY`             | IA del mostrador (ya deberías tenerla)  |
 
 Opcional: `GROQ_MODEL=llama-3.3-70b-versatile`
 
@@ -128,13 +128,13 @@ En **API Setup**:
 
 ## 8. Qué hace el agente por WhatsApp
 
-| Paso | Comportamiento |
-|------|----------------|
-| Cliente escribe | Meta → webhook → busca en Supabase → IA responde |
-| Hay stock | Precio + “en bodega” |
-| Sin stock | Precio + “bajo pedido” |
-| Marca que no venden | Declina con respeto |
-| Cliente escribe `CONFIRMO` | Crea pedido en Apex (como portal taller) |
+| Paso                       | Comportamiento                                   |
+| -------------------------- | ------------------------------------------------ |
+| Cliente escribe            | Meta → webhook → busca en Supabase → IA responde |
+| Hay stock                  | Precio + “en bodega”                             |
+| Sin stock                  | Precio + “bajo pedido”                           |
+| Marca que no venden        | Declina con respeto                              |
+| Cliente escribe `CONFIRMO` | Crea pedido en Apex (como portal taller)         |
 
 ---
 

@@ -58,6 +58,10 @@ jobs:
           VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
           VITE_WHATSAPP_APEX: ${{ secrets.VITE_WHATSAPP_APEX }}
           APEX_ADMIN_WHATSAPP: ${{ secrets.APEX_ADMIN_WHATSAPP }}
+          WHATSAPP_ACCESS_TOKEN: ${{ secrets.WHATSAPP_ACCESS_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_VERIFY_TOKEN: ${{ secrets.WHATSAPP_VERIFY_TOKEN }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           printf '%s' "$VITE_SITE_URL" | npx wrangler secret put VITE_SITE_URL --config dist/server/wrangler.json
           printf '%s' "$SUPABASE_URL" | npx wrangler secret put SUPABASE_URL --config dist/server/wrangler.json
@@ -70,3 +74,15 @@ jobs:
           printf '%s' "$VITE_WHATSAPP_APEX" | npx wrangler secret put VITE_WHATSAPP_APEX --config dist/server/wrangler.json
           ADMIN_WA="${APEX_ADMIN_WHATSAPP:-$VITE_WHATSAPP_APEX}"
           printf '%s' "$ADMIN_WA" | npx wrangler secret put APEX_ADMIN_WHATSAPP --config dist/server/wrangler.json
+          if [ -n "$WHATSAPP_ACCESS_TOKEN" ]; then
+            printf '%s' "$WHATSAPP_ACCESS_TOKEN" | npx wrangler secret put WHATSAPP_ACCESS_TOKEN --config dist/server/wrangler.json
+          fi
+          if [ -n "$WHATSAPP_PHONE_NUMBER_ID" ]; then
+            printf '%s' "$WHATSAPP_PHONE_NUMBER_ID" | npx wrangler secret put WHATSAPP_PHONE_NUMBER_ID --config dist/server/wrangler.json
+          fi
+          if [ -n "$WHATSAPP_VERIFY_TOKEN" ]; then
+            printf '%s' "$WHATSAPP_VERIFY_TOKEN" | npx wrangler secret put WHATSAPP_VERIFY_TOKEN --config dist/server/wrangler.json
+          fi
+          if [ -n "$GROQ_API_KEY" ]; then
+            printf '%s' "$GROQ_API_KEY" | npx wrangler secret put GROQ_API_KEY --config dist/server/wrangler.json
+          fi

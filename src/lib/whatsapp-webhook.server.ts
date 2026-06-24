@@ -36,9 +36,7 @@ function saveSession(phone: string, session: WaSession) {
 
 function formatearRespuestaWhatsApp(reply: string, questions: string[]): string {
   const qs =
-    questions.length > 0
-      ? `\n\n${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}`
-      : "";
+    questions.length > 0 ? `\n\n${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}` : "";
   return `${reply}${qs}`.slice(0, 4000);
 }
 

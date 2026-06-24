@@ -5,9 +5,11 @@
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 
-export function whatsappCloudConfig():
-  | { token: string; phoneNumberId: string; verifyToken: string }
-  | null {
+export function whatsappCloudConfig(): {
+  token: string;
+  phoneNumberId: string;
+  verifyToken: string;
+} | null {
   const token = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
   const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN?.trim();
