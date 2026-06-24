@@ -63,26 +63,19 @@ jobs:
           WHATSAPP_VERIFY_TOKEN: ${{ secrets.WHATSAPP_VERIFY_TOKEN }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
-          printf '%s' "$VITE_SITE_URL" | npx wrangler secret put VITE_SITE_URL --config dist/server/wrangler.json
-          printf '%s' "$SUPABASE_URL" | npx wrangler secret put SUPABASE_URL --config dist/server/wrangler.json
-          printf '%s' "$SUPABASE_SERVICE_ROLE_KEY" | npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --config dist/server/wrangler.json
-          printf '%s' "$ADMIN_PIN" | npx wrangler secret put ADMIN_PIN --config dist/server/wrangler.json
-          printf '%s' "$VAPID_PUBLIC_KEY" | npx wrangler secret put VAPID_PUBLIC_KEY --config dist/server/wrangler.json
-          printf '%s' "$VAPID_PRIVATE_KEY" | npx wrangler secret put VAPID_PRIVATE_KEY --config dist/server/wrangler.json
-          printf '%s' "$VAPID_SUBJECT" | npx wrangler secret put VAPID_SUBJECT --config dist/server/wrangler.json
-          printf '%s' "$VITE_WHATSAPP_APEX" | npx wrangler secret put WHATSAPP_APEX --config dist/server/wrangler.json
-          printf '%s' "$VITE_WHATSAPP_APEX" | npx wrangler secret put VITE_WHATSAPP_APEX --config dist/server/wrangler.json
+          put_secret() { local name="$1" val="$2"; [ -n "$val" ] || return 0; printf '%s' "$val" | npx wrangler secret put "$name" --config dist/server/wrangler.json; }
+          put_secret VITE_SITE_URL "$VITE_SITE_URL"
+          put_secret SUPABASE_URL "$SUPABASE_URL"
+          put_secret SUPABASE_SERVICE_ROLE_KEY "$SUPABASE_SERVICE_ROLE_KEY"
+          put_secret ADMIN_PIN "$ADMIN_PIN"
+          put_secret VAPID_PUBLIC_KEY "$VAPID_PUBLIC_KEY"
+          put_secret VAPID_PRIVATE_KEY "$VAPID_PRIVATE_KEY"
+          put_secret VAPID_SUBJECT "$VAPID_SUBJECT"
+          put_secret WHATSAPP_APEX "$VITE_WHATSAPP_APEX"
+          put_secret VITE_WHATSAPP_APEX "$VITE_WHATSAPP_APEX"
           ADMIN_WA="${APEX_ADMIN_WHATSAPP:-$VITE_WHATSAPP_APEX}"
-          printf '%s' "$ADMIN_WA" | npx wrangler secret put APEX_ADMIN_WHATSAPP --config dist/server/wrangler.json
-          if [ -n "$WHATSAPP_ACCESS_TOKEN" ]; then
-            printf '%s' "$WHATSAPP_ACCESS_TOKEN" | npx wrangler secret put WHATSAPP_ACCESS_TOKEN --config dist/server/wrangler.json
-          fi
-          if [ -n "$WHATSAPP_PHONE_NUMBER_ID" ]; then
-            printf '%s' "$WHATSAPP_PHONE_NUMBER_ID" | npx wrangler secret put WHATSAPP_PHONE_NUMBER_ID --config dist/server/wrangler.json
-          fi
-          if [ -n "$WHATSAPP_VERIFY_TOKEN" ]; then
-            printf '%s' "$WHATSAPP_VERIFY_TOKEN" | npx wrangler secret put WHATSAPP_VERIFY_TOKEN --config dist/server/wrangler.json
-          fi
-          if [ -n "$GROQ_API_KEY" ]; then
-            printf '%s' "$GROQ_API_KEY" | npx wrangler secret put GROQ_API_KEY --config dist/server/wrangler.json
-          fi
+          put_secret APEX_ADMIN_WHATSAPP "$ADMIN_WA"
+          put_secret WHATSAPP_ACCESS_TOKEN "$WHATSAPP_ACCESS_TOKEN"
+          put_secret WHATSAPP_PHONE_NUMBER_ID "$WHATSAPP_PHONE_NUMBER_ID"
+          put_secret WHATSAPP_VERIFY_TOKEN "$WHATSAPP_VERIFY_TOKEN"
+          put_secret GROQ_API_KEY "$GROQ_API_KEY"

@@ -1,5 +1,5 @@
 import { formatoCop, type MostradorCotizacionLinea } from "./mostrador";
-import { procesarTurnoMostrador } from "./mostrador.functions";
+import { procesarTurnoMostrador } from "./mostrador-turno.server";
 import { createPedido } from "./pedidos.server";
 import { notificarApexNuevoPedido } from "./pedidos-alerta.server";
 import { getTallerFidelizadoByWhatsapp, normalizeWhatsapp } from "./talleres.server";

@@ -36,6 +36,24 @@ export type MostradorCarritoLinea = {
   disponibilidad: DisponibilidadMostrador;
 };
 
+export type MostradorResponsePublic = {
+  ok: true;
+  reply: string;
+  questions: string[];
+  action: "ask_more" | "quote" | "out_of_scope" | "handoff_whatsapp";
+  handoffTag?: "normal" | "bajo_encargo";
+  cotizacion?: MostradorCotizacionLinea[];
+  tallerCuenta?: {
+    validado: boolean;
+    nombreTaller?: string;
+    descuentoPorcentaje?: number;
+    contraEntregaHabilitada?: boolean;
+    municipio?: string;
+    direccionEntrega?: string;
+  };
+  alcance?: "en_alcance" | "bajo_encargo" | "fuera_alcance";
+};
+
 export function formatoCop(cop: number): string {
   return new Intl.NumberFormat("es-CO", {
     style: "currency",
