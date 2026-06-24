@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { parsearMensajesEntrantes, verificarWebhookChallenge } from "@/lib/whatsapp-cloud.server";
+import { waitUntilBackground } from "@/lib/worker-context.server";
 import { procesarMensajeWhatsAppEntrante } from "@/lib/whatsapp-webhook.server";
 
 export const Route = createFileRoute("/api/whatsapp/webhook")({
@@ -33,19 +34,20 @@ export const Route = createFileRoute("/api/whatsapp/webhook")({
 
         const mensajes = parsearMensajesEntrantes(payload);
 
-        // Meta exige 200 rápido; procesamos en segundo plano.
-        const tasks = mensajes.map((m) =>
-          procesarMensajeWhatsAppEntrante({
-            from: m.from,
-            body: m.body,
-            contactName: m.contactName,
-          }).catch((err) => {
-            console.error("WhatsApp handler error:", err);
-          }),
-        );
-
-        if (tasks.length > 0) {
-          void Promise.all(tasks);
+        if (mensajes.length > 0) {
+          waitUntilBackground(
+            Promise.all(
+              mensajes.map((m) =>
+                procesarMensajeWhatsAppEntrante({
+                  from: m.from,
+                  body: m.body,
+                  contactName: m.contactName,
+                }).catch((err) => {
+                  console.error("WhatsApp handler error:", err);
+                }),
+              ),
+            ),
+          );
         }
 
         return new Response(JSON.stringify({ ok: true }), {

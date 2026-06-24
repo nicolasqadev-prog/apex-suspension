@@ -1,5 +1,7 @@
 import handler from "@tanstack/react-start/server-entry";
 
+import { cloudflareExecutionCtx } from "./lib/worker-context.server";
+
 const SECURITY_HEADERS: Record<string, string> = {
   "X-Frame-Options": "DENY",
   "X-Content-Type-Options": "nosniff",
@@ -41,7 +43,9 @@ function withSecurityHeaders(request: Request, response: Response): Response {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: ExecutionContext) {
-    const response = await handler.fetch(request, env as never, ctx);
-    return withSecurityHeaders(request, response);
+    return cloudflareExecutionCtx.run(ctx, async () => {
+      const response = await handler.fetch(request, env as never, ctx);
+      return withSecurityHeaders(request, response);
+    });
   },
 };
