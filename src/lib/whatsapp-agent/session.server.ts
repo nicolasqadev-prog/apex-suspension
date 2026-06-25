@@ -22,11 +22,18 @@ function parseAgentState(raw: unknown): WaAgentState {
   if (!raw || typeof raw !== "object") return freshAgentState();
   const o = raw as Partial<WaAgentState>;
   const phase = o.phase ?? "idle";
-  const validPhases = ["idle", "cotizado", "esperando_confirmacion", "pedido_creado"];
+  const validPhases = [
+    "idle",
+    "esperando_aclaracion",
+    "cotizado",
+    "esperando_confirmacion",
+    "pedido_creado",
+  ];
   return {
     phase: validPhases.includes(phase) ? phase : "idle",
     borrador: o.borrador ?? null,
     greeted: Boolean(o.greeted),
+    aclaracionPendiente: o.aclaracionPendiente ?? null,
   };
 }
 

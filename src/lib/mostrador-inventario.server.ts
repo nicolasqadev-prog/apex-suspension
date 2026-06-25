@@ -242,6 +242,9 @@ export function productoAplicaAPieza(p: ProductoMostrador, ctx: ContextoCotizaci
   if (pieza === "brazo") {
     return /\bbrazo\b|\btijera\b/.test(blob);
   }
+  if (pieza === "amortiguador") {
+    return /\bamortiguador\b|\bamort\b/.test(blob);
+  }
   return blob.includes(pieza);
 }
 
@@ -262,6 +265,90 @@ export function seleccionarProductoConfiable(
   if (!candidatos.length) return null;
 
   return priorizarProductosPorContexto(candidatos, ctx)[0] ?? null;
+}
+
+/** Todos los productos que calzan pieza + vehículo (sin elegir uno solo). */
+export function listarCandidatosConfiables(
+  productos: ProductoMostrador[],
+  ctx: ContextoCotizacion,
+): ProductoMostrador[] {
+  if (!productos.length || !ctx.pieza) return [];
+  if (!ctx.marcaVehiculo && !ctx.vehiculo) return [];
+
+  const candidatos = productos.filter(
+    (p) => productoAplicaAPieza(p, ctx) && productoAplicaAVehiculo(p, ctx),
+  );
+  return priorizarProductosPorContexto(candidatos, ctx);
+}
+
+async function recolectarProductosBusqueda(
+  mensajeUsuario: string,
+  ctx: ContextoCotizacion,
+  piezaPrioritaria?: string,
+): Promise<ProductoMostrador[]> {
+  const refs = extraerReferencias(mensajeUsuario);
+  const scored = new Map<string, { p: ProductoMostrador; score: number }>();
+
+  const addProducto = (p: ProductoMostrador, puntos: number) => {
+    const entry = scored.get(p.slug) ?? { p, score: 0 };
+    entry.score += puntos;
+    scored.set(p.slug, entry);
+  };
+
+  for (const ref of refs) {
+    const p = await buscarPorReferenciaExacta(ref);
+    if (p) addProducto(p, 10);
+  }
+
+  const busquedas = [
+    ...terminosBusquedaInteligente(mensajeUsuario),
+    piezaPrioritaria?.trim(),
+    ctx.pieza && ctx.marcaVehiculo && ctx.vehiculo
+      ? `${ctx.pieza} ${ctx.marcaVehiculo} ${ctx.vehiculo}`
+      : null,
+    ctx.marcaVehiculo && ctx.vehiculo ? `${ctx.marcaVehiculo} ${ctx.vehiculo} ${ctx.pieza ?? ""}` : null,
+    ctx.pieza && ctx.vehiculo ? `amort ${ctx.vehiculo}` : null,
+    ctx.pieza && ctx.vehiculo ? `${ctx.vehiculo} ${ctx.pieza}` : null,
+    ctx.pieza,
+    ctx.vehiculo,
+    ctx.marcaVehiculo,
+    ctx.ano,
+  ].filter((q): q is string => Boolean(q && q.length >= 2));
+
+  const unicas = [...new Set(busquedas.map((q) => q.toLowerCase()))];
+
+  for (const q of unicas) {
+    const res = await buscarProductosMostrador(q, 16);
+    if (!res.ok) continue;
+    for (const p of res.productos) {
+      addProducto(p, q.includes(ctx.vehiculo ?? "") ? 5 : 2);
+    }
+  }
+
+  return [...scored.values()]
+    .sort((a, b) => b.score - a.score)
+    .map((x) => x.p);
+}
+
+export async function resolverCandidatosMostrador(
+  mensajeUsuario: string,
+  piezaPrioritaria?: string,
+): Promise<{ ctx: ContextoCotizacion; candidatos: ProductoMostrador[] }> {
+  const ctx = extraerContextoCotizacion(mensajeUsuario);
+  if (piezaPrioritaria?.trim()) {
+    ctx.pieza = piezaPrioritaria.trim().toLowerCase();
+    ctx.listoParaCotizar = Boolean(ctx.pieza && (ctx.vehiculo || ctx.marcaVehiculo));
+  }
+
+  const found = await recolectarProductosBusqueda(mensajeUsuario, ctx, piezaPrioritaria);
+  const refs = extraerReferencias(mensajeUsuario);
+
+  if (refs.length > 0) {
+    const exactos = listarCandidatosConfiables(found, ctx);
+    return { ctx, candidatos: exactos };
+  }
+
+  return { ctx, candidatos: listarCandidatosConfiables(found, ctx) };
 }
 
 /** Junta todos los mensajes del cliente en un solo texto de búsqueda. */
@@ -399,21 +486,12 @@ export function segmentarConsultasPieza(texto: string): string[] {
 
   const partes = t
     .split(
-      /\s+(?=(?:los|las|la|el)\s+(?:dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|un|una|\d{1,2}\b|amortiguador|bieleta|rotula|r[oó]tula|terminal|tijera|buje|brazo|link|barra))/i,
+      /\s+(?=(?:(?:los|las)\s+(?:dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|un|una|\d{1,2}\b|amortiguador|bieleta|rotula|r[oó]tula|terminal|tijera|buje|brazo|link|barra))|(?:(?<!\by)(?:la|el)\s+(?:dos|tres|cuatro|cinco|seis|un|una|\d{1,2}\b|amortiguador|bieleta|rotula|r[oó]tula|terminal|tijera|buje|brazo|link|barra)))/i,
     )
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter((s) => s && PIEZAS_RX.test(s));
 
-  if (partes.length > 1) return partes;
-
-  const porPieza = t
-    .split(
-      /\s+(?=(?:y\s+)?(?:los|las|la|el)\s+(?:dos|tres|cuatro|cinco|seis|un|una|\d{1,2}\b|amortiguador|bieleta|rotula|r[oó]tula|terminal|tijera))/i,
-    )
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  return porPieza.length > 1 ? porPieza : [t];
+  return partes.length > 1 ? partes : PIEZAS_RX.test(t) ? [t] : [];
 }
 
 export function esConsultaMultiplePiezas(texto: string): boolean {
@@ -538,59 +616,12 @@ export async function resolverBusquedaMostrador(
   mensajeUsuario: string,
   piezaPrioritaria?: string,
 ): Promise<ProductoMostrador[]> {
-  const ctx = extraerContextoCotizacion(mensajeUsuario);
-  if (piezaPrioritaria?.trim()) {
-    ctx.pieza = piezaPrioritaria.trim().toLowerCase();
-    ctx.listoParaCotizar = Boolean(ctx.pieza && (ctx.vehiculo || ctx.marcaVehiculo));
-  }
+  const { ctx, candidatos } = await resolverCandidatosMostrador(mensajeUsuario, piezaPrioritaria);
   const refs = extraerReferencias(mensajeUsuario);
-  const scored = new Map<string, { p: ProductoMostrador; score: number }>();
+  if (!candidatos.length) return [];
 
-  const addProducto = (p: ProductoMostrador, puntos: number) => {
-    const entry = scored.get(p.slug) ?? { p, score: 0 };
-    entry.score += puntos;
-    scored.set(p.slug, entry);
-  };
-
-  for (const ref of refs) {
-    const p = await buscarPorReferenciaExacta(ref);
-    if (p) addProducto(p, 10);
-  }
-
-  const busquedas = [
-    ...terminosBusquedaInteligente(mensajeUsuario),
-    piezaPrioritaria?.trim(),
-    ctx.pieza && ctx.marcaVehiculo && ctx.vehiculo
-      ? `${ctx.pieza} ${ctx.marcaVehiculo} ${ctx.vehiculo}`
-      : null,
-    ctx.marcaVehiculo && ctx.vehiculo ? `${ctx.marcaVehiculo} ${ctx.vehiculo} ${ctx.pieza ?? ""}` : null,
-    ctx.pieza,
-    ctx.vehiculo,
-    ctx.marcaVehiculo,
-    ctx.ano,
-  ].filter((q): q is string => Boolean(q && q.length >= 2));
-
-  const unicas = [...new Set(busquedas.map((q) => q.toLowerCase()))];
-
-  for (const q of unicas) {
-    const res = await buscarProductosMostrador(q, 12);
-    if (!res.ok) continue;
-    for (const p of res.productos) {
-      addProducto(p, q.includes(ctx.vehiculo ?? "") ? 5 : 2);
-    }
-  }
-
-  const found = [...scored.values()]
-    .sort((a, b) => b.score - a.score)
-    .map((x) => x.p);
-
-  const ranked = priorizarProductosPorContexto(found, ctx);
-  const refsExactas = refs.length > 0;
-  const mejor = refsExactas
-    ? ranked.find((p) => productoAplicaAPieza(p, ctx) && productoAplicaAVehiculo(p, ctx)) ?? null
-    : seleccionarProductoConfiable(ranked, ctx);
-
-  return mejor ? [mejor] : [];
+  const mejor = refs.length > 0 ? candidatos[0] : seleccionarProductoConfiable(candidatos, ctx);
+  return mejor ? [mejor] : candidatos.length === 1 ? [candidatos[0]] : [];
 }
 
 export function formatoInventarioParaPrompt(productos: ProductoMostrador[]): string {

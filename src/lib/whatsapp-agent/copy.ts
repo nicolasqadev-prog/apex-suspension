@@ -137,10 +137,11 @@ function bloqueLineaCotizacion(args: {
 /** Varias piezas en un solo mensaje del cliente. */
 export function mensajeCotizacionMultiple(args: {
   items: Array<{
-    estado: "ok" | "sin_match" | "falta_contexto";
+    estado: "ok" | "sin_match" | "falta_contexto" | "necesita_aclaracion";
     piezaResumen: string;
     vehiculoResumen: string;
     cantidadSugerida: number;
+    pregunta?: string;
     linea?: {
       referencia: string;
       nombre: string;
@@ -179,8 +180,12 @@ export function mensajeCotizacionMultiple(args: {
     }
     const veh = item.vehiculoResumen ? ` · ${item.vehiculoResumen}` : "";
     const pieza = item.piezaResumen || "repuesto";
+    const qty =
+      item.cantidadSugerida > 1 ? ` (×${item.cantidadSugerida})` : "";
     if (item.estado === "falta_contexto") {
       bloques.push(`*${n}.* ${pieza}${veh}\n_Falta marca/modelo del vehículo._`);
+    } else if (item.estado === "necesita_aclaracion" && item.pregunta) {
+      bloques.push(`*${n}.* ${pieza}${veh}${qty}\n_${item.pregunta}_`);
     } else {
       bloques.push(`*${n}.* ${pieza}${veh}\n_No la tenemos en catálogo por ahora._`);
     }
@@ -189,7 +194,8 @@ export function mensajeCotizacionMultiple(args: {
   return (
     `${saludo}Te cotizo *${args.items.length}* repuestos:\n\n` +
     bloques.join("\n\n") +
-    "\n\nPara pedir una, dime la *referencia* (ej. KSL-1001) y te preparo el resumen."
+    "\n\nSi alguna línea necesita aclaración, respóndeme por ese ítem (ej. *delanteros*, *traseros*, *sí son los 4*).\n" +
+    "Para pedir una referencia concreta, escríbela (ej. *KSL-1001*)."
   );
 }
 

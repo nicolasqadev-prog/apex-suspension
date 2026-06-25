@@ -1,11 +1,21 @@
 import type { DisponibilidadMostrador, MostradorCotizacionLinea } from "../mostrador";
+import type { ContextoCotizacion } from "../mostrador-inventario.server";
 
 /** Fases del agente WhatsApp (plantilla reutilizable). */
 export type WaAgentPhase =
   | "idle"
+  | "esperando_aclaracion"
   | "cotizado"
   | "esperando_confirmacion"
   | "pedido_creado";
+
+export type AclaracionPendienteWa = {
+  segmento: string;
+  ctx: ContextoCotizacion;
+  candidatosSlugs: string[];
+  cantidadSugerida: number;
+  pregunta: string;
+};
 
 export type BorradorPedidoWa = {
   slug: string;
@@ -31,6 +41,7 @@ export type WaAgentState = {
   borrador: BorradorPedidoWa | null;
   /** Saludo de marca ya enviado en esta sesión. */
   greeted: boolean;
+  aclaracionPendiente: AclaracionPendienteWa | null;
 };
 
 export const WA_AGENT_BRAND = "Apex Suspensión";
@@ -45,7 +56,7 @@ export type WaSession = {
 };
 
 export function freshAgentState(): WaAgentState {
-  return { phase: "idle", borrador: null, greeted: false };
+  return { phase: "idle", borrador: null, greeted: false, aclaracionPendiente: null };
 }
 
 export function freshWaSession(): WaSession {

@@ -25,10 +25,11 @@ import {
   mensajeSinMatch,
   mensajeTransicionResumen,
 } from "./copy";
-import { armarBorradorPedido, cotizarDesdeCatalogoWhatsApp, resumenPieza, resumenVehiculo } from "./quote.server";
+import { armarBorradorPedido, cotizarDesdeCatalogoWhatsApp, cotizarTrasAclaracion, resumenPieza, resumenVehiculo } from "./quote.server";
 import { registrarPedidoDesdeBorrador } from "./confirm.server";
 import type { BorradorPedidoWa } from "./types";
 import { debePresentarSaludo, bloqueSaludo } from "./greeting";
+import { getTallerFidelizadoByWhatsapp } from "../talleres.server";
 
 export type TurnoAgenteWa = {
   texto: string;
@@ -37,6 +38,7 @@ export type TurnoAgenteWa = {
 
 function limpiarBorrador(session: WaSession): void {
   session.agent.borrador = null;
+  session.agent.aclaracionPendiente = null;
   session.agent.phase = "idle";
   session.lastCotizacion = [];
 }
@@ -87,6 +89,74 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
   if (intent === "modificar_pedido") {
     limpiarBorrador(session);
     return { texto: mensajeModificar(), session };
+  }
+
+  if (phase === "esperando_aclaracion" && session.agent.aclaracionPendiente) {
+    const taller = await getTallerFidelizadoByWhatsapp(args.phone);
+    const res = await cotizarTrasAclaracion({
+      pendiente: session.agent.aclaracionPendiente,
+      respuesta: body,
+      taller,
+    });
+    session.agent.aclaracionPendiente = null;
+    session.agent.phase = "idle";
+
+    if (res.tipo === "necesita_aclaracion") {
+      session.agent.aclaracionPendiente = res.pendiente;
+      session.agent.phase = "esperando_aclaracion";
+      return { texto: res.pendiente.pregunta, session };
+    }
+
+    if (res.tipo === "cotizacion_multiple") {
+      const lineasOk = res.items.filter((i) => i.estado === "ok");
+      session.lastCotizacion = lineasOk.map((i) => i.linea);
+      const textoMulti = mensajeCotizacionMultiple({
+        items: res.items.map((i) => ({
+          estado: i.estado,
+          piezaResumen: resumenPieza(i.ctx),
+          vehiculoResumen: resumenVehiculo(i.ctx),
+          cantidadSugerida: i.cantidadSugerida,
+          pregunta: i.estado === "necesita_aclaracion" ? i.pregunta : undefined,
+          linea: i.estado === "ok" ? i.linea : undefined,
+          alcance: i.estado === "ok" ? i.alcance : undefined,
+        })),
+        incluirSaludo: false,
+        esPrecioTaller: res.esPrecioTaller,
+        nombreTaller: res.nombreTaller,
+      });
+      return { texto: textoMulti.slice(0, 4000), session };
+    }
+
+    if (res.tipo === "cotizacion") {
+      const cantidad = res.linea.cantidadSugerida ?? 1;
+      const borrador = armarBorradorPedido({
+        linea: res.linea,
+        ctx: res.ctx,
+        alcance: res.alcance,
+        cantidad,
+        esPrecioTaller: res.esPrecioTaller,
+        nombreTaller: res.nombreTaller,
+      });
+      session.agent.borrador = borrador;
+      session.agent.phase = "cotizado";
+      session.lastCotizacion = [res.linea];
+      const texto = mensajeCotizacionBreve({
+        linea: res.linea,
+        aplicacion: res.aplicacion,
+        vehiculoResumen: borrador.vehiculoResumen,
+        piezaResumen: borrador.piezaResumen,
+        alcance: res.alcance,
+        incluirSaludo: false,
+        esPrecioTaller: res.esPrecioTaller,
+        nombreTaller: res.nombreTaller,
+      });
+      return { texto: texto.slice(0, 4000), session };
+    }
+
+    return {
+      texto: "No pude cerrar esa aclaración. ¿Me confirmas delanteros, traseros, izquierda o derecha?",
+      session,
+    };
   }
 
   if (phase === "cotizado" && session.agent.borrador) {
@@ -210,12 +280,26 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
     session.agent.phase = "idle";
     session.lastCotizacion = lineasOk.map((i) => i.linea);
 
+    const aclaraciones = resultado.items.filter((i) => i.estado === "necesita_aclaracion");
+    if (aclaraciones.length === 1) {
+      const a = aclaraciones[0];
+      session.agent.aclaracionPendiente = {
+        segmento: a.segmento,
+        ctx: a.ctx,
+        candidatosSlugs: a.candidatosSlugs,
+        cantidadSugerida: a.cantidadSugerida,
+        pregunta: a.pregunta,
+      };
+      session.agent.phase = "esperando_aclaracion";
+    }
+
     const textoMulti = mensajeCotizacionMultiple({
       items: resultado.items.map((i) => ({
         estado: i.estado,
         piezaResumen: resumenPieza(i.ctx),
         vehiculoResumen: resumenVehiculo(i.ctx),
         cantidadSugerida: i.cantidadSugerida,
+        pregunta: i.estado === "necesita_aclaracion" ? i.pregunta : undefined,
         linea: i.estado === "ok" ? i.linea : undefined,
         alcance: i.estado === "ok" ? i.alcance : undefined,
       })),
@@ -225,6 +309,12 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
     });
 
     return { texto: textoMulti.slice(0, 4000), session };
+  }
+
+  if (resultado.tipo === "necesita_aclaracion") {
+    session.agent.aclaracionPendiente = resultado.pendiente;
+    session.agent.phase = "esperando_aclaracion";
+    return { texto: (saludo + resultado.pendiente.pregunta).slice(0, 4000), session };
   }
 
   if (resultado.tipo !== "cotizacion") {

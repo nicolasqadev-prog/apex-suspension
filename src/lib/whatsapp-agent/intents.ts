@@ -42,6 +42,10 @@ export function clasificarIntencion(texto: string, phase: WaAgentPhase): WaUserI
   if (CANCELAR_RX.test(t)) return "cancelar";
   if (MODIFICAR_RX.test(t)) return "modificar_pedido";
 
+  if (phase === "esperando_aclaracion") {
+    return "consulta";
+  }
+
   const qty = extraerCantidad(t);
   if ((phase === "cotizado" || phase === "esperando_confirmacion") && qty != null && t.length < 20) {
     return "cantidad";
