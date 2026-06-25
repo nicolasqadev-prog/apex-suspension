@@ -23,15 +23,18 @@ export function lineaPresentacionAgente(brand = WA_AGENT_BRAND, now = new Date()
 
 const PRESENTACION_RX = /hablas con\s+\*?haku\*?/i;
 
-/** Saludo una sola vez por conversación (solo si ya enviamos la presentación). */
+/** Saludo una sola vez por conversación (cualquier respuesta previa cuenta). */
 export function debePresentarSaludo(session: {
   history: Array<{ role: "user" | "assistant"; content: string }>;
   agent: { greeted: boolean };
 }): boolean {
-  const yaPresentamos = session.history.some(
-    (m) => m.role === "assistant" && PRESENTACION_RX.test(m.content),
-  );
-  if (yaPresentamos) {
+  const yaHablamos = session.history.some((m) => m.role === "assistant");
+  const yaPresentamos =
+    yaHablamos &&
+    session.history.some(
+      (m) => m.role === "assistant" && PRESENTACION_RX.test(m.content),
+    );
+  if (yaHablamos) {
     session.agent.greeted = true;
     return false;
   }

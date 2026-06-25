@@ -1,3 +1,6 @@
+import { esConsultaMultiplePiezas } from "../mostrador-inventario.server";
+import { esConsultaDetalleCotizacion } from "./intents";
+
 export type WaGroqItem = {
   pieza: string;
   marcaVehiculo?: string;
@@ -141,10 +144,7 @@ function normalizarItemGroq(raw: WaGroqItem): WaGroqItem | null {
     item.lado = raw.lado;
   }
 
-  if (item.vehiculo === "kwid" || /\bkwid\b/i.test(item.vehiculo ?? "")) {
-    item.vehiculo = "kwid";
-    item.marcaVehiculo = "renault";
-  }
+  if (item.marcaVehiculo === "chevy") item.marcaVehiculo = "chevrolet";
 
   const modelo = item.vehiculo?.split(/\s+/)[0];
   if (modelo && MARCA_POR_MODELO_GROQ[modelo] && !item.marcaVehiculo) {
@@ -154,7 +154,11 @@ function normalizarItemGroq(raw: WaGroqItem): WaGroqItem | null {
     item.marcaVehiculo = MARCA_POR_MODELO_GROQ[item.vehiculo];
   }
 
-  if (item.marcaVehiculo === "chevy") item.marcaVehiculo = "chevrolet";
+  // Siempre al final: Kwid nunca es Kia
+  if (item.vehiculo === "kwid" || /\bkwid\b/i.test(item.vehiculo ?? "")) {
+    item.vehiculo = "kwid";
+    item.marcaVehiculo = "renault";
+  }
 
   return item;
 }
@@ -198,6 +202,12 @@ export async function interpretarMensajeWhatsAppConGroq(args: {
   if (!ultimo || ultimo.length < 8) return null;
   if (RESPUESTA_ACLARACION_CORTA_RX.test(ultimo)) return null;
   if (/^\s*confirmo\s*$/i.test(ultimo)) return null;
+  if (esConsultaDetalleCotizacion(ultimo)) return null;
+  if (esConsultaMultiplePiezas(ultimo)) return null;
+  if (/\brenault\b.*\bkwid\b/i.test(ultimo) || /\bno\s+kia\b/i.test(ultimo)) return null;
+  if (/\?\s*$/.test(ultimo) && !/\b(amortiguador|rotula|bieleta|terminal)\b/i.test(ultimo)) {
+    return null;
+  }
 
   const transcript = args.history
     .slice(-8)

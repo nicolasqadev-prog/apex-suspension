@@ -1,4 +1,5 @@
 import type { ContextoCotizacion, ProductoMostrador } from "../mostrador-inventario.server";
+import { normalizarCtxVehiculo } from "../mostrador-inventario.server";
 
 export type ResultadoAclaracion =
   | { tipo: "ok"; producto: ProductoMostrador; cantidad: number }
@@ -34,7 +35,8 @@ export function ladoDesdeProducto(p: ProductoMostrador): "izquierda" | "derecha"
 }
 
 function etiquetaVehiculo(ctx: ContextoCotizacion): string {
-  return [ctx.marcaVehiculo, ctx.vehiculo, ctx.ano].filter(Boolean).join(" ") || "ese vehículo";
+  const c = normalizarCtxVehiculo({ ...ctx, textoCompleto: ctx.textoCompleto ?? "" });
+  return [c.marcaVehiculo, c.vehiculo, c.ano].filter(Boolean).join(" ") || "ese vehículo";
 }
 
 function filtrarPorPosicion(

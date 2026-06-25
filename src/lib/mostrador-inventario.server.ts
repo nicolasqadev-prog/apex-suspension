@@ -628,7 +628,7 @@ export function extraerContextoCotizacion(texto: string): ContextoCotizacion {
 
   const listoParaCotizar = Boolean(pieza && (vehiculo || marcaVehiculo));
 
-  return {
+  return normalizarCtxVehiculo({
     textoCompleto: texto,
     pieza,
     vehiculo,
@@ -637,7 +637,17 @@ export function extraerContextoCotizacion(texto: string): ContextoCotizacion {
     lado,
     posicion,
     listoParaCotizar,
-  };
+  });
+}
+
+/** Kwid es siempre Renault (nunca Kia), aunque el texto diga "Kia Kwid" o venga mal del historial. */
+export function normalizarCtxVehiculo(ctx: ContextoCotizacion): ContextoCotizacion {
+  const t = `${ctx.textoCompleto ?? ""} ${ctx.vehiculo ?? ""} ${ctx.marcaVehiculo ?? ""}`.toLowerCase();
+  if (ctx.vehiculo === "kwid" || /\bkwid\b/i.test(t)) {
+    ctx.vehiculo = "kwid";
+    ctx.marcaVehiculo = "renault";
+  }
+  return ctx;
 }
 
 /** Contexto desde historial: la pieza más reciente manda (no la primera del chat). */
@@ -668,11 +678,9 @@ export function extraerContextoDesdeHistorial(
     }
   }
 
-  if (ctx.vehiculo === "kwid") ctx.marcaVehiculo = "renault";
-
   ctx.textoCompleto = textoCompleto;
   ctx.listoParaCotizar = Boolean(ctx.pieza && (ctx.vehiculo || ctx.marcaVehiculo));
-  return ctx;
+  return normalizarCtxVehiculo(ctx);
 }
 
 const NUM_PALABRA: Record<string, number> = {

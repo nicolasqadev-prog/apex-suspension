@@ -132,7 +132,7 @@ export function esJuegoAmortiguadoresCompleto(texto: string): boolean {
 
 /** Pregunta sobre la cotización en curso (posición, referencias, etc.). */
 export function esConsultaDetalleCotizacion(texto: string): boolean {
-  return /\b(?:solo\s+los?|cu[aá]l\s+es\s+cu[aá]l|son\s+(?:delanter|traser)|me\s+d(?:a|as)\s+una\s+referencia|no\s+me\s+dices|cu[aá]ntos?\s+amortiguador|te\s+pregunt[eé])\b/i.test(
+  return /\b(?:solo\s+los?|esos\s+son|son\s+solo|cu[aá]l\s+es\s+cu[aá]l|son\s+(?:delanter|traser|solo)|me\s+d(?:a|as)\s+una\s+referencia|no\s+me\s+dices|cu[aá]ntos?\s+amortiguador|te\s+pregunt[eé]|pero\s+esos)\b/i.test(
     texto,
   );
 }

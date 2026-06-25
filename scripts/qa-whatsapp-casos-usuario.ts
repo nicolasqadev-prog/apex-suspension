@@ -74,6 +74,57 @@ const ESCENARIOS: Escenario[] = [
     ],
   },
   {
+    id: "kwid-pregunta-delanteros",
+    titulo: "KWID juego 4 → pregunta si son solo delanteros (no genérico)",
+    mensajes: [
+      "Tienes los amortiguadores de un Renault KWID?",
+      "Necesito 2 y 2, osea dos delanteros dos traseros",
+      "Pero esos son solo los delanteros o?",
+    ],
+    asercionesPorPaso: [
+      {
+        nombre: "Turno 1 — aclaración KWID",
+        incluye: [/kwid|delantero|trasero/i],
+        noIncluye: [/kia\s+kwid/i],
+        saludoUnaVez: true,
+      },
+      {
+        nombre: "Turno 2 — cotiza juego",
+        incluye: [/KSA-RE|delantero|trasero/i],
+        noIncluye: [/kia\s+kwid/i],
+        saludoUnaVez: false,
+      },
+      {
+        nombre: "Turno 3 — aclara posición (no ¿Te sirve?)",
+        incluye: [/delantera|trasera|referencia|KSA-RE/i],
+        noIncluye: [/Te sirve la referencia que te cotiz/i, /kia\s+kwid/i, /hablas con\s+\*?haku/i],
+        saludoUnaVez: false,
+      },
+    ],
+  },
+  {
+    id: "kwid-correccion-marca",
+    titulo: "Corrección Renault KWID (no Kia Kwid)",
+    mensajes: [
+      "Los cuatro amortiguadores de un Renault KWID",
+      "Pero te dije renault KWID, no Kia KWID",
+    ],
+    asercionesPorPaso: [
+      {
+        nombre: "Turno 1 — aclaración juego 4",
+        incluye: [/kwid|delantero|trasero/i],
+        noIncluye: [/kia\s+kwid/i],
+        saludoUnaVez: true,
+      },
+      {
+        nombre: "Turno 2 — mantiene Renault, no Kia",
+        incluye: [/renault|kwid/i],
+        noIncluye: [/kia\s+kwid/i, /No encontré.*kia\s+kwid/i],
+        saludoUnaVez: false,
+      },
+    ],
+  },
+  {
     titulo: 'Megane cotizado → "Si pero necesito…" + lista de 5',
     mensajes: [
       "Hola buen dia necesito los amortiguadores de un Renault megane 2",

@@ -280,6 +280,22 @@ export function mensajePreguntaCotizacionPendiente(): string {
   return "¿Te sirve la referencia que te cotizé? Responde *sí* si quieres pedirla, o dime qué buscas.";
 }
 
+export function mensajeDetallePosicionCotizada(args: {
+  referencia: string;
+  nombre: string;
+}): string {
+  const n = args.nombre.toUpperCase();
+  const esDel = /\bDEL\b|\bDELANT/i.test(n);
+  const esTras = /\bTRAS\b/i.test(n);
+  if (esDel) {
+    return `La referencia *${args.referencia}* que te cotizé es *delantera* (${args.nombre}).`;
+  }
+  if (esTras) {
+    return `La referencia *${args.referencia}* que te cotizé es *trasera* (${args.nombre}).`;
+  }
+  return `La referencia *${args.referencia}*: ${args.nombre}.`;
+}
+
 export function mensajeDespedida(): string {
   return "Con gusto. Cualquier cosa, escríbenos. ¡Que tengas buen día!";
 }

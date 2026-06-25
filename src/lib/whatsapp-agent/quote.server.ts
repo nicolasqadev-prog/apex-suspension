@@ -9,6 +9,7 @@ import {
   extraerContextoDesdeHistorial,
   extraerMarcasMencionadas,
   extraerReferencias,
+  normalizarCtxVehiculo,
   resolverCandidatosMostrador,
   segmentarConsultasPieza,
   vendemosMarca,
@@ -516,7 +517,7 @@ export async function intentarCotizarJuegoAmortiguadores(args: {
   };
 }
 
-/** Cotización desde catálogo; interpretación Groq opcional + motor determinístico. */
+/** Cotización desde catálogo; Groq solo como respaldo si el motor determinístico no resuelve. */
 export async function cotizarDesdeCatalogoWhatsApp(args: {
   history: Array<{ role: "user" | "assistant"; content: string }>;
   whatsapp?: string;
@@ -526,9 +527,6 @@ export async function cotizarDesdeCatalogoWhatsApp(args: {
 
   const juegoAmort = await intentarCotizarJuegoAmortiguadores(args);
   if (juegoAmort) return juegoAmort;
-
-  const groqCot = await intentarCotizarConGroqInterpretacion(args);
-  if (groqCot) return groqCot;
 
   const ultimo = ultimoMensajeUsuario(args.history);
   const w = args.whatsapp?.trim();
@@ -586,7 +584,9 @@ export async function cotizarDesdeCatalogoWhatsApp(args: {
   const { candidatos } = await resolverCandidatosMostrador(ultimo || texto, ctx.pieza);
 
   if (candidatos.length === 0) {
-    return { tipo: "sin_match", ctx };
+    const groqCot = await intentarCotizarConGroqInterpretacion(args);
+    if (groqCot && groqCot.tipo !== "sin_match") return groqCot;
+    return { tipo: "sin_match", ctx: normalizarCtxVehiculo(ctx) };
   }
 
   if (marcaNoVendida && candidatos.every((p) => p.marcaProducto.toUpperCase() !== marcaNoVendida)) {
@@ -609,7 +609,9 @@ export async function cotizarDesdeCatalogoWhatsApp(args: {
   }
 
   if (decision.tipo !== "ok") {
-    return { tipo: "sin_match", ctx };
+    const groqCot = await intentarCotizarConGroqInterpretacion(args);
+    if (groqCot && groqCot.tipo !== "sin_match") return groqCot;
+    return { tipo: "sin_match", ctx: normalizarCtxVehiculo(ctx) };
   }
 
   const linea = mapLinea(decision.producto, tallerRow, decision.cantidad);

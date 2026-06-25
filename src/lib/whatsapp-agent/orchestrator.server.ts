@@ -34,6 +34,7 @@ import {
   mensajeSinMatch,
   mensajeTransicionCarrito,
   mensajeTransicionResumen,
+  mensajeDetallePosicionCotizada,
 } from "./copy";
 import { armarBorradorPedido, cotizarDesdeCatalogoWhatsApp, cotizarTrasAclaracion, intentarCotizarRespuestaCorta, resumenPieza, resumenVehiculo } from "./quote.server";
 import { registrarPedidoDesdeBorrador, registrarPedidoDesdeCarrito } from "./confirm.server";
@@ -85,6 +86,77 @@ function ultimaListaRepuestosEnHistorial(
     if (esConsultaMultiplePiezas(h.content)) return h.content;
   }
   return null;
+}
+
+function intentarRespuestaDetalleCotizacion(
+  session: WaSession,
+  body: string,
+): TurnoAgenteWa | null {
+  if (!esConsultaDetalleCotizacion(body)) return null;
+
+  const lineas =
+    session.lastCotizacion.length > 0
+      ? session.lastCotizacion
+      : session.agent.borrador
+        ? [
+            {
+              referencia: session.agent.borrador.referencia,
+              nombre: session.agent.borrador.nombre,
+            },
+          ]
+        : [];
+
+  if (lineas.length === 0) return null;
+
+  const preguntaDel = /\bdelantera?s?\b/i.test(body);
+  const preguntaTras = /\btrasera?s?\b/i.test(body);
+
+  if (lineas.length === 1) {
+    const l = lineas[0]!;
+    const detalle = mensajeDetallePosicionCotizada({
+      referencia: l.referencia,
+      nombre: l.nombre,
+    });
+    const nombreUp = l.nombre.toUpperCase();
+    const esDel = /\bDEL\b|\bDELANT/i.test(nombreUp);
+    const esTras = /\bTRAS\b/i.test(nombreUp);
+
+    if (preguntaDel && esTras) {
+      return {
+        texto:
+          `No — ${detalle}\n\n` +
+          "Si necesitas los *delanteros* del mismo vehículo, dime y te cotizo esa referencia.",
+        session,
+      };
+    }
+    if (preguntaDel && esDel) {
+      return { texto: `Sí — ${detalle}\n\n¿Te sirve para pedirla?`, session };
+    }
+    if (preguntaTras && esDel) {
+      return {
+        texto:
+          `No — ${detalle}\n\n` +
+          "Si necesitas los *traseros*, dime y te cotizo esa referencia.",
+        session,
+      };
+    }
+    return { texto: `${detalle}\n\n¿Te sirve o buscas otra referencia?`, session };
+  }
+
+  const list = lineas
+    .map((l, i) => {
+      const n = l.nombre.toUpperCase();
+      const pos = /\bTRAS\b/i.test(n) ? "trasera" : /\bDEL\b/i.test(n) ? "delantera" : "";
+      return `*${i + 1}.* *${l.referencia}*${pos ? ` (${pos})` : ""}`;
+    })
+    .join("\n");
+
+  return {
+    texto:
+      `Así van las referencias que te cotizé:\n\n${list}\n\n` +
+      "¿Alguna en particular o quieres que te aclare delanteros/traseros?",
+    session,
+  };
 }
 
 function intentarRespuestaCarrito(session: WaSession, body: string): TurnoAgenteWa | null {
@@ -167,6 +239,9 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
     limpiarBorrador(session, { limpiarCarrito: true });
     return { texto: mensajeCancelacion(), session };
   }
+
+  const detalleCot = intentarRespuestaDetalleCotizacion(session, body);
+  if (detalleCot) return detalleCot;
 
   const respuestaCarrito = intentarRespuestaCarrito(session, body);
   if (respuestaCarrito) return respuestaCarrito;
