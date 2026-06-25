@@ -1,8 +1,14 @@
-import type { WaSession } from "./types";
+import type { BorradorPedidoWa, CarritoItemWa, WaSession } from "./types";
 import {
   clasificarIntencion,
   esConfirmoEstricto,
+  esConsultaLogisticaMixta,
   esNuevaConsultaPieza,
+  esPedidoTotalCarrito,
+  esSeguimientoRepuestosPendientes,
+  esSolicitudCotizacionAdicional,
+  esJuegoAmortiguadoresCompleto,
+  esConsultaDetalleCotizacion,
   extraerCantidad,
   buildConfirmToken,
 } from "./intents";
@@ -14,6 +20,7 @@ import {
   mensajeDespedida,
   mensajeFaltaVehiculo,
   mensajeFueraAlcance,
+  mensajeLogisticaMixta,
   mensajeModificar,
   mensajePlazoEntrega,
   mensajePlazoYAceptacion,
@@ -21,26 +28,95 @@ import {
   mensajePreguntaCotizacionLista,
   mensajeRecordatorioConfirmo,
   mensajeRechazoCotizacion,
+  mensajeReferenciaYaEnCarrito,
+  mensajeResumenCarrito,
   mensajeResumenPedido,
   mensajeSinMatch,
+  mensajeTransicionCarrito,
   mensajeTransicionResumen,
 } from "./copy";
-import { armarBorradorPedido, cotizarDesdeCatalogoWhatsApp, cotizarTrasAclaracion, resumenPieza, resumenVehiculo } from "./quote.server";
-import { registrarPedidoDesdeBorrador } from "./confirm.server";
-import type { BorradorPedidoWa } from "./types";
+import { armarBorradorPedido, cotizarDesdeCatalogoWhatsApp, cotizarTrasAclaracion, intentarCotizarRespuestaCorta, resumenPieza, resumenVehiculo } from "./quote.server";
+import { registrarPedidoDesdeBorrador, registrarPedidoDesdeCarrito } from "./confirm.server";
 import { debePresentarSaludo, bloqueSaludo } from "./greeting";
+import { debeAbandonarAclaracionPendiente } from "./aclaracion-flow";
+import { esConsultaMultiplePiezas } from "../mostrador-inventario.server";
 import { getTallerFidelizadoByWhatsapp } from "../talleres.server";
+import {
+  buscarEnCarritoPorMensaje,
+  registrarCotizacionEnCarrito,
+} from "./carrito.server";
 
 export type TurnoAgenteWa = {
   texto: string;
   session: WaSession;
 };
 
-function limpiarBorrador(session: WaSession): void {
+function limpiarBorrador(session: WaSession, opts?: { limpiarCarrito?: boolean }): void {
   session.agent.borrador = null;
   session.agent.aclaracionPendiente = null;
   session.agent.phase = "idle";
+  session.agent.confirmacionCarrito = false;
   session.lastCotizacion = [];
+  if (opts?.limpiarCarrito) session.agent.carrito = [];
+}
+
+function pasarAResumenCarrito(session: WaSession): string {
+  session.agent.confirmacionCarrito = session.agent.carrito.length >= 1;
+  session.agent.borrador = null;
+  session.agent.phase = "esperando_confirmacion";
+  return mensajeTransicionCarrito(session.agent.carrito);
+}
+
+function respuestaCarritoExistente(session: WaSession, item: CarritoItemWa): TurnoAgenteWa {
+  session.agent.confirmacionCarrito = session.agent.carrito.length > 1;
+  session.agent.phase = "esperando_confirmacion";
+  return {
+    texto: `${mensajeReferenciaYaEnCarrito(item.referencia)}\n\n${mensajeResumenCarrito(session.agent.carrito)}`,
+    session,
+  };
+}
+
+function ultimaListaRepuestosEnHistorial(
+  history: Array<{ role: "user" | "assistant"; content: string }>,
+): string | null {
+  for (let i = history.length - 1; i >= 0; i--) {
+    const h = history[i];
+    if (h?.role !== "user") continue;
+    if (esConsultaMultiplePiezas(h.content)) return h.content;
+  }
+  return null;
+}
+
+function intentarRespuestaCarrito(session: WaSession, body: string): TurnoAgenteWa | null {
+  if (esConsultaMultiplePiezas(body)) return null;
+
+  if (esConsultaLogisticaMixta(body) && session.agent.carrito.length >= 2) {
+    return {
+      texto: `${mensajeLogisticaMixta(session.agent.carrito)}\n\n${mensajeResumenCarrito(session.agent.carrito)}`,
+      session,
+    };
+  }
+
+  if (
+    (esPedidoTotalCarrito(body) || (/\bambas?\b/i.test(body) && session.agent.carrito.length >= 2)) &&
+    session.agent.carrito.length >= 2
+  ) {
+    return { texto: pasarAResumenCarrito(session), session };
+  }
+
+  if (/\b(y\s+)?m[aá]s\b/i.test(body) || esNuevaConsultaPieza(body)) {
+    const ya = buscarEnCarritoPorMensaje(session.agent.carrito, body);
+    if (ya) return respuestaCarritoExistente(session, ya);
+  }
+
+  return null;
+}
+
+function registrarItemsCotizadosEnCarrito(
+  session: WaSession,
+  borrador: BorradorPedidoWa,
+): void {
+  registrarCotizacionEnCarrito(session, borrador);
 }
 
 function pasarAResumen(session: WaSession, cantidad?: number): string {
@@ -65,8 +141,22 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
 }): Promise<TurnoAgenteWa> {
   const session = args.session;
   const body = args.mensajeUsuario.trim();
-  const phase = session.agent.phase;
+  let phase = session.agent.phase;
   const intent = clasificarIntencion(body, phase);
+
+  let textoCotizacion = body;
+  if (esSeguimientoRepuestosPendientes(body)) {
+    const lista = ultimaListaRepuestosEnHistorial(session.history);
+    if (lista) {
+      textoCotizacion = lista;
+      session.agent.confirmacionCarrito = false;
+      session.agent.borrador = null;
+      if (phase === "esperando_confirmacion" || phase === "cotizado") {
+        session.agent.phase = "idle";
+        phase = "idle";
+      }
+    }
+  }
 
   if (intent === "agradecimiento" && phase === "idle") {
     session.agent.greeted = true;
@@ -74,9 +164,12 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
   }
 
   if (intent === "cancelar") {
-    limpiarBorrador(session);
+    limpiarBorrador(session, { limpiarCarrito: true });
     return { texto: mensajeCancelacion(), session };
   }
+
+  const respuestaCarrito = intentarRespuestaCarrito(session, body);
+  if (respuestaCarrito) return respuestaCarrito;
 
   if (
     session.lastCotizacion.length > 1 &&
@@ -92,6 +185,7 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
   }
 
   if (phase === "esperando_aclaracion" && session.agent.aclaracionPendiente) {
+    if (!debeAbandonarAclaracionPendiente(body, session.agent.aclaracionPendiente)) {
     const taller = await getTallerFidelizadoByWhatsapp(args.phone);
     const res = await cotizarTrasAclaracion({
       pendiente: session.agent.aclaracionPendiente,
@@ -140,6 +234,7 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
       session.agent.borrador = borrador;
       session.agent.phase = "cotizado";
       session.lastCotizacion = [res.linea];
+      registrarItemsCotizadosEnCarrito(session, borrador);
       const texto = mensajeCotizacionBreve({
         linea: res.linea,
         aplicacion: res.aplicacion,
@@ -153,13 +248,52 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
       return { texto: texto.slice(0, 4000), session };
     }
 
+    const recuperado = await intentarCotizarRespuestaCorta({
+      history: session.history,
+      whatsapp: args.phone,
+    });
+    if (recuperado?.tipo === "cotizacion") {
+      const cantidad = recuperado.linea.cantidadSugerida ?? 1;
+      const borrador = armarBorradorPedido({
+        linea: recuperado.linea,
+        ctx: recuperado.ctx,
+        alcance: recuperado.alcance,
+        cantidad,
+        esPrecioTaller: recuperado.esPrecioTaller,
+        nombreTaller: recuperado.nombreTaller,
+      });
+      session.agent.borrador = borrador;
+      session.agent.phase = "cotizado";
+      session.lastCotizacion = [recuperado.linea];
+      registrarItemsCotizadosEnCarrito(session, borrador);
+      const texto = mensajeCotizacionBreve({
+        linea: recuperado.linea,
+        aplicacion: recuperado.aplicacion,
+        vehiculoResumen: borrador.vehiculoResumen,
+        piezaResumen: borrador.piezaResumen,
+        alcance: recuperado.alcance,
+        incluirSaludo: false,
+        esPrecioTaller: recuperado.esPrecioTaller,
+        nombreTaller: recuperado.nombreTaller,
+      });
+      return { texto: texto.slice(0, 4000), session };
+    }
+
     return {
       texto: "No pude cerrar esa aclaración. ¿Me confirmas delanteros, traseros, izquierda o derecha?",
       session,
     };
+    } else {
+      session.agent.aclaracionPendiente = null;
+      session.agent.phase = "idle";
+      phase = "idle";
+    }
   }
 
   if (phase === "cotizado" && session.agent.borrador) {
+    const carritoPrevio = intentarRespuestaCarrito(session, body);
+    if (carritoPrevio) return carritoPrevio;
+
     if (intent === "consulta_plazo") {
       const b = session.agent.borrador;
       if (/\b(s[ií]|si)\s*,?\s*(me\s+)?sirve\b/i.test(body)) {
@@ -178,7 +312,11 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
       return { texto: mensajeRechazoCotizacion(), session };
     }
 
-    if (intent === "aceptar_cotizacion" || intent === "cantidad") {
+    if (
+      (intent === "aceptar_cotizacion" || intent === "cantidad") &&
+      !esConsultaMultiplePiezas(body) &&
+      !esSolicitudCotizacionAdicional(body)
+    ) {
       const qty = extraerCantidad(body) ?? session.agent.borrador.cantidad;
       return { texto: pasarAResumen(session, qty), session };
     }
@@ -187,8 +325,20 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
       return { texto: pasarAResumen(session), session };
     }
 
-    if (intent === "validar_compatibilidad" || (intent === "consulta" && esNuevaConsultaPieza(body))) {
+    if (
+      intent === "validar_compatibilidad" ||
+      esConsultaMultiplePiezas(body) ||
+      esJuegoAmortiguadoresCompleto(body) ||
+      esConsultaDetalleCotizacion(body) ||
+      (intent === "consulta" && esSolicitudCotizacionAdicional(body) && esNuevaConsultaPieza(body))
+    ) {
       limpiarBorrador(session);
+    } else if (intent === "consulta" && esSolicitudCotizacionAdicional(body)) {
+      return {
+        texto:
+          "Claro, envíame cada repuesto con el vehículo (marca y modelo) en un solo mensaje y te cotizo todo.",
+        session,
+      };
     } else if (intent === "consulta" || intent === "agradecimiento") {
       return { texto: mensajePreguntaCotizacionPendiente(), session };
     } else {
@@ -196,39 +346,77 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
     }
   }
 
-  if (phase === "esperando_confirmacion" && session.agent.borrador) {
-    if (intent === "consulta_plazo") {
-      return { texto: mensajePlazoEntrega(session.agent.borrador), session };
-    }
+  if (phase === "esperando_confirmacion") {
+    if (session.agent.confirmacionCarrito && session.agent.carrito.length > 0) {
+      const carritoPrevio = intentarRespuestaCarrito(session, body);
+      if (carritoPrevio) return carritoPrevio;
 
-    const qty = extraerCantidad(body);
-    if (qty != null && intent === "cantidad") {
-      session.agent.borrador.cantidad = qty;
-      session.agent.borrador.confirmToken = buildConfirmToken(session.agent.borrador);
-      session.agent.borrador.resumenEnviado = mensajeResumenPedido(session.agent.borrador);
-      return {
-        texto: `Listo, *${qty}* unidad(es).\n\n${session.agent.borrador.resumenEnviado}`,
-        session,
-      };
-    }
+      if (intent === "consulta_plazo") {
+        return {
+          texto:
+            "Los plazos varían por referencia. Lo de *bodega* se despacha según operación del día; " +
+            "lo *bajo pedido* te confirmamos al registrar.\n\n" +
+            mensajeResumenCarrito(session.agent.carrito),
+          session,
+        };
+      }
 
-    if (intent === "aceptar_cotizacion") {
-      return { texto: mensajeRecordatorioConfirmo(), session };
-    }
+      if (intent === "confirmar_pedido" && esConfirmoEstricto(body)) {
+        const reg = await confirmarPedidoCarrito(session, args.phone, args.contactName);
+        return { texto: reg.texto, session };
+      }
 
-    if (intent === "confirmar_pedido" && esConfirmoEstricto(body)) {
-      const reg = await confirmarPedido(session, args.phone, args.contactName);
-      return { texto: reg.texto, session };
-    }
+      if (intent === "confirmar_pedido") {
+        return { texto: mensajeRecordatorioConfirmo(), session };
+      }
 
-    if (intent === "confirmar_pedido") {
-      return { texto: mensajeRecordatorioConfirmo(), session };
-    }
+      if (intent === "consulta" && esNuevaConsultaPieza(body)) {
+        if (!esConsultaMultiplePiezas(body)) {
+          const ya = buscarEnCarritoPorMensaje(session.agent.carrito, body);
+          if (ya) return respuestaCarritoExistente(session, ya);
+        }
+        session.agent.confirmacionCarrito = false;
+        session.agent.phase = "idle";
+      } else if (intent === "consulta" && esSeguimientoRepuestosPendientes(body)) {
+        session.agent.confirmacionCarrito = false;
+        session.agent.phase = "idle";
+      } else if (intent === "consulta") {
+        return { texto: mensajeRecordatorioConfirmo(), session };
+      }
+    } else if (session.agent.borrador) {
+      if (intent === "consulta_plazo") {
+        return { texto: mensajePlazoEntrega(session.agent.borrador), session };
+      }
 
-    if (intent === "consulta" && esNuevaConsultaPieza(body)) {
-      limpiarBorrador(session);
-    } else if (intent === "consulta") {
-      return { texto: mensajeRecordatorioConfirmo(), session };
+      const qty = extraerCantidad(body);
+      if (qty != null && intent === "cantidad") {
+        session.agent.borrador.cantidad = qty;
+        session.agent.borrador.confirmToken = buildConfirmToken(session.agent.borrador);
+        session.agent.borrador.resumenEnviado = mensajeResumenPedido(session.agent.borrador);
+        return {
+          texto: `Listo, *${qty}* unidad(es).\n\n${session.agent.borrador.resumenEnviado}`,
+          session,
+        };
+      }
+
+      if (intent === "aceptar_cotizacion") {
+        return { texto: mensajeRecordatorioConfirmo(), session };
+      }
+
+      if (intent === "confirmar_pedido" && esConfirmoEstricto(body)) {
+        const reg = await confirmarPedido(session, args.phone, args.contactName);
+        return { texto: reg.texto, session };
+      }
+
+      if (intent === "confirmar_pedido") {
+        return { texto: mensajeRecordatorioConfirmo(), session };
+      }
+
+      if (intent === "consulta" && esNuevaConsultaPieza(body)) {
+        limpiarBorrador(session);
+      } else if (intent === "consulta") {
+        return { texto: mensajeRecordatorioConfirmo(), session };
+      }
     }
   }
 
@@ -237,8 +425,13 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
     return { texto: saludo + (saludo ? "¿Qué repuesto necesitas?" : mensajeBienvenidaConsulta()), session };
   }
 
+  const historyCotizar =
+    textoCotizacion !== body
+      ? [...session.history, { role: "user" as const, content: textoCotizacion }]
+      : session.history;
+
   const resultado = await cotizarDesdeCatalogoWhatsApp({
-    history: session.history,
+    history: historyCotizar,
     whatsapp: args.phone,
   });
 
@@ -255,6 +448,42 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
   }
 
   if (resultado.tipo === "sin_match") {
+    const recuperado = await intentarCotizarRespuestaCorta({
+      history: session.history,
+      whatsapp: args.phone,
+    });
+    if (recuperado?.tipo === "necesita_aclaracion") {
+      session.agent.aclaracionPendiente = recuperado.pendiente;
+      session.agent.phase = "esperando_aclaracion";
+      return { texto: (saludo + recuperado.pendiente.pregunta).slice(0, 4000), session };
+    }
+    if (recuperado?.tipo === "cotizacion") {
+      const cantidad = recuperado.linea.cantidadSugerida ?? 1;
+      const borrador = armarBorradorPedido({
+        linea: recuperado.linea,
+        ctx: recuperado.ctx,
+        alcance: recuperado.alcance,
+        cantidad,
+        esPrecioTaller: recuperado.esPrecioTaller,
+        nombreTaller: recuperado.nombreTaller,
+      });
+      session.agent.borrador = borrador;
+      session.agent.phase = "cotizado";
+      session.lastCotizacion = [recuperado.linea];
+      registrarItemsCotizadosEnCarrito(session, borrador);
+      const texto = mensajeCotizacionBreve({
+        linea: recuperado.linea,
+        aplicacion: recuperado.aplicacion,
+        vehiculoResumen: borrador.vehiculoResumen,
+        piezaResumen: borrador.piezaResumen,
+        alcance: recuperado.alcance,
+        incluirSaludo: Boolean(saludo),
+        esPrecioTaller: recuperado.esPrecioTaller,
+        nombreTaller: recuperado.nombreTaller,
+      });
+      return { texto: texto.slice(0, 4000), session };
+    }
+
     limpiarBorrador(session);
     const pieza = resultado.ctx.pieza ?? "esa pieza";
     const veh = [resultado.ctx.marcaVehiculo, resultado.ctx.vehiculo, resultado.ctx.ano]
@@ -279,6 +508,19 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
     session.agent.borrador = null;
     session.agent.phase = "idle";
     session.lastCotizacion = lineasOk.map((i) => i.linea);
+
+    for (const item of lineasOk) {
+      const qty = item.cantidadSugerida ?? 1;
+      const borradorItem = armarBorradorPedido({
+        linea: item.linea,
+        ctx: item.ctx,
+        alcance: item.alcance,
+        cantidad: qty,
+        esPrecioTaller: resultado.esPrecioTaller,
+        nombreTaller: resultado.nombreTaller,
+      });
+      registrarItemsCotizadosEnCarrito(session, borradorItem);
+    }
 
     const aclaraciones = resultado.items.filter((i) => i.estado === "necesita_aclaracion");
     if (aclaraciones.length === 1) {
@@ -335,6 +577,7 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
   session.agent.borrador = borrador;
   session.agent.phase = "cotizado";
   session.lastCotizacion = [resultado.linea];
+  registrarItemsCotizadosEnCarrito(session, borrador);
 
   const texto = mensajeCotizacionBreve({
     linea: resultado.linea,
@@ -374,7 +617,27 @@ async function confirmarPedido(
   if (!reg.ok) {
     return { texto: reg.texto };
   }
-  limpiarBorrador(session);
+  limpiarBorrador(session, { limpiarCarrito: true });
+  session.agent.phase = "pedido_creado";
+  return { texto: reg.texto };
+}
+
+async function confirmarPedidoCarrito(
+  session: WaSession,
+  phone: string,
+  contactName?: string,
+): Promise<{ texto: string }> {
+  const resumen = mensajeResumenCarrito(session.agent.carrito);
+  const reg = await registrarPedidoDesdeCarrito({
+    phone,
+    items: session.agent.carrito,
+    resumenEnviado: resumen,
+    contactName,
+  });
+  if (!reg.ok) {
+    return { texto: reg.texto };
+  }
+  limpiarBorrador(session, { limpiarCarrito: true });
   session.agent.phase = "pedido_creado";
   return { texto: reg.texto };
 }

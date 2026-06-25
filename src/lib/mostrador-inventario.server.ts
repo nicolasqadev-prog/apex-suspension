@@ -60,7 +60,23 @@ const EN_ALCANCE = [
   /\b(kit\s+de\s+suspensi[oó]n|barra\s+estabilizadora)\b/i,
 ];
 
-const REF_PATTERN = /\b[A-Z]{2,5}[- ]?\d{3,6}[A-Z0-9]*\b/gi;
+const REF_PATTERNS = [
+  /\b[A-Z]{2,5}-[A-Z]{0,4}\d{2,6}[A-Z0-9]*\b/gi,
+  /\b[A-Z]{2,5}[- ]?\d{3,6}[A-Z0-9]*\b/gi,
+  /\b[A-Z0-9]{2,6}(?:-[A-Z0-9]{1,6}){1,4}\b/gi,
+  /\b\d{5,12}[A-Z]?\b/gi,
+];
+
+function normalizarReferencia(ref: string): string {
+  return ref.trim().toUpperCase().replace(/\s+/g, "-");
+}
+
+function variantesReferencia(ref: string): string[] {
+  const base = normalizarReferencia(ref);
+  const sinGuion = base.replace(/-/g, "");
+  const conGuion = base.includes("-") ? base : base.replace(/^([A-Z]{2,5})(\d)/, "$1-$2");
+  return [...new Set([base, sinGuion, conGuion].filter(Boolean))];
+}
 
 function getSupabaseEnv() {
   const rawUrl = process.env.SUPABASE_URL;
@@ -103,8 +119,29 @@ export function detectarAlcanceMensaje(texto: string): AlcanceMensaje {
 }
 
 export function extraerReferencias(texto: string): string[] {
-  const found = texto.match(REF_PATTERN) ?? [];
-  return [...new Set(found.map((r) => r.replace(/\s+/g, "-").toUpperCase()))];
+  const found = new Set<string>();
+  for (const rx of REF_PATTERNS) {
+    for (const m of texto.match(rx) ?? []) {
+      found.add(normalizarReferencia(m));
+    }
+  }
+  // Tokens alfanuméricos sueltos (ej. HY07047, NS07493)
+  for (const m of texto.match(/\b[A-Z]{1,3}\d{4,8}\b/gi) ?? []) {
+    found.add(normalizarReferencia(m));
+  }
+  // "referencia 399", "ref KSA-NI015"
+  for (const m of texto.matchAll(/\b(?:referencia|ref\.?)\s+([A-Z0-9][A-Z0-9./-]{1,24})\b/gi)) {
+    found.add(normalizarReferencia(m[1]!));
+  }
+
+  const all = [...found];
+  return all.filter((ref) => {
+    // Evita "6401" suelto cuando ya está "KRE-6401"
+    if (/^\d{4,}$/.test(ref)) {
+      return !all.some((other) => other !== ref && other.replace(/\D/g, "").endsWith(ref));
+    }
+    return true;
+  });
 }
 
 export type ContextoCotizacion = {
@@ -119,7 +156,25 @@ export type ContextoCotizacion = {
 };
 
 const PIEZAS_RX =
-  /\b(bieleta|barra\s+estabilizadora|r[oó]tula|terminal(?:\s+axial)?|amortiguador|buje|brazo|tijera|link)\b/i;
+  /\b(?:bieletas?|barra\s+estabilizadora|r[oó]tulas?|terminal(?:es)?(?:\s+axial(?:es)?)?|amortiguador(?:es)?|bujes?|brazos?|tijeras?|links?|guardapolvos?|bases?\s+(?:de\s+)?amortiguador|columnas?|cremallera|punta(?:s)?\s+axial(?:es)?|homocin[eé]ticas?|kit\s+(?:de\s+)?suspensi[oó]n|espirales?|resortes?)\b/i;
+
+function normalizarPiezaMencionada(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const p = raw.toLowerCase().replace("rótula", "rotula");
+  if (p.startsWith("amortiguador")) return "amortiguador";
+  if (p.startsWith("bieleta")) return "bieleta";
+  if (p.startsWith("rotula") || p.startsWith("rótula")) return "rotula";
+  if (p.startsWith("terminal")) return "terminal";
+  if (p.startsWith("tijera")) return "tijera";
+  if (p.startsWith("brazo")) return "brazo";
+  if (p.startsWith("buje")) return "buje";
+  if (p.startsWith("link")) return "link";
+  if (p.startsWith("guardapolvo")) return "guardapolvo";
+  if (p.startsWith("columna")) return "columna";
+  if (p.startsWith("cremallera")) return "cremallera";
+  if (p.startsWith("resorte") || p.startsWith("espiral")) return "resorte";
+  return p;
+}
 
 const MARCAS_VEH_LISTA = [
   "chevrolet",
@@ -149,6 +204,7 @@ const MARCAS_VEH_LISTA = [
 ];
 
 const MODELOS_VEH_LISTA = [
+  "megane",
   "kwid",
   "xcite",
   "allegro",
@@ -181,14 +237,70 @@ const MODELOS_VEH_LISTA = [
   "208",
   "301",
   "308",
-  "getz",
-  "accent",
+  "np300",
+  "frontier",
+  "navara",
   "elantra",
   "creta",
 ];
 
 const MARCAS_VEH_RX = new RegExp(`\\b(${MARCAS_VEH_LISTA.join("|")})\\b`, "i");
 const VEHICULOS_RX = new RegExp(`\\b(${MODELOS_VEH_LISTA.join("|")})\\b`, "i");
+
+/** Modelo → marca cuando el cliente no la menciona ("los del Kwid"). */
+const MARCA_POR_MODELO: Record<string, string> = {
+  kwid: "renault",
+  sandero: "renault",
+  logan: "renault",
+  duster: "renault",
+  stepway: "renault",
+  megane: "renault",
+  fluence: "renault",
+  clio: "renault",
+  symbol: "renault",
+  onix: "chevrolet",
+  tracker: "chevrolet",
+  cruze: "chevrolet",
+  joy: "chevrolet",
+  cerato: "kia",
+  sorento: "kia",
+  carnival: "kia",
+  accent: "hyundai",
+  i10: "hyundai",
+  i20: "hyundai",
+  santa: "hyundai",
+  fe: "hyundai",
+  np300: "nissan",
+  frontier: "nissan",
+  navara: "nissan",
+  march: "nissan",
+  versa: "nissan",
+  sentra: "nissan",
+  qashqai: "nissan",
+  mazda2: "mazda",
+  mazda3: "mazda",
+  cx5: "mazda",
+  corolla: "toyota",
+  hilux: "toyota",
+  prado: "toyota",
+  fiesta: "ford",
+  focus: "ford",
+  ranger: "ford",
+  escape: "ford",
+  gol: "volkswagen",
+  polo: "volkswagen",
+  jetta: "volkswagen",
+  rio: "kia",
+  sportage: "kia",
+  picanto: "kia",
+  xcite: "kia",
+  aveo: "chevrolet",
+  spark: "chevrolet",
+  captiva: "chevrolet",
+  sail: "chevrolet",
+  c3: "citroen",
+  c4: "citroen",
+};
 
 function normalizarTextoBusqueda(s: string): string {
   return s
@@ -220,8 +332,12 @@ export function productoAplicaAVehiculo(p: ProductoMostrador, ctx: ContextoCotiz
 
   if (ctx.vehiculo) {
     const modelo = normalizarTextoBusqueda(ctx.vehiculo);
+    if (blob.includes(modelo)) return true;
     const modeloRx = new RegExp(`\\b${modelo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
-    if (!modeloRx.test(blob)) return false;
+    if (modeloRx.test(blob)) return true;
+    // Megane II / Megane 2 en catálogo
+    if (modelo === "megane" && /\bmegane\b/i.test(blob)) return true;
+    return false;
   }
 
   return true;
@@ -243,7 +359,26 @@ export function productoAplicaAPieza(p: ProductoMostrador, ctx: ContextoCotizaci
     return /\bbrazo\b|\btijera\b/.test(blob);
   }
   if (pieza === "amortiguador") {
+    if (
+      /\b(soporte|base|cazoleta|tope)\b/i.test(blob) &&
+      /\bamortiguador\b/i.test(blob) &&
+      !/\bamortiguador\s+(delantero|trasero|del|tras)\b/i.test(blob)
+    ) {
+      return false;
+    }
     return /\bamortiguador\b|\bamort\b/.test(blob);
+  }
+  if (pieza === "guardapolvo") {
+    return /\bguardapolvo\b/.test(blob);
+  }
+  if (pieza === "columna") {
+    return /\bcolumna\b/.test(blob);
+  }
+  if (pieza === "cremallera") {
+    return /\bcremallera\b/.test(blob);
+  }
+  if (pieza === "resorte" || pieza === "espiral") {
+    return /\bresorte\b|\bespiral\b/.test(blob);
   }
   return blob.includes(pieza);
 }
@@ -307,6 +442,8 @@ async function recolectarProductosBusqueda(
       ? `${ctx.pieza} ${ctx.marcaVehiculo} ${ctx.vehiculo}`
       : null,
     ctx.marcaVehiculo && ctx.vehiculo ? `${ctx.marcaVehiculo} ${ctx.vehiculo} ${ctx.pieza ?? ""}` : null,
+    ctx.pieza && ctx.vehiculo ? `amortiguador ${ctx.vehiculo}` : null,
+    ctx.pieza && ctx.vehiculo === "megane" ? "amortiguador megane renault" : null,
     ctx.pieza && ctx.vehiculo ? `amort ${ctx.vehiculo}` : null,
     ctx.pieza && ctx.vehiculo ? `${ctx.vehiculo} ${ctx.pieza}` : null,
     ctx.pieza,
@@ -343,9 +480,16 @@ export async function resolverCandidatosMostrador(
   const found = await recolectarProductosBusqueda(mensajeUsuario, ctx, piezaPrioritaria);
   const refs = extraerReferencias(mensajeUsuario);
 
+  // Referencia exacta → cualquier ítem activo del catálogo (bodega o bajo pedido)
   if (refs.length > 0) {
-    const exactos = listarCandidatosConfiables(found, ctx);
-    return { ctx, candidatos: exactos };
+    const porRef: ProductoMostrador[] = [];
+    for (const ref of refs) {
+      const p = await buscarPorReferenciaExacta(ref);
+      if (p) porRef.push(p);
+    }
+    if (porRef.length > 0) {
+      return { ctx, candidatos: priorizarProductosPorContexto(porRef, ctx) };
+    }
   }
 
   return { ctx, candidatos: listarCandidatosConfiables(found, ctx) };
@@ -386,21 +530,84 @@ export function terminosBusquedaInteligente(texto: string): string[] {
 
 export function extraerContextoCotizacion(texto: string): ContextoCotizacion {
   const t = texto.toLowerCase();
-  const pieza = texto.match(PIEZAS_RX)?.[0]?.toLowerCase();
+  const pieza = normalizarPiezaMencionada(texto.match(PIEZAS_RX)?.[0]);
   let marcaVehiculo = texto.match(MARCAS_VEH_RX)?.[0]?.toLowerCase();
   if (marcaVehiculo === "chevy") marcaVehiculo = "chevrolet";
   if (marcaVehiculo === "citroën") marcaVehiculo = "citroen";
 
-  let vehiculo = texto.match(VEHICULOS_RX)?.[0]?.toLowerCase();
+  // Megane 2 / Megane II antes del regex genérico de modelos
+  let vehiculo: string | undefined;
+  if (/\bmegane\s*(?:ii|2|dos)\b/i.test(texto) || /\bmegane\b/i.test(texto)) {
+    vehiculo = "megane";
+    marcaVehiculo = marcaVehiculo ?? "renault";
+  }
+
+  // Nissan NP300 / Frontier
+  if (/\bnp\s*-?\s*300\b/i.test(texto)) {
+    vehiculo = "np300";
+    marcaVehiculo = marcaVehiculo ?? "nissan";
+  }
+
+  if (!vehiculo) {
+    vehiculo = texto.match(VEHICULOS_RX)?.[0]?.toLowerCase();
+  }
+
+  // Kia Rio XCITE → modelo rio (no solo xcite)
+  if (/\bkia\b/i.test(t) && /\brio\b/i.test(t)) {
+    vehiculo = "rio";
+    marcaVehiculo = marcaVehiculo ?? "kia";
+  }
+
   if (!vehiculo && marcaVehiculo) {
     const marcaEsc = marcaVehiculo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const modeloDespuesMarca = texto.match(
-      new RegExp(`\\b${marcaEsc}\\s+([a-z0-9]{1,12})\\b`, "i"),
+      new RegExp(`\\b${marcaEsc}\\s+([a-z0-9][a-z0-9.-]{1,14})\\b`, "i"),
     );
     const candidato = modeloDespuesMarca?.[1]?.toLowerCase();
     if (candidato && !MARCAS_VEH_LISTA.includes(candidato)) {
       vehiculo = candidato;
     }
+  }
+
+  // "amortiguadores de un Duster", "bieleta del Onix" (sin marca explícita)
+  if (!vehiculo && pieza) {
+    const piezaEsc = pieza.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const despuesPieza = texto.match(
+      new RegExp(
+        `\\b${piezaEsc}s?\\b[\\s\\S]{0,40}?\\b(?:de|del|de la|para)\\s+(?:un|una|el|la)?\\s*([a-z0-9][a-z0-9.-]{2,14})\\b`,
+        "i",
+      ),
+    );
+    const candidato = despuesPieza?.[1]?.toLowerCase();
+    const stop = new Set([
+      "del",
+      "tras",
+      "delantero",
+      "delanteros",
+      "trasero",
+      "traseros",
+      "izquierdo",
+      "derecho",
+      "izquierda",
+      "derecha",
+      ...MARCAS_VEH_LISTA,
+    ]);
+    if (candidato && !stop.has(candidato)) {
+      vehiculo = candidato;
+      if (!marcaVehiculo && MARCA_POR_MODELO[candidato]) {
+        marcaVehiculo = MARCA_POR_MODELO[candidato];
+      }
+    }
+  }
+
+  if (vehiculo && !marcaVehiculo && MARCA_POR_MODELO[vehiculo]) {
+    marcaVehiculo = MARCA_POR_MODELO[vehiculo];
+  }
+
+  // "los del Kwid" sin marca — siempre Renault (aunque el texto diga "Kia Kwid" por error)
+  if (/\bkwid\b/i.test(t)) {
+    vehiculo = "kwid";
+    marcaVehiculo = "renault";
   }
 
   const anoMatch = texto.match(/\b(19|20)\d{2}\b/);
@@ -410,11 +617,14 @@ export function extraerContextoCotizacion(texto: string): ContextoCotizacion {
     : /\b(derech|der|right)\b/i.test(t)
       ? ("derecha" as const)
       : undefined;
-  const posicion = /\bdelantera?\b/i.test(t)
-    ? ("delantera" as const)
-    : /\btrasera?\b/i.test(t)
-      ? ("trasera" as const)
-      : undefined;
+  const tieneDel = /\bdelantera?s?\b|\bdelanteros?\b/i.test(t);
+  const tieneTras = /\btrasera?s?\b|\btraseros?\b/i.test(t);
+  const posicion =
+    tieneDel && !tieneTras
+      ? ("delantera" as const)
+      : tieneTras && !tieneDel
+        ? ("trasera" as const)
+        : undefined;
 
   const listoParaCotizar = Boolean(pieza && (vehiculo || marcaVehiculo));
 
@@ -439,12 +649,26 @@ export function extraerContextoDesdeHistorial(
   const ctx = extraerContextoCotizacion(textoCompleto);
 
   for (let i = userMsgs.length - 1; i >= 0; i--) {
-    const p = userMsgs[i].match(PIEZAS_RX)?.[0]?.toLowerCase();
+    const p = normalizarPiezaMencionada(userMsgs[i].match(PIEZAS_RX)?.[0]);
     if (p) {
       ctx.pieza = p;
       break;
     }
   }
+
+  for (let i = userMsgs.length - 1; i >= 0; i--) {
+    const parcial = extraerContextoCotizacion(userMsgs[i]);
+    if (parcial.vehiculo || parcial.marcaVehiculo) {
+      ctx.vehiculo = parcial.vehiculo ?? ctx.vehiculo;
+      ctx.marcaVehiculo = parcial.marcaVehiculo ?? ctx.marcaVehiculo;
+      if (ctx.vehiculo && MARCA_POR_MODELO[ctx.vehiculo]) {
+        ctx.marcaVehiculo = MARCA_POR_MODELO[ctx.vehiculo];
+      }
+      break;
+    }
+  }
+
+  if (ctx.vehiculo === "kwid") ctx.marcaVehiculo = "renault";
 
   ctx.textoCompleto = textoCompleto;
   ctx.listoParaCotizar = Boolean(ctx.pieza && (ctx.vehiculo || ctx.marcaVehiculo));
@@ -480,22 +704,78 @@ export function extraerCantidadSolicitada(texto: string): number {
  * Divide un mensaje con varias piezas/vehículos en consultas independientes.
  * Ej.: "los dos amortiguadores del kia rio ... las bieletas del aveo ..."
  */
+function normalizarSegmentoConsulta(segmento: string): string {
+  const s = segmento.trim().replace(/^\s*y\s+/i, "");
+  if (/^los\s+del\s+/i.test(s) && !PIEZAS_RX.test(s)) {
+    const resto = s.replace(/^los\s+del\s+/i, "").trim();
+    if (/\bkwid\b/i.test(resto)) return `amortiguadores renault kwid ${resto}`;
+    if (/\brio\b/i.test(resto) || /\bxcite\b/i.test(resto)) return `amortiguadores kia rio ${resto}`;
+    if (/\bmegane\b/i.test(resto)) return `amortiguadores renault megane ${resto}`;
+  }
+  return s;
+}
+
+function quitarIntroCotizacion(texto: string): string {
+  const m = texto.match(
+    /(?:^|\n)\s*((?:los|las|el|la)\s+(?:dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|un|una|\d{1,2}\b|amortiguador|bieleta|rotula|r[oó]tula|terminal).+)/is,
+  );
+  return (m?.[1] ?? texto).trim();
+}
+
+const SPLIT_LISTA_PRINCIPAL_RX =
+  /\s+(?=(?:(?:los|las)\s+(?:dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|un|una|\d{1,2}\b|amortiguador|bieleta|rotula|r[oó]tula|terminal|tijera|buje|brazo|link|barra))|(?:(?<!\bde\s)(?:la|el)\s+(?:dos|tres|cuatro|cinco|seis|un|una|\d{1,2}\b|amortiguador|bieleta|rotula|r[oó]tula|terminal|tijera|buje|brazo|link|barra)))/i;
+
+const SPLIT_ROTULA_Y_TERMINAL_RX =
+  /\s+y\s+(?=(?:la|el)\s+(?:rotula|r[oó]tula|terminal|bieleta|amortiguador))/i;
+
+function partirListaPrincipal(texto: string): string[] {
+  return texto
+    .split(SPLIT_LISTA_PRINCIPAL_RX)
+    .map(normalizarSegmentoConsulta)
+    .filter((s) => s && PIEZAS_RX.test(s));
+}
+
+function expandirRotulaYTerminal(segmentos: string[]): string[] {
+  return segmentos.flatMap((seg) => {
+    if (!SPLIT_ROTULA_Y_TERMINAL_RX.test(seg)) return [seg];
+    return seg
+      .split(SPLIT_ROTULA_Y_TERMINAL_RX)
+      .map(normalizarSegmentoConsulta)
+      .filter((s) => s && PIEZAS_RX.test(s));
+  });
+}
+
 export function segmentarConsultasPieza(texto: string): string[] {
-  const t = texto.trim();
+  const t = quitarIntroCotizacion(texto.trim().replace(/\d+[\.\)]\s*/g, " "));
   if (!t) return [];
 
-  const partes = t
-    .split(
-      /\s+(?=(?:(?:los|las)\s+(?:dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|un|una|\d{1,2}\b|amortiguador|bieleta|rotula|r[oó]tula|terminal|tijera|buje|brazo|link|barra))|(?:(?<!\by)(?:la|el)\s+(?:dos|tres|cuatro|cinco|seis|un|una|\d{1,2}\b|amortiguador|bieleta|rotula|r[oó]tula|terminal|tijera|buje|brazo|link|barra)))/i,
-    )
-    .map((s) => s.trim())
-    .filter((s) => s && PIEZAS_RX.test(s));
+  // Seguimiento: "... amortiguadores ... y los del Kwid"
+  if (/\s+y\s+(?:los|las)\s+/i.test(t)) {
+    const porY = t
+      .split(/\s+y\s+(?=(?:los|las)\s+)/i)
+      .map(normalizarSegmentoConsulta)
+      .filter((s) => s && PIEZAS_RX.test(s));
+    if (porY.length > 1) {
+      const expandido = expandirRotulaYTerminal(porY);
+      return expandido.length > 1 ? expandido : porY;
+    }
+  }
+
+  const partes = expandirRotulaYTerminal(partirListaPrincipal(t));
 
   return partes.length > 1 ? partes : PIEZAS_RX.test(t) ? [t] : [];
 }
 
 export function esConsultaMultiplePiezas(texto: string): boolean {
-  return segmentarConsultasPieza(texto).length > 1;
+  if (segmentarConsultasPieza(texto).length > 1) return true;
+  if (/\s+y\s+(?:los|las)\s+(?:del|de)\s+/i.test(texto) && PIEZAS_RX.test(texto)) return true;
+  if (
+    /\s+y\s+(?:la|el)\s+(?:rotula|r[oó]tula|terminal|bieleta|amortiguador)/i.test(texto) &&
+    PIEZAS_RX.test(texto)
+  ) {
+    return true;
+  }
+  return false;
 }
 
 /** Prioriza productos que calzan con vehículo/pieza mencionados. */
@@ -518,6 +798,14 @@ export function priorizarProductosPorContexto(
     if (ctx.lado === "derecha" && /\b(der|derech|right|rh)\b/i.test(blob)) s += 3;
     if (ctx.posicion === "delantera" && /\bdelantera?\b/i.test(blob)) s += 2;
     if (ctx.posicion === "trasera" && /\btrasera?\b/i.test(blob)) s += 2;
+    if (ctx.vehiculo === "megane" && /\bmegane\s*ii\b/i.test(blob)) s += 8;
+    if (
+      ctx.vehiculo === "megane" &&
+      /\bmegane\s*(?:ii|2|dos)\b/i.test(normalizarTextoBusqueda(ctx.textoCompleto))
+    ) {
+      if (/\bmegane\s*ii\b/i.test(blob)) s += 12;
+      if (/\bmegane\s*i\b/i.test(blob) && !/\bmegane\s*ii\b/i.test(blob)) s -= 8;
+    }
     if (p.stock > 0) s += 1;
     return s;
   };
@@ -566,10 +854,10 @@ export async function buscarProductosMostrador(
     "slug,referencia,nombre,aplicacion,categoria,marca,marca_producto,precio_lista,precio_taller,stock_actual",
   );
   url.searchParams.set("activo", "eq.true");
-  url.searchParams.set("limit", String(Math.min(12, Math.max(1, limit))));
+  url.searchParams.set("limit", String(Math.min(24, Math.max(1, limit))));
   url.searchParams.set(
     "or",
-    `(referencia.ilike.${pattern},nombre.ilike.${pattern},aplicacion.ilike.${pattern},categoria.ilike.${pattern},marca.ilike.${pattern})`,
+    `(referencia.ilike.${pattern},nombre.ilike.${pattern},aplicacion.ilike.${pattern},categoria.ilike.${pattern},marca.ilike.${pattern},marca_producto.ilike.${pattern})`,
   );
   url.searchParams.set("order", "stock_actual.desc,precio_lista.asc");
 
@@ -592,20 +880,44 @@ export async function buscarPorReferenciaExacta(
   const env = getSupabaseEnv();
   if (!env) return null;
 
-  const ref = referencia.trim().toUpperCase();
+  for (const ref of variantesReferencia(referencia)) {
+    const url = new URL(`${env.url}/rest/v1/productos`);
+    url.searchParams.set(
+      "select",
+      "slug,referencia,nombre,aplicacion,categoria,marca,marca_producto,precio_lista,precio_taller,stock_actual",
+    );
+    url.searchParams.set("activo", "eq.true");
+    url.searchParams.set("referencia", `eq.${ref}`);
+    url.searchParams.set("limit", "1");
+
+    const res = await fetch(url.toString(), { headers: headers(env) });
+    if (!res.ok) continue;
+    const rows = (await res.json()) as ProductoRow[];
+    const row = rows[0];
+    if (!row) continue;
+    const p = mapRow(row);
+    if (p.marcaProducto.toUpperCase() === "DISTRICAMIONES") continue;
+    return p;
+  }
+
+  // Búsqueda flexible (referencias OEM con formato distinto en el mensaje)
+  const ref = normalizarReferencia(referencia);
   const url = new URL(`${env.url}/rest/v1/productos`);
   url.searchParams.set(
     "select",
     "slug,referencia,nombre,aplicacion,categoria,marca,marca_producto,precio_lista,precio_taller,stock_actual",
   );
   url.searchParams.set("activo", "eq.true");
-  url.searchParams.set("referencia", `eq.${ref}`);
-  url.searchParams.set("limit", "1");
+  url.searchParams.set("referencia", `ilike.${ref}`);
+  url.searchParams.set("limit", "3");
 
   const res = await fetch(url.toString(), { headers: headers(env) });
   if (!res.ok) return null;
   const rows = (await res.json()) as ProductoRow[];
-  const row = rows[0];
+  const exacta = rows.find(
+    (r) => normalizarReferencia(r.referencia) === ref || variantesReferencia(r.referencia).includes(ref),
+  );
+  const row = exacta ?? (rows.length === 1 ? rows[0] : undefined);
   if (!row) return null;
   const p = mapRow(row);
   if (p.marcaProducto.toUpperCase() === "DISTRICAMIONES") return null;

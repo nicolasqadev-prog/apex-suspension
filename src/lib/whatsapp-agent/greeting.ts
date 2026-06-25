@@ -21,13 +21,17 @@ export function lineaPresentacionAgente(brand = WA_AGENT_BRAND, now = new Date()
   return `Hola, ${saludo}. Hablas con *${WA_AGENT_NAME}*, asistente virtual de *${brand}*.`;
 }
 
-/** Saludo una sola vez por conversación (si ya respondimos, no repetir). */
+const PRESENTACION_RX = /hablas con\s+\*?haku\*?/i;
+
+/** Saludo una sola vez por conversación (solo si ya enviamos la presentación). */
 export function debePresentarSaludo(session: {
   history: Array<{ role: "user" | "assistant"; content: string }>;
   agent: { greeted: boolean };
 }): boolean {
-  const yaRespondimos = session.history.some((m) => m.role === "assistant");
-  if (yaRespondimos || session.agent.greeted) {
+  const yaPresentamos = session.history.some(
+    (m) => m.role === "assistant" && PRESENTACION_RX.test(m.content),
+  );
+  if (yaPresentamos) {
     session.agent.greeted = true;
     return false;
   }

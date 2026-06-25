@@ -13,7 +13,8 @@ import { loadEnvLocal } from "./parse-env-local.mjs";
 import { ejecutarTurnoAgenteWhatsApp } from "../src/lib/whatsapp-agent/orchestrator.server";
 import { freshWaSession, type WaSession } from "../src/lib/whatsapp-agent/types";
 import { getTallerFidelizadoByWhatsapp } from "../src/lib/talleres.server";
-import { getPedidoById, getPedidoLineas } from "../src/lib/pedidos.server";
+import { getPedidoById, getPedidoLineas, listPedidosPorTelefono } from "../src/lib/pedidos.server";
+import { refPedidoCorta } from "../src/lib/pedidos-estado-taller";
 import { calcularPrecioTaller } from "../src/lib/precio-taller.server";
 import { loadPiezaBySlug } from "../src/lib/inventario.server";
 
@@ -28,8 +29,8 @@ process.env.WHATSAPP_AUDIT_ES_PRUEBA = "1";
 const PHONE = process.env.WA_AUDIT_PHONE?.trim() || "573171687777";
 const ESCENARIO = [
   "cancelar",
-  "Hola, necesito la tijera del Citroën C3, ¿cuánto vale?",
-  "Sí, me sirve",
+  "Tienes la referencia KSL-1011?",
+  "sí",
   "CONFIRMO",
 ];
 
@@ -138,6 +139,12 @@ async function main() {
   if (!pedidoId) fail("No se encontró URL /taller/pedidos/{id} en la respuesta final");
   ok(`Pedido ID extraído: ${pedidoId}`);
 
+  const refEsperada = refPedidoCorta(pedidoId);
+  if (!new RegExp(`#${refEsperada}\\b`).test(ultimaRespuesta)) {
+    fail(`La confirmación debe incluir #${refEsperada} (mismo número que la PWA)`);
+  }
+  ok(`Número de pedido en WhatsApp: #${refEsperada}`);
+
   const pedidoRes = await getPedidoById(pedidoId);
   if (!pedidoRes.ok) fail(pedidoRes.reason);
   const pedido = pedidoRes.pedido;
@@ -183,8 +190,15 @@ async function main() {
   const pwaUrl = `${site}/taller/pedidos/${pedidoId}`;
   ok(`URL PWA: ${pwaUrl}`);
 
+  const listRes = await listPedidosPorTelefono(PHONE, { dias: 1, incluirPrueba: true });
+  if (!listRes.ok) fail(listRes.reason);
+  if (!listRes.pedidos.some((p) => p.id === pedidoId)) {
+    fail("Pedido no visible en listado del taller (Mis pedidos PWA)");
+  }
+  ok("Pedido visible en historial PWA del taller");
+
   console.log("\n✅ AUDITORÍA E2E EXITOSA");
-  console.log(`   Cotización → CONFIRMO → pedido ${pedidoId} en Supabase y PWA`);
+  console.log(`   Cotización → CONFIRMO → pedido #${refEsperada} en Supabase y PWA`);
   if (!taller) {
     console.log("\n   Para precio taller: agrega este WhatsApp en talleres_fidelizados (admin).");
   }

@@ -78,7 +78,8 @@ export async function handleWhatsAppWebhookRequest(
     ),
   );
 
-  ctx.waitUntil(work);
+  // Esperar guardado en Supabase antes de cerrar el worker (evita perder sesión).
+  await work;
 
   return new Response(JSON.stringify({ ok: true, processed: mensajes.length }), {
     status: 200,

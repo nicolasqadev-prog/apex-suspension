@@ -1,6 +1,7 @@
 import { calcularPrecioTaller } from "../precio-taller.server";
 import {
   acumularTextoUsuario,
+  buscarPorReferenciaExacta,
   detectarAlcanceMensaje,
   esConsultaMultiplePiezas,
   extraerCantidadSolicitada,
@@ -24,6 +25,11 @@ import {
   refinarContextoDesdeRespuesta,
   resolverConAclaracion,
 } from "./aclaracion.server";
+import {
+  groqInterpretacionHabilitada,
+  interpretarMensajeWhatsAppConGroq,
+  itemGroqASegmento,
+} from "./groq-interpret.server";
 
 function ultimoMensajeUsuario(
   history: Array<{ role: "user" | "assistant"; content: string }>,
@@ -115,6 +121,46 @@ export type ResultadoCotizacionWa =
       nombreTaller?: string;
     };
 
+async function cotizarProductoDirecto(
+  producto: ProductoMostrador,
+  segmento: string,
+  ctx: ContextoCotizacion,
+  taller: Awaited<ReturnType<typeof getTallerFidelizadoByWhatsapp>>,
+  cantidadSugerida = 1,
+): Promise<ItemCotizacionWa> {
+  const linea = mapLinea(producto, taller, cantidadSugerida);
+  return {
+    estado: "ok",
+    segmento,
+    ctx,
+    alcance: detectarAlcanceMensaje(segmento),
+    linea,
+    aplicacion: producto.aplicacion,
+    cantidadSugerida,
+  };
+}
+
+/** Cotiza por referencia(s) KSA-XXXX sin depender de marca/modelo en el mensaje. */
+async function cotizarPorReferencias(
+  refs: string[],
+  mensaje: string,
+  taller: Awaited<ReturnType<typeof getTallerFidelizadoByWhatsapp>>,
+): Promise<ItemCotizacionWa[]> {
+  const items: ItemCotizacionWa[] = [];
+  const ctx = extraerContextoCotizacion(mensaje);
+  const cantidad = extraerCantidadSolicitada(mensaje);
+
+  for (const ref of refs) {
+    const p = await buscarPorReferenciaExacta(ref);
+    if (!p) {
+      items.push({ estado: "sin_match", segmento: ref, ctx, cantidadSugerida: cantidad });
+      continue;
+    }
+    items.push(await cotizarProductoDirecto(p, mensaje, ctx, taller, cantidad));
+  }
+  return items;
+}
+
 async function cotizarSegmento(
   segmento: string,
   taller: Awaited<ReturnType<typeof getTallerFidelizadoByWhatsapp>>,
@@ -200,6 +246,93 @@ async function cotizarMultiples(
   return items;
 }
 
+function empaquetarResultadoItems(
+  items: ItemCotizacionWa[],
+  ultimo: string,
+  tallerRow: Awaited<ReturnType<typeof getTallerFidelizadoByWhatsapp>>,
+): ResultadoCotizacionWa {
+  const esPrecioTaller = Boolean(tallerRow);
+  const nombreTaller = tallerRow?.nombreTaller;
+  const conMatch = items.filter((i) => i.estado === "ok");
+  const conAclaracion = items.filter((i) => i.estado === "necesita_aclaracion");
+
+  if (conMatch.length === 0 && conAclaracion.length === 0) {
+    const primero = items[0];
+    if (primero?.estado === "falta_contexto") {
+      return { tipo: "falta_contexto", ctx: primero.ctx };
+    }
+    return { tipo: "sin_match", ctx: primero?.ctx ?? extraerContextoCotizacion(ultimo) };
+  }
+
+  if (conAclaracion.length === 1 && conMatch.length === 0) {
+    const a = conAclaracion[0]!;
+    return {
+      tipo: "necesita_aclaracion",
+      pendiente: {
+        segmento: a.segmento,
+        ctx: a.ctx,
+        candidatosSlugs: a.candidatosSlugs,
+        cantidadSugerida: a.cantidadSugerida,
+        pregunta: a.pregunta,
+      },
+    };
+  }
+
+  return { tipo: "cotizacion_multiple", items, esPrecioTaller, nombreTaller };
+}
+
+/** Groq interpreta el mensaje → segmentos → catálogo (sin inventar precios). */
+async function intentarCotizarConGroqInterpretacion(args: {
+  history: Array<{ role: "user" | "assistant"; content: string }>;
+  whatsapp?: string;
+}): Promise<ResultadoCotizacionWa | null> {
+  if (!groqInterpretacionHabilitada()) return null;
+
+  const interp = await interpretarMensajeWhatsAppConGroq(args);
+  if (!interp || interp.intencion !== "cotizar" || interp.items.length === 0) return null;
+
+  const ultimo = ultimoMensajeUsuario(args.history);
+  const w = args.whatsapp?.trim();
+  const tallerRow = w ? await getTallerFidelizadoByWhatsapp(w) : null;
+  const segmentos = interp.items.map((item) => itemGroqASegmento(item)).filter(Boolean);
+
+  if (segmentos.length === 0) return null;
+
+  if (segmentos.length === 1) {
+    const item = await cotizarSegmento(segmentos[0]!, tallerRow);
+    if (item.estado === "ok") {
+      return {
+        tipo: "cotizacion",
+        linea: item.linea,
+        aplicacion: item.aplicacion,
+        ctx: item.ctx,
+        alcance: item.alcance,
+        esPrecioTaller: item.linea.esPrecioTaller,
+        nombreTaller: item.linea.nombreTaller,
+      };
+    }
+    if (item.estado === "necesita_aclaracion") {
+      return {
+        tipo: "necesita_aclaracion",
+        pendiente: {
+          segmento: item.segmento,
+          ctx: item.ctx,
+          candidatosSlugs: item.candidatosSlugs,
+          cantidadSugerida: item.cantidadSugerida,
+          pregunta: item.pregunta,
+        },
+      };
+    }
+    if (item.estado === "falta_contexto") {
+      return { tipo: "falta_contexto", ctx: item.ctx };
+    }
+    return { tipo: "sin_match", ctx: item.ctx };
+  }
+
+  const items = await cotizarMultiples(segmentos, tallerRow);
+  return empaquetarResultadoItems(items, ultimo, tallerRow);
+}
+
 /** Resuelve una aclaración pendiente con la respuesta del cliente. */
 export async function cotizarTrasAclaracion(args: {
   pendiente: AclaracionPendienteWa;
@@ -211,17 +344,31 @@ export async function cotizarTrasAclaracion(args: {
     args.pendiente.ctx,
     args.pendiente.cantidadSugerida,
   );
+  const ctxRefinado: ContextoCotizacion = {
+    ...args.pendiente.ctx,
+    ...refinado.ctx,
+    pieza: args.pendiente.ctx.pieza ?? refinado.ctx.pieza,
+    vehiculo: args.pendiente.ctx.vehiculo ?? refinado.ctx.vehiculo,
+    marcaVehiculo: args.pendiente.ctx.marcaVehiculo ?? refinado.ctx.marcaVehiculo,
+    textoCompleto: args.pendiente.segmento,
+  };
 
-  const { candidatos } = await resolverCandidatosMostrador(args.pendiente.segmento, refinado.ctx.pieza);
+  const { candidatos } = await resolverCandidatosMostrador(
+    args.pendiente.segmento,
+    ctxRefinado.pieza,
+  );
   const pool = candidatos.filter((p) => args.pendiente.candidatosSlugs.includes(p.slug));
 
   if (refinado.juegoCompleto4) {
-    const kit = armarCotizacionJuegoAmortiguadores(refinado.ctx, pool.length ? pool : candidatos);
+    const kit = armarCotizacionJuegoAmortiguadores(
+      ctxRefinado,
+      pool.length ? pool : candidatos,
+    );
     if (kit) {
       const items: ItemCotizacionWa[] = kit.productos.map((p, i) => ({
         estado: "ok" as const,
         segmento: args.pendiente.segmento,
-        ctx: refinado.ctx,
+        ctx: ctxRefinado,
         alcance: detectarAlcanceMensaje(args.pendiente.segmento),
         linea: mapLinea(p, args.taller, kit.cantidades[i] ?? 1),
         aplicacion: p.aplicacion,
@@ -236,14 +383,15 @@ export async function cotizarTrasAclaracion(args: {
     }
   }
 
-  const decision = resolverConAclaracion(refinado.ctx, pool.length ? pool : candidatos, refinado.cantidad);
+  const elegibles = pool.length ? pool : candidatos;
+  const decision = resolverConAclaracion(ctxRefinado, elegibles, refinado.cantidad);
 
   if (decision.tipo === "preguntar") {
     return {
       tipo: "necesita_aclaracion",
       pendiente: {
         segmento: args.pendiente.segmento,
-        ctx: decision.ctx,
+        ctx: { ...ctxRefinado, ...decision.ctx },
         candidatosSlugs: decision.candidatosSlugs,
         cantidadSugerida: decision.cantidad,
         pregunta: decision.pregunta,
@@ -252,7 +400,7 @@ export async function cotizarTrasAclaracion(args: {
   }
 
   if (decision.tipo !== "ok") {
-    return { tipo: "sin_match", ctx: refinado.ctx };
+    return { tipo: "sin_match", ctx: ctxRefinado };
   }
 
   const linea = mapLinea(decision.producto, args.taller, decision.cantidad);
@@ -260,37 +408,159 @@ export async function cotizarTrasAclaracion(args: {
     tipo: "cotizacion",
     linea,
     aplicacion: decision.producto.aplicacion,
-    ctx: refinado.ctx,
+    ctx: ctxRefinado,
     alcance: detectarAlcanceMensaje(args.pendiente.segmento),
     esPrecioTaller: linea.esPrecioTaller,
     nombreTaller: linea.nombreTaller,
   };
 }
 
-/** Cotización determinística desde catálogo (sin Groq). */
+const RESPUESTA_ACLARACION_CORTA_RX =
+  /^\s*(delantero?s?|trasero?s?|izquierd[ao]?|derech[ao]?|s[ií]|si|sip|sep|dale|ok)\s*[!.?]*$/i;
+
+/** Cliente respondió solo "delanteros", "traseros", etc. con contexto en el historial. */
+export async function intentarCotizarRespuestaCorta(args: {
+  history: Array<{ role: "user" | "assistant"; content: string }>;
+  whatsapp?: string;
+}): Promise<ResultadoCotizacionWa | null> {
+  const ultimo = ultimoMensajeUsuario(args.history);
+  if (!RESPUESTA_ACLARACION_CORTA_RX.test(ultimo)) return null;
+
+  const textoHist = acumularTextoUsuario(args.history);
+  const ctxBase = extraerContextoDesdeHistorial(args.history);
+  if (!ctxBase.pieza || (!ctxBase.vehiculo && !ctxBase.marcaVehiculo)) return null;
+
+  const cantidad = extraerCantidadSolicitada(textoHist) || 1;
+  const refinado = refinarContextoDesdeRespuesta(ultimo, ctxBase, cantidad);
+  const ctx: ContextoCotizacion = {
+    ...ctxBase,
+    ...refinado.ctx,
+    textoCompleto: textoHist,
+  };
+
+  const w = args.whatsapp?.trim();
+  const tallerRow = w ? await getTallerFidelizadoByWhatsapp(w) : null;
+  const { candidatos } = await resolverCandidatosMostrador(textoHist, ctx.pieza);
+  if (!candidatos.length) return null;
+
+  const decision = resolverConAclaracion(ctx, candidatos, refinado.cantidad);
+  if (decision.tipo === "preguntar") {
+    return {
+      tipo: "necesita_aclaracion",
+      pendiente: {
+        segmento: textoHist,
+        ctx: { ...ctx, ...decision.ctx },
+        candidatosSlugs: decision.candidatosSlugs,
+        cantidadSugerida: decision.cantidad,
+        pregunta: decision.pregunta,
+      },
+    };
+  }
+  if (decision.tipo !== "ok") return null;
+
+  const linea = mapLinea(decision.producto, tallerRow, decision.cantidad);
+  return {
+    tipo: "cotizacion",
+    linea,
+    aplicacion: decision.producto.aplicacion,
+    ctx,
+    alcance: detectarAlcanceMensaje(textoHist),
+    esPrecioTaller: linea.esPrecioTaller,
+    nombreTaller: linea.nombreTaller,
+  };
+}
+
+/** Juego 4 amortiguadores (2 del + 2 tras) tras aclaración o en cotizado. */
+export async function intentarCotizarJuegoAmortiguadores(args: {
+  history: Array<{ role: "user" | "assistant"; content: string }>;
+  whatsapp?: string;
+}): Promise<ResultadoCotizacionWa | null> {
+  const ultimo = ultimoMensajeUsuario(args.history);
+  const textoHist = acumularTextoUsuario(args.history);
+  const ctxBase = extraerContextoDesdeHistorial(args.history);
+  if (!ctxBase.pieza && /\bamortiguador/i.test(textoHist)) ctxBase.pieza = "amortiguador";
+  if (!ctxBase.pieza?.includes("amortiguador")) return null;
+  if (!ctxBase.vehiculo && !ctxBase.marcaVehiculo) return null;
+
+  const cantidad = Math.max(
+    extraerCantidadSolicitada(textoHist),
+    extraerCantidadSolicitada(ultimo),
+    1,
+  );
+  const refinado = refinarContextoDesdeRespuesta(ultimo, ctxBase, cantidad);
+  if (!refinado.juegoCompleto4) return null;
+
+  const w = args.whatsapp?.trim();
+  const tallerRow = w ? await getTallerFidelizadoByWhatsapp(w) : null;
+  const { candidatos } = await resolverCandidatosMostrador(textoHist, ctxBase.pieza);
+  if (!candidatos.length) return null;
+
+  const kit = armarCotizacionJuegoAmortiguadores(ctxBase, candidatos);
+  if (!kit) return null;
+
+  const items: ItemCotizacionWa[] = kit.productos.map((p, i) => ({
+    estado: "ok",
+    segmento: textoHist,
+    ctx: ctxBase,
+    alcance: detectarAlcanceMensaje(textoHist),
+    linea: mapLinea(p, tallerRow, kit.cantidades[i] ?? 1),
+    aplicacion: p.aplicacion,
+    cantidadSugerida: kit.cantidades[i] ?? 1,
+  }));
+
+  return {
+    tipo: "cotizacion_multiple",
+    items,
+    esPrecioTaller: items.some((i) => i.linea.esPrecioTaller),
+    nombreTaller: items.find((i) => i.linea.nombreTaller)?.linea.nombreTaller,
+  };
+}
+
+/** Cotización desde catálogo; interpretación Groq opcional + motor determinístico. */
 export async function cotizarDesdeCatalogoWhatsApp(args: {
   history: Array<{ role: "user" | "assistant"; content: string }>;
   whatsapp?: string;
 }): Promise<ResultadoCotizacionWa> {
+  const respuestaCorta = await intentarCotizarRespuestaCorta(args);
+  if (respuestaCorta) return respuestaCorta;
+
+  const juegoAmort = await intentarCotizarJuegoAmortiguadores(args);
+  if (juegoAmort) return juegoAmort;
+
+  const groqCot = await intentarCotizarConGroqInterpretacion(args);
+  if (groqCot) return groqCot;
+
   const ultimo = ultimoMensajeUsuario(args.history);
   const w = args.whatsapp?.trim();
   const tallerRow = w ? await getTallerFidelizadoByWhatsapp(w) : null;
   const esPrecioTaller = Boolean(tallerRow);
   const nombreTaller = tallerRow?.nombreTaller;
 
+  const refsUltimo = extraerReferencias(ultimo);
+  if (refsUltimo.length > 0) {
+    const itemsRef = await cotizarPorReferencias(refsUltimo, ultimo, tallerRow);
+    const ok = itemsRef.filter((i) => i.estado === "ok");
+    if (ok.length === 1) {
+      const item = ok[0]!;
+      return {
+        tipo: "cotizacion",
+        linea: item.linea,
+        aplicacion: item.aplicacion,
+        ctx: item.ctx,
+        alcance: item.alcance,
+        esPrecioTaller: item.linea.esPrecioTaller,
+        nombreTaller: item.linea.nombreTaller,
+      };
+    }
+    if (ok.length > 1) {
+      return { tipo: "cotizacion_multiple", items: ok, esPrecioTaller, nombreTaller };
+    }
+  }
+
   if (esConsultaMultiplePiezas(ultimo)) {
     const segmentos = segmentarConsultasPieza(ultimo);
     const items = await cotizarMultiples(segmentos, tallerRow);
-    const conMatch = items.filter((i) => i.estado === "ok");
-    const conAclaracion = items.filter((i) => i.estado === "necesita_aclaracion");
-    if (conMatch.length === 0 && conAclaracion.length === 0) {
-      const primero = items[0];
-      if (primero?.estado === "falta_contexto") {
-        return { tipo: "falta_contexto", ctx: primero.ctx };
-      }
-      return { tipo: "sin_match", ctx: primero?.ctx ?? extraerContextoCotizacion(ultimo) };
-    }
-    return { tipo: "cotizacion_multiple", items, esPrecioTaller, nombreTaller };
+    return empaquetarResultadoItems(items, ultimo, tallerRow);
   }
 
   const texto = acumularTextoUsuario(args.history);

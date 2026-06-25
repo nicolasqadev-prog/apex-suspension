@@ -1,7 +1,8 @@
 import { formatoCop, type DisponibilidadMostrador } from "../mostrador";
-import type { BorradorPedidoWa } from "./types";
+import type { BorradorPedidoWa, CarritoItemWa } from "./types";
 import { lineaPresentacionAgente } from "./greeting";
 import { WA_AGENT_BRAND } from "./types";
+import { carritoTieneMixtoStock, totalCarritoCop } from "./carrito.server";
 
 export function textoDisponibilidadCorta(
   disponibilidad: DisponibilidadMostrador,
@@ -57,7 +58,11 @@ function bloqueDisponibilidadYPrecio(args: {
   if (enBodega) {
     return `${estado}\n${plazo}\n${etiquetaPrecio}: *${formatoCop(args.linea.precioUnitarioCop)}* c/u`;
   }
-  return `${estado}\n${plazo}\n${etiquetaPrecio}: *${formatoCop(args.linea.precioUnitarioCop)}* c/u`;
+  return (
+    `${estado}\n${plazo}\n` +
+    `_La referencia está en catálogo; confirmamos con proveedor al registrar tu pedido._\n` +
+    `${etiquetaPrecio}: *${formatoCop(args.linea.precioUnitarioCop)}* c/u`
+  );
 }
 
 export function mensajeCotizacionBreve(args: {
@@ -187,7 +192,7 @@ export function mensajeCotizacionMultiple(args: {
     } else if (item.estado === "necesita_aclaracion" && item.pregunta) {
       bloques.push(`*${n}.* ${pieza}${veh}${qty}\n_${item.pregunta}_`);
     } else {
-      bloques.push(`*${n}.* ${pieza}${veh}\n_No la tenemos en catálogo por ahora._`);
+      bloques.push(`*${n}.* ${pieza}${veh}\n_No encontré referencia exacta en catálogo con esos datos._`);
     }
   });
 
@@ -241,17 +246,25 @@ export function mensajeResumenPedido(borrador: BorradorPedidoWa): string {
 }
 
 export function mensajePedidoRegistrado(args: {
+  refPedido: string;
   referencia: string;
   cantidad: number;
   totalCop: number;
   urlPedido: string;
+  /** Varios ítems: texto ya formateado (ej. "KSA-RE008 ×1, KSA-HY016 ×1"). */
+  resumenLineas?: string;
 }): string {
+  const detalle = args.resumenLineas ?? `${args.referencia} ×${args.cantidad}`;
   return [
     "✅ *Pedido registrado en Apex*",
-    `${args.referencia} ×${args.cantidad} — ${formatoCop(args.totalCop)}`,
+    `Número de pedido: *#${args.refPedido}*`,
+    detalle,
+    `Total: *${formatoCop(args.totalCop)}*`,
     "",
-    "Seguimiento:",
+    "Seguimiento en la app:",
     args.urlPedido,
+    "",
+    "Ahí verás el mismo pedido *#" + args.refPedido + "* con su estado (revisión, bodega, en camino).",
     "",
     "Gracias por tu compra. Confirmamos despacho por este chat.",
     "",
@@ -282,8 +295,8 @@ export function mensajeModificar(): string {
 export function mensajeSinMatch(pieza: string, vehiculo: string): string {
   const veh = vehiculo ? ` para *${vehiculo}*` : "";
   return (
-    `Por ahora *no tenemos* ${pieza}${veh} en catálogo.\n` +
-    "Si tienes referencia o foto, la reviso con gusto. ¿Te puedo ayudar con otra pieza?"
+    `No encontré una referencia exacta de ${pieza}${veh} con los datos que me diste.\n` +
+    "Si tienes *referencia* o *foto*, la reviso. ¿Te puedo ayudar con otra pieza?"
   );
 }
 
@@ -306,4 +319,61 @@ export function mensajeBienvenidaConsulta(brand?: string): string {
 
 export function mensajeRecordatorioConfirmo(): string {
   return "Para registrarlo en sistema escribe *CONFIRMO*. Si quieres cambiar cantidad o pieza, dímelo.";
+}
+
+function notaMixtoStock(items: CarritoItemWa[]): string {
+  if (!carritoTieneMixtoStock(items)) return "";
+  return (
+    "\n_Nota:_ Tienes referencias *en bodega* y *bajo pedido*. " +
+    "Podemos despachar lo de bodega según operación del día y coordinar el bajo pedido al registrar — " +
+    "te confirmamos el plazo exacto en ese momento._"
+  );
+}
+
+function lineaCarritoResumen(item: CarritoItemWa, indice: number): string {
+  const veh = item.vehiculoResumen ? ` · ${item.vehiculoResumen}` : "";
+  const subtotal = item.precioUnitarioCop * item.cantidad;
+  const disp = textoDisponibilidad(item.disponibilidad, item.stock, item.alcance);
+  return [
+    `*${indice}.* *${item.referencia}* — ${item.nombre}${veh}`,
+    `   Cantidad: ${item.cantidad} · Subtotal: *${formatoCop(subtotal)}* · ${disp}`,
+  ].join("\n");
+}
+
+export function mensajeResumenCarrito(items: CarritoItemWa[]): string {
+  const lineas = items.map((item, i) => lineaCarritoResumen(item, i + 1));
+  const total = totalCarritoCop(items);
+  return [
+    ...lineas,
+    "",
+    `*Total general:* *${formatoCop(total)}*`,
+    notaMixtoStock(items),
+    "",
+    "¿Así queda el pedido o necesitas cambiar algo?",
+    "Si está bien, escribe *CONFIRMO*.",
+  ].join("\n");
+}
+
+export function mensajeTransicionCarrito(items: CarritoItemWa[]): string {
+  if (items.length === 1) {
+    const i = items[0]!;
+    return `Perfecto. Este sería tu pedido:\n\n${lineaCarritoResumen(i, 1).replace(/^\*1\.\* /, "")}\n\n¿Así queda? Escribe *CONFIRMO*.`;
+  }
+  return `Perfecto. Este sería tu pedido con *${items.length}* referencias:\n\n${mensajeResumenCarrito(items)}`;
+}
+
+export function mensajeLogisticaMixta(items: CarritoItemWa[]): string {
+  const mixto = carritoTieneMixtoStock(items);
+  if (!mixto) {
+    return "Sí, podemos gestionar tu pedido. Te dejo el resumen actualizado:";
+  }
+  return (
+    "Sí, podemos hacerlo así: *despachamos lo que está en bodega* según la operación del día " +
+    "y el *bajo pedido* lo agendamos al registrar tu pedido (te confirmamos el plazo exacto en ese momento).\n\n" +
+    "Tu cotización actual:"
+  );
+}
+
+export function mensajeReferenciaYaEnCarrito(referencia: string): string {
+  return `La ref. *${referencia}* ya está en tu cotización. Te dejo el resumen:`;
 }

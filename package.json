@@ -27,7 +27,10 @@
     "test:whatsapp-agent": "node scripts/test-whatsapp-agent.mjs",
     "simulate:whatsapp": "npx --yes tsx scripts/simulate-whatsapp-chat.ts",
     "simulate:whatsapp:chat": "npx --yes tsx scripts/simulate-whatsapp-chat.ts --chat",
-    "audit:whatsapp-e2e": "npx --yes tsx scripts/audit-whatsapp-e2e.ts"
+    "audit:whatsapp-e2e": "npx --yes tsx scripts/audit-whatsapp-e2e.ts",
+    "qa:whatsapp-pedido-pwa": "npx --yes tsx scripts/qa-whatsapp-pedido-pwa-e2e.ts",
+    "qa:whatsapp-casos": "npx --yes tsx scripts/qa-whatsapp-casos-usuario.ts",
+    "qa:whatsapp-catalogo": "npx --yes tsx scripts/qa-whatsapp-catalogo-cobertura.ts"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",

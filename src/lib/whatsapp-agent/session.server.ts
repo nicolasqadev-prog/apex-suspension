@@ -34,11 +34,17 @@ function parseAgentState(raw: unknown): WaAgentState {
     borrador: o.borrador ?? null,
     greeted: Boolean(o.greeted),
     aclaracionPendiente: o.aclaracionPendiente ?? null,
+    carrito: Array.isArray(o.carrito) ? o.carrito : [],
+    confirmacionCarrito: Boolean(o.confirmacionCarrito),
   };
 }
 
 function sincronizarSaludo(session: WaSession): void {
-  if (session.history.some((m) => m.role === "assistant")) {
+  if (
+    session.history.some(
+      (m) => m.role === "assistant" && /hablas con\s+\*?haku\*?/i.test(m.content),
+    )
+  ) {
     session.agent.greeted = true;
   }
 }
@@ -75,7 +81,10 @@ export async function loadWhatsAppSession(phone: string): Promise<WaSession> {
       updated_at?: string;
     }>;
     const row = rows[0];
-    if (!row) return mem ?? freshWaSession();
+    if (!row) {
+      console.log("WhatsApp session load: sin fila para", key);
+      return mem ?? freshWaSession();
+    }
 
     const updatedAt = row.updated_at ? Date.parse(row.updated_at) : Date.now();
     if (Date.now() - updatedAt > SESSION_TTL_MS) return freshWaSession();
@@ -103,9 +112,21 @@ export async function saveWhatsAppSession(phone: string, session: WaSession): Pr
   memory.set(key, session);
 
   const cfg = supabaseCfg();
-  if (!cfg) return;
+  if (!cfg) {
+    console.error("WhatsApp session save: sin SUPABASE_URL o SERVICE_ROLE_KEY");
+    return;
+  }
+
+  const payload = {
+    whatsapp: key,
+    history: session.history,
+    last_cotizacion: session.lastCotizacion,
+    agent_state: session.agent,
+    updated_at: new Date().toISOString(),
+  };
 
   try {
+    // Upsert único: PATCH devolvía 200 aunque no existiera la fila (sesión nunca persistía).
     const res = await fetch(`${cfg.base}/rest/v1/whatsapp_sesiones?on_conflict=whatsapp`, {
       method: "POST",
       headers: {
@@ -114,16 +135,17 @@ export async function saveWhatsAppSession(phone: string, session: WaSession): Pr
         "Content-Type": "application/json",
         Prefer: "resolution=merge-duplicates,return=minimal",
       },
-      body: JSON.stringify({
-        whatsapp: key,
-        history: session.history,
-        last_cotizacion: session.lastCotizacion,
-        agent_state: session.agent,
-        updated_at: new Date().toISOString(),
-      }),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) {
-      console.error("WhatsApp session save:", res.status, await res.text().catch(() => ""));
+      const errText = await res.text().catch(() => "");
+      console.error("WhatsApp session save FAILED:", res.status, errText);
+      if (errText.includes("agent_state")) {
+        console.error(
+          "→ Ejecuta en Supabase: supabase/migrations/20260626120000_whatsapp_sesiones_agent_state.sql",
+        );
+      }
+      return;
     }
   } catch (err) {
     console.error("WhatsApp session save error:", err);

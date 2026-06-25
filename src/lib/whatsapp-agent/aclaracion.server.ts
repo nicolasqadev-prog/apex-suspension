@@ -18,8 +18,11 @@ function blob(p: ProductoMostrador): string {
 
 export function posicionDesdeProducto(p: ProductoMostrador): "delantera" | "trasera" | undefined {
   const b = blob(p);
-  if (/\bdelantera?\b|\bdel\b(?!\s*rio)|\bfront\b/i.test(b)) return "delantera";
-  if (/\btrasera?\b|\btras\b|\brear\b/i.test(b)) return "trasera";
+  if (/\b(trasera?s?|trasero?s?|tras)\b/i.test(b)) return "trasera";
+  if (/\b(delantera?s?|delantero?s?|delant)\b/i.test(b)) return "delantera";
+  if (/\bdel\b/i.test(b) && /\bamort/i.test(b)) return "delantera";
+  if (/\bfront\b/i.test(b)) return "delantera";
+  if (/\brear\b/i.test(b)) return "trasera";
   return undefined;
 }
 
@@ -207,12 +210,25 @@ export function refinarContextoDesdeRespuesta(
   let qty = cantidad;
   let juegoCompleto4 = false;
 
-  if (/\bdelantera?s?\b/.test(t)) next.posicion = "delantera";
-  if (/\btrasera?s?\b/.test(t)) next.posicion = "trasera";
+  if (/\bdelantera?s?\b|\bdelanteros?\b|\bdelan\b/.test(t)) next.posicion = "delantera";
+  if (/\btrasera?s?\b|\btraseros?\b|\btras\b/.test(t)) next.posicion = "trasera";
   if (/\b(izquierd|izq)\b/.test(t)) next.lado = "izquierda";
   if (/\b(derech|der)\b/.test(t)) next.lado = "derecha";
 
+  const mencionaDel = /\bdelantera?s?\b|\bdelanteros?\b/.test(t);
+  const mencionaTras = /\btrasera?s?\b|\btraseros?\b/.test(t);
+
   if (
+    (cantidad >= 4 ||
+      /\b2\s*y\s*2\b/i.test(t) ||
+      (mencionaDel && mencionaTras && /\b(dos|2)\b/i.test(t))) &&
+    (mencionaDel && mencionaTras ||
+      /\b(juego\s+completo|los\s+4|las\s+4|ambos\s+lados)\b/i.test(t) ||
+      /^\s*s[ií]\s*$/i.test(t.trim()))
+  ) {
+    juegoCompleto4 = true;
+    delete next.posicion;
+  } else if (
     cantidad >= 4 &&
     (/\b2\s+delantera.*2\s+trasera/i.test(t) ||
       /\bdelantera.*y.*trasera/i.test(t) ||

@@ -36,12 +36,30 @@ export type BorradorPedidoWa = {
   confirmToken: string;
 };
 
+export type CarritoItemWa = {
+  slug: string;
+  referencia: string;
+  nombre: string;
+  marcaProducto: string;
+  cantidad: number;
+  precioUnitarioCop: number;
+  stock: number;
+  disponibilidad: DisponibilidadMostrador;
+  vehiculoResumen: string;
+  piezaResumen: string;
+  alcance: "en_alcance" | "bajo_encargo" | "fuera_alcance";
+};
+
 export type WaAgentState = {
   phase: WaAgentPhase;
   borrador: BorradorPedidoWa | null;
   /** Saludo de marca ya enviado en esta sesión. */
   greeted: boolean;
   aclaracionPendiente: AclaracionPendienteWa | null;
+  /** Cotizaciones acumuladas en la conversación (varias piezas). */
+  carrito: CarritoItemWa[];
+  /** Confirmación de pedido con varias líneas del carrito. */
+  confirmacionCarrito: boolean;
 };
 
 export const WA_AGENT_BRAND = "Apex Suspensión";
@@ -56,7 +74,14 @@ export type WaSession = {
 };
 
 export function freshAgentState(): WaAgentState {
-  return { phase: "idle", borrador: null, greeted: false, aclaracionPendiente: null };
+  return {
+    phase: "idle",
+    borrador: null,
+    greeted: false,
+    aclaracionPendiente: null,
+    carrito: [],
+    confirmacionCarrito: false,
+  };
 }
 
 export function freshWaSession(): WaSession {
