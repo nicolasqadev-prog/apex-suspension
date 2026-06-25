@@ -30,10 +30,19 @@ function parseAgentState(raw: unknown): WaAgentState {
   };
 }
 
+function sincronizarSaludo(session: WaSession): void {
+  if (session.history.some((m) => m.role === "assistant")) {
+    session.agent.greeted = true;
+  }
+}
+
 export async function loadWhatsAppSession(phone: string): Promise<WaSession> {
   const key = normalizeWhatsapp(phone);
   const mem = memory.get(key);
-  if (mem && Date.now() - mem.updatedAt < SESSION_TTL_MS) return mem;
+  if (mem && Date.now() - mem.updatedAt < SESSION_TTL_MS) {
+    sincronizarSaludo(mem);
+    return mem;
+  }
 
   const cfg = supabaseCfg();
   if (!cfg) return mem ?? freshWaSession();
@@ -47,7 +56,10 @@ export async function loadWhatsAppSession(phone: string): Promise<WaSession> {
     const res = await fetch(url.toString(), {
       headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}` },
     });
-    if (!res.ok) return mem ?? freshWaSession();
+    if (!res.ok) {
+      console.error("WhatsApp session load:", res.status, await res.text().catch(() => ""));
+      return mem ?? freshWaSession();
+    }
 
     const rows = (await res.json()) as Array<{
       history?: WaSession["history"];
@@ -67,9 +79,11 @@ export async function loadWhatsAppSession(phone: string): Promise<WaSession> {
       agent: parseAgentState(row.agent_state),
       updatedAt,
     };
+    sincronizarSaludo(session);
     memory.set(key, session);
     return session;
-  } catch {
+  } catch (err) {
+    console.error("WhatsApp session load error:", err);
     return mem ?? freshWaSession();
   }
 }
@@ -78,19 +92,20 @@ export async function saveWhatsAppSession(phone: string, session: WaSession): Pr
   const key = normalizeWhatsapp(phone);
   session.updatedAt = Date.now();
   session.history = session.history.slice(-20);
+  sincronizarSaludo(session);
   memory.set(key, session);
 
   const cfg = supabaseCfg();
   if (!cfg) return;
 
   try {
-    await fetch(`${cfg.base}/rest/v1/whatsapp_sesiones`, {
+    const res = await fetch(`${cfg.base}/rest/v1/whatsapp_sesiones?on_conflict=whatsapp`, {
       method: "POST",
       headers: {
         apikey: cfg.key,
         Authorization: `Bearer ${cfg.key}`,
         "Content-Type": "application/json",
-        Prefer: "resolution=merge-duplicates",
+        Prefer: "resolution=merge-duplicates,return=minimal",
       },
       body: JSON.stringify({
         whatsapp: key,
@@ -100,8 +115,11 @@ export async function saveWhatsAppSession(phone: string, session: WaSession): Pr
         updated_at: new Date().toISOString(),
       }),
     });
-  } catch {
-    // Memoria local del isolate sigue válida.
+    if (!res.ok) {
+      console.error("WhatsApp session save:", res.status, await res.text().catch(() => ""));
+    }
+  } catch (err) {
+    console.error("WhatsApp session save error:", err);
   }
 }
 

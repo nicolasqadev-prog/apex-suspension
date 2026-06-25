@@ -60,7 +60,6 @@ function bloqueDisponibilidadYPrecio(args: {
   return `${estado}\n${plazo}\n${etiquetaPrecio}: *${formatoCop(args.linea.precioUnitarioCop)}* c/u`;
 }
 
-/** Primera respuesta: cotización corta y pregunta si le sirve (sin resumen de pedido). */
 export function mensajeCotizacionBreve(args: {
   linea: {
     referencia: string;
@@ -99,6 +98,103 @@ export function mensajeCotizacionBreve(args: {
     `${bloque}\n\n` +
     `¿Te sirve?`
   );
+}
+
+function bloqueLineaCotizacion(args: {
+  indice: number;
+  piezaResumen: string;
+  vehiculoResumen: string;
+  linea: {
+    referencia: string;
+    nombre: string;
+    marcaProducto: string;
+    precioUnitarioCop: number;
+    stock: number;
+    disponibilidad: DisponibilidadMostrador;
+    cantidadSugerida?: number;
+  };
+  alcance: BorradorPedidoWa["alcance"];
+  esPrecioTaller?: boolean;
+  nombreTaller?: string;
+}): string {
+  const veh = args.vehiculoResumen ? ` · ${args.vehiculoResumen}` : "";
+  const qty = args.linea.cantidadSugerida && args.linea.cantidadSugerida > 1
+    ? ` (×${args.linea.cantidadSugerida})`
+    : "";
+  const bloque = bloqueDisponibilidadYPrecio({
+    linea: args.linea,
+    alcance: args.alcance,
+    esPrecioTaller: args.esPrecioTaller,
+    nombreTaller: args.nombreTaller,
+  });
+  return [
+    `*${args.indice}.* ${args.piezaResumen}${veh}${qty}`,
+    `*${args.linea.referencia}* (${args.linea.marcaProducto}) — ${args.linea.nombre}`,
+    bloque,
+  ].join("\n");
+}
+
+/** Varias piezas en un solo mensaje del cliente. */
+export function mensajeCotizacionMultiple(args: {
+  items: Array<{
+    estado: "ok" | "sin_match" | "falta_contexto";
+    piezaResumen: string;
+    vehiculoResumen: string;
+    cantidadSugerida: number;
+    linea?: {
+      referencia: string;
+      nombre: string;
+      marcaProducto: string;
+      precioUnitarioCop: number;
+      stock: number;
+      disponibilidad: DisponibilidadMostrador;
+      cantidadSugerida?: number;
+    };
+    alcance?: BorradorPedidoWa["alcance"];
+  }>;
+  incluirSaludo: boolean;
+  esPrecioTaller?: boolean;
+  nombreTaller?: string;
+  brand?: string;
+}): string {
+  const brand = args.brand ?? WA_AGENT_BRAND;
+  const saludo = args.incluirSaludo ? `${lineaPresentacionAgente(brand)}\n\n` : "";
+  const bloques: string[] = [];
+
+  args.items.forEach((item, i) => {
+    const n = i + 1;
+    if (item.estado === "ok" && item.linea && item.alcance) {
+      bloques.push(
+        bloqueLineaCotizacion({
+          indice: n,
+          piezaResumen: item.piezaResumen,
+          vehiculoResumen: item.vehiculoResumen,
+          linea: { ...item.linea, cantidadSugerida: item.cantidadSugerida },
+          alcance: item.alcance,
+          esPrecioTaller: args.esPrecioTaller,
+          nombreTaller: args.nombreTaller,
+        }),
+      );
+      return;
+    }
+    const veh = item.vehiculoResumen ? ` · ${item.vehiculoResumen}` : "";
+    const pieza = item.piezaResumen || "repuesto";
+    if (item.estado === "falta_contexto") {
+      bloques.push(`*${n}.* ${pieza}${veh}\n_Falta marca/modelo del vehículo._`);
+    } else {
+      bloques.push(`*${n}.* ${pieza}${veh}\n_No la tenemos en catálogo por ahora._`);
+    }
+  });
+
+  return (
+    `${saludo}Te cotizo *${args.items.length}* repuestos:\n\n` +
+    bloques.join("\n\n") +
+    "\n\nPara pedir una, dime la *referencia* (ej. KSL-1001) y te preparo el resumen."
+  );
+}
+
+export function mensajePreguntaCotizacionLista(): string {
+  return "¿Cuál referencia quieres pedir? Escríbela (ej. *KSL-1001*) y te paso el resumen para confirmar.";
 }
 
 export function mensajeTransicionResumen(borrador: BorradorPedidoWa): string {

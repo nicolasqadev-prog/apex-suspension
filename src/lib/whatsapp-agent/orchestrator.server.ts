@@ -10,6 +10,7 @@ import {
   mensajeBienvenidaConsulta,
   mensajeCancelacion,
   mensajeCotizacionBreve,
+  mensajeCotizacionMultiple,
   mensajeDespedida,
   mensajeFaltaVehiculo,
   mensajeFueraAlcance,
@@ -17,13 +18,14 @@ import {
   mensajePlazoEntrega,
   mensajePlazoYAceptacion,
   mensajePreguntaCotizacionPendiente,
+  mensajePreguntaCotizacionLista,
   mensajeRecordatorioConfirmo,
   mensajeRechazoCotizacion,
   mensajeResumenPedido,
   mensajeSinMatch,
   mensajeTransicionResumen,
 } from "./copy";
-import { armarBorradorPedido, cotizarDesdeCatalogoWhatsApp } from "./quote.server";
+import { armarBorradorPedido, cotizarDesdeCatalogoWhatsApp, resumenPieza, resumenVehiculo } from "./quote.server";
 import { registrarPedidoDesdeBorrador } from "./confirm.server";
 import type { BorradorPedidoWa } from "./types";
 import { debePresentarSaludo, bloqueSaludo } from "./greeting";
@@ -72,6 +74,14 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
   if (intent === "cancelar") {
     limpiarBorrador(session);
     return { texto: mensajeCancelacion(), session };
+  }
+
+  if (
+    session.lastCotizacion.length > 1 &&
+    phase === "idle" &&
+    (intent === "aceptar_cotizacion" || /\b(s[ií]|si)\s*,?\s*(me\s+)?sirve\b/i.test(body))
+  ) {
+    return { texto: mensajePreguntaCotizacionLista(), session };
   }
 
   if (intent === "modificar_pedido") {
@@ -194,11 +204,35 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
     };
   }
 
+  if (resultado.tipo === "cotizacion_multiple") {
+    const lineasOk = resultado.items.filter((i) => i.estado === "ok");
+    session.agent.borrador = null;
+    session.agent.phase = "idle";
+    session.lastCotizacion = lineasOk.map((i) => i.linea);
+
+    const textoMulti = mensajeCotizacionMultiple({
+      items: resultado.items.map((i) => ({
+        estado: i.estado,
+        piezaResumen: resumenPieza(i.ctx),
+        vehiculoResumen: resumenVehiculo(i.ctx),
+        cantidadSugerida: i.cantidadSugerida,
+        linea: i.estado === "ok" ? i.linea : undefined,
+        alcance: i.estado === "ok" ? i.alcance : undefined,
+      })),
+      incluirSaludo: Boolean(saludo),
+      esPrecioTaller: resultado.esPrecioTaller,
+      nombreTaller: resultado.nombreTaller,
+    });
+
+    return { texto: textoMulti.slice(0, 4000), session };
+  }
+
   if (resultado.tipo !== "cotizacion") {
     return { texto: "No pude cotizar en este momento. Un asesor te ayuda en breve.", session };
   }
 
-  const cantidad = extraerCantidad(body) ?? 1;
+  const cantidad =
+    extraerCantidad(body) ?? resultado.linea.cantidadSugerida ?? 1;
   const borrador = armarBorradorPedido({
     linea: resultado.linea,
     ctx: resultado.ctx,

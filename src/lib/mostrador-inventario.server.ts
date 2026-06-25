@@ -119,7 +119,7 @@ export type ContextoCotizacion = {
 };
 
 const PIEZAS_RX =
-  /\b(bieleta|barra\s+estabilizadora|r[oó]tula|terminal|amortiguador|buje|brazo|tijera|link)\b/i;
+  /\b(bieleta|barra\s+estabilizadora|r[oó]tula|terminal(?:\s+axial)?|amortiguador|buje|brazo|tijera|link)\b/i;
 
 const MARCAS_VEH_LISTA = [
   "chevrolet",
@@ -149,6 +149,9 @@ const MARCAS_VEH_LISTA = [
 ];
 
 const MODELOS_VEH_LISTA = [
+  "kwid",
+  "xcite",
+  "allegro",
   "aveo",
   "spark",
   "onix",
@@ -359,6 +362,62 @@ export function extraerContextoDesdeHistorial(
   ctx.textoCompleto = textoCompleto;
   ctx.listoParaCotizar = Boolean(ctx.pieza && (ctx.vehiculo || ctx.marcaVehiculo));
   return ctx;
+}
+
+const NUM_PALABRA: Record<string, number> = {
+  un: 1,
+  una: 1,
+  dos: 2,
+  tres: 3,
+  cuatro: 4,
+  cinco: 5,
+  seis: 6,
+};
+
+/** Cantidad pedida en un segmento ("los dos amortiguadores", "los 4", etc.). */
+export function extraerCantidadSolicitada(texto: string): number {
+  const t = texto.toLowerCase();
+  const m = t.match(
+    /\b(?:los|las|el|la|necesito|quiero)\s+(dos|tres|cuatro|cinco|seis|un|una|\d{1,2})\b/,
+  );
+  if (m) {
+    const v = m[1];
+    if (NUM_PALABRA[v] != null) return NUM_PALABRA[v];
+    const n = Number(v);
+    if (n >= 1 && n <= 99) return n;
+  }
+  return 1;
+}
+
+/**
+ * Divide un mensaje con varias piezas/vehículos en consultas independientes.
+ * Ej.: "los dos amortiguadores del kia rio ... las bieletas del aveo ..."
+ */
+export function segmentarConsultasPieza(texto: string): string[] {
+  const t = texto.trim();
+  if (!t) return [];
+
+  const partes = t
+    .split(
+      /\s+(?=(?:los|las|la|el)\s+(?:dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|un|una|\d{1,2}\b|amortiguador|bieleta|rotula|r[oó]tula|terminal|tijera|buje|brazo|link|barra))/i,
+    )
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (partes.length > 1) return partes;
+
+  const porPieza = t
+    .split(
+      /\s+(?=(?:y\s+)?(?:los|las|la|el)\s+(?:dos|tres|cuatro|cinco|seis|un|una|\d{1,2}\b|amortiguador|bieleta|rotula|r[oó]tula|terminal|tijera))/i,
+    )
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  return porPieza.length > 1 ? porPieza : [t];
+}
+
+export function esConsultaMultiplePiezas(texto: string): boolean {
+  return segmentarConsultasPieza(texto).length > 1;
 }
 
 /** Prioriza productos que calzan con vehículo/pieza mencionados. */
