@@ -20,6 +20,8 @@ import { normalizeWhatsapp } from "./talleres.server";
 
 import { isWebPushConfigured } from "./web-push.server";
 
+import { estadoWhatsAppBot } from "./whatsapp-readiness.server";
+
 export type AdminReadinessServidor = {
   supabaseVivo: boolean;
 
@@ -48,6 +50,18 @@ export type AdminReadinessServidor = {
   talleresPublicados: number;
 
   talleresActivos: number;
+
+  whatsappBotSecretsOk: boolean;
+
+  whatsappBotGroqOk: boolean;
+
+  whatsappBotMetaOk: boolean;
+
+  whatsappBotMetaDetalle: string;
+
+  whatsappBotNumeroMeta: string | null;
+
+  whatsappBotPhoneIdMascara: string | null;
 };
 
 /** Teléfono canónico del operador (mismo que usa el servidor para enviar push). */
@@ -114,6 +128,8 @@ export const checklistEstadoAdmin = createServerFn({ method: "POST" })
 
     const whatsappBuildCoincide = Boolean(tel && buildNorm && buildNorm === tel);
 
+    const waBot = await estadoWhatsAppBot();
+
     const estado: AdminReadinessServidor = {
       supabaseVivo: resumen.fuente === "supabase" && resumen.totalProductos > 50,
 
@@ -142,6 +158,18 @@ export const checklistEstadoAdmin = createServerFn({ method: "POST" })
       talleresPublicados,
 
       talleresActivos,
+
+      whatsappBotSecretsOk: waBot.secretsOk && waBot.verifyTokenOk,
+
+      whatsappBotGroqOk: waBot.groqOk,
+
+      whatsappBotMetaOk: waBot.metaConectado,
+
+      whatsappBotMetaDetalle: waBot.metaDetalle,
+
+      whatsappBotNumeroMeta: waBot.numeroMeta,
+
+      whatsappBotPhoneIdMascara: waBot.phoneNumberIdMascara,
     };
 
     return { ok: true as const, estado };

@@ -3,11 +3,13 @@
  * Docs: https://developers.facebook.com/docs/whatsapp/cloud-api
  */
 
-const GRAPH = "https://graph.facebook.com/v21.0";
+import { sanitizeAsciiSecret, sanitizePhoneNumberId } from "./env-sanitize";
+
+const GRAPH = "https://graph.facebook.com/v25.0";
 
 export function whatsappSendConfig(): { token: string; phoneNumberId: string } | null {
-  const token = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
+  const token = sanitizeAsciiSecret(process.env.WHATSAPP_ACCESS_TOKEN);
+  const phoneNumberId = sanitizePhoneNumberId(process.env.WHATSAPP_PHONE_NUMBER_ID);
   if (!token || !phoneNumberId) {
     if (!token) console.error("WhatsApp send: falta WHATSAPP_ACCESS_TOKEN");
     if (!phoneNumberId) console.error("WhatsApp send: falta WHATSAPP_PHONE_NUMBER_ID");
@@ -22,7 +24,7 @@ export function whatsappCloudConfig(): {
   verifyToken: string;
 } | null {
   const send = whatsappSendConfig();
-  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN?.trim();
+  const verifyToken = sanitizeAsciiSecret(process.env.WHATSAPP_VERIFY_TOKEN);
   if (!send || !verifyToken) return null;
   return { ...send, verifyToken };
 }
@@ -33,7 +35,7 @@ export function verificarWebhookChallenge(
   challenge: string | null,
 ): string | null {
   // Solo hace falta el verify token para el GET de Meta (no el access token).
-  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN?.trim();
+  const verifyToken = sanitizeAsciiSecret(process.env.WHATSAPP_VERIFY_TOKEN);
   if (!verifyToken) return null;
   if (mode === "subscribe" && token === verifyToken && challenge) {
     return challenge;

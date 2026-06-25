@@ -17,6 +17,7 @@ export const InputSchema = z.object({
       version: z.string().optional(),
       municipio: z.string().optional(),
       piezaPrioritaria: z.string().optional(),
+      canal: z.enum(["whatsapp", "web"]).optional(),
     })
     .optional(),
 });

@@ -142,6 +142,32 @@ export default function AdminDemoChecklist({ onIrSoporte, refreshKey = 0 }: Prop
         estado: servidor.adminWhatsappOk ? "ok" : "fail",
       },
       {
+        id: "wa-bot-secrets",
+        label: "Bot WhatsApp — secretos Cloudflare",
+        detalle: servidor.whatsappBotSecretsOk
+          ? `Token + Phone ID ${servidor.whatsappBotPhoneIdMascara ?? ""} + verify`
+          : "Faltan WHATSAPP_ACCESS_TOKEN, PHONE_NUMBER_ID o VERIFY_TOKEN",
+        estado: servidor.whatsappBotSecretsOk ? "ok" : "fail",
+      },
+      {
+        id: "wa-bot-groq",
+        label: "Bot WhatsApp — IA (Groq)",
+        detalle: servidor.whatsappBotGroqOk ? "GROQ_API_KEY configurada" : "Falta GROQ_API_KEY en Cloudflare",
+        estado: servidor.whatsappBotGroqOk ? "ok" : "fail",
+      },
+      {
+        id: "wa-bot-meta",
+        label: "Bot WhatsApp — conexión Meta",
+        detalle: servidor.whatsappBotMetaOk
+          ? `Conectado · línea Meta ${servidor.whatsappBotNumeroMeta ?? "—"}`
+          : servidor.whatsappBotMetaDetalle === "phone_number_id_incorrecto"
+            ? "Phone Number ID incorrecto — copialo del curl en Meta API Setup"
+            : servidor.whatsappBotMetaDetalle === "token_meta_invalido_o_expirado"
+              ? "Token Meta expirado — genera uno nuevo en API Setup"
+              : `Meta: ${servidor.whatsappBotMetaDetalle}`,
+        estado: servidor.whatsappBotMetaOk ? "ok" : "fail",
+      },
+      {
         id: "push-srv",
         label: "Dispositivos registrados (todos)",
         detalle:

@@ -1,11 +1,14 @@
 import { aplicarDescuento } from "./pricing";
 import {
+  acumularTextoUsuario,
   detectarAlcanceMensaje,
+  extraerContextoCotizacion,
   extraerMarcasMencionadas,
   formatoInventarioParaPrompt,
   marcasQueVendemosTexto,
   resolverBusquedaMostrador,
   vendemosMarca,
+  type ContextoCotizacion,
   type ProductoMostrador,
 } from "./mostrador-inventario.server";
 import type { MostradorCotizacionLinea, MostradorResponsePublic } from "./mostrador";
@@ -133,6 +136,8 @@ function buildSystemPrompt(inventarioJson: string, marcas: string) {
     "action=quote cuando presentas precios del inventario.",
     "action=out_of_scope cuando no vendemos esa línea.",
     "action=handoff_whatsapp cuando el cliente quiere cerrar o necesita humano.",
+    "NUNCA repitas una pregunta que el cliente ya respondió en la conversación.",
+    "Si ya tienes pieza + vehículo + año y hay inventario, usa action=quote y deja questions vacío o solo cantidad.",
     "Máximo 3 preguntas. Mensaje reply: 2-6 oraciones, conversacional.",
   ].join("\n");
 }
@@ -239,7 +244,17 @@ function respuestaCotizacionDeterministica(
       ? " En tu cuenta de taller aplica contra entrega (confirmamos al cerrar)."
       : "";
 
-  return `${intro}\n\n${lineas}\n\nConfirma el diagnóstico con tu mecánico de confianza.${pago} ¿Cuántas unidades necesitas?`;
+  return `${intro}\n\n${lineas}\n\nConfirma el diagnóstico con tu mecánico de confianza.${pago}`;
+}
+
+function respuestaSinCoincidenciaCatalogo(ctx: ContextoCotizacion): string {
+  const veh = [ctx.marcaVehiculo, ctx.vehiculo, ctx.ano].filter(Boolean).join(" ");
+  const pieza = ctx.pieza ?? "esa pieza";
+  return `Revisé el catálogo Apex para *${pieza}* ${veh ? `(${veh})` : ""} y no hay una coincidencia exacta en sistema ahora mismo. Si tienes la *referencia* de la pieza vieja o una *foto*, te confirmo precio y disponibilidad en minutos. Confirma el diagnóstico con tu mecánico de confianza.`;
+}
+
+function respuestaWhatsAppInicial(): string {
+  return "Hola, soy el mostrador Apex. Dime qué pieza necesitas (ej. bieleta, rótula), el vehículo y el año — te cotizo con precio y stock del catálogo.";
 }
 
 /** Lógica compartida: web PWA y webhook WhatsApp. */
@@ -248,12 +263,13 @@ export async function procesarTurnoMostrador(
 ): Promise<MostradorResponsePublic> {
   const tallerCuenta = await tallerCuentaFromWhatsapp(data.context?.whatsapp);
 
-  const ultimoUsuario = [...data.history].reverse().find((m) => m.role === "user")?.content ?? "";
-  const alcance = detectarAlcanceMensaje(ultimoUsuario);
+  const textoCompleto = acumularTextoUsuario(data.history);
+  const ctx = extraerContextoCotizacion(textoCompleto);
+  const alcance = detectarAlcanceMensaje(textoCompleto);
 
   if (alcance === "fuera_alcance") {
     const productos = await resolverBusquedaMostrador(
-      ultimoUsuario,
+      textoCompleto,
       data.context?.piezaPrioritaria,
     );
     if (productos.length === 0) {
@@ -261,14 +277,53 @@ export async function procesarTurnoMostrador(
     }
   }
 
-  const marcasMencionadas = extraerMarcasMencionadas(ultimoUsuario);
+  const marcasMencionadas = extraerMarcasMencionadas(textoCompleto);
   const marcaNoVendida = marcasMencionadas.find((m) => !vendemosMarca(m));
 
-  const productos = await resolverBusquedaMostrador(ultimoUsuario, data.context?.piezaPrioritaria);
+  const productos = await resolverBusquedaMostrador(textoCompleto, data.context?.piezaPrioritaria);
   const cotizacion = mapCotizacion(productos, tallerCuenta);
+  const esWhatsApp = data.context?.canal === "whatsapp";
 
   if (marcaNoVendida && cotizacion.every((c) => c.marcaProducto.toUpperCase() !== marcaNoVendida)) {
     return { ...respuestaMarcaNoVendida(marcaNoVendida, cotizacion), tallerCuenta };
+  }
+
+  if (cotizacion.length > 0) {
+    return {
+      ok: true,
+      reply: respuestaCotizacionDeterministica(cotizacion, tallerCuenta, alcance),
+      questions: esWhatsApp
+        ? ["¿Cuántas unidades? Escribe *CONFIRMO* para registrar el pedido en Apex."]
+        : ["¿Cuántas unidades necesitas?"],
+      action: "quote",
+      handoffTag: alcance === "bajo_encargo" ? "bajo_encargo" : "normal",
+      cotizacion,
+      tallerCuenta,
+      alcance,
+    };
+  }
+
+  if (esWhatsApp) {
+    if (ctx.pieza || ctx.vehiculo || ctx.marcaVehiculo) {
+      return {
+        ok: true,
+        reply: respuestaSinCoincidenciaCatalogo(ctx),
+        questions: ["¿Tienes referencia o foto de la pieza?"],
+        action: "ask_more",
+        handoffTag: "normal",
+        tallerCuenta,
+        alcance,
+      };
+    }
+    return {
+      ok: true,
+      reply: respuestaWhatsAppInicial(),
+      questions: [],
+      action: "ask_more",
+      handoffTag: "normal",
+      tallerCuenta,
+      alcance,
+    };
   }
 
   const apiKey = process.env.GROQ_API_KEY?.trim();
@@ -304,12 +359,21 @@ export async function procesarTurnoMostrador(
       ? `Cliente: taller validado (${tallerCuenta.nombreTaller ?? "registrado"}).`
       : "Cliente: público general.",
     data.context?.whatsapp ? `WhatsApp: ${data.context.whatsapp}` : null,
+    ctx.pieza ? `Pieza detectada: ${ctx.pieza}` : null,
+    ctx.vehiculo || ctx.marcaVehiculo
+      ? `Vehículo detectado: ${[ctx.marcaVehiculo, ctx.vehiculo].filter(Boolean).join(" ")}`
+      : null,
+    ctx.ano ? `Año detectado: ${ctx.ano}` : null,
+    ctx.lado ? `Lado: ${ctx.lado}` : null,
+    ctx.posicion ? `Posición: ${ctx.posicion}` : null,
     data.context?.carro ? `Vehículo: ${data.context.carro}` : null,
     data.context?.ano ? `Año: ${data.context.ano}` : null,
     data.context?.version ? `Versión: ${data.context.version}` : null,
     data.context?.municipio ? `Municipio: ${data.context.municipio}` : null,
     `Alcance detectado: ${alcance}`,
-    productos.length === 0 ? "Sin coincidencias en catálogo para este mensaje." : null,
+    productos.length === 0
+      ? "Sin coincidencias en catálogo con el contexto acumulado."
+      : `${productos.length} opción(es) en inventario — prioriza cotizar.`,
   ].filter(Boolean);
 
   const transcript = data.history

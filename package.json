@@ -22,7 +22,12 @@
     "qa:audit": "node scripts/qa-audit.mjs",
     "qa:datos": "node scripts/qa-datos-maestros.mjs",
     "db:migrate:datos": "node scripts/apply-migration-sql.mjs",
-    "secrets:cloudflare": "node scripts/sync-cloudflare-secrets.mjs"
+    "secrets:cloudflare": "node scripts/sync-cloudflare-secrets.mjs",
+    "validate:whatsapp": "node scripts/validate-whatsapp-meta.mjs",
+    "test:whatsapp-agent": "node scripts/test-whatsapp-agent.mjs",
+    "simulate:whatsapp": "npx --yes tsx scripts/simulate-whatsapp-chat.ts",
+    "simulate:whatsapp:chat": "npx --yes tsx scripts/simulate-whatsapp-chat.ts --chat",
+    "audit:whatsapp-e2e": "npx --yes tsx scripts/audit-whatsapp-e2e.ts"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",

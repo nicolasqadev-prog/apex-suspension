@@ -13,6 +13,7 @@ export type ProductoMostrador = {
   marcaVehiculo: string;
   marcaProducto: string;
   precioPublico: number;
+  precioTallerRef?: number;
   stock: number;
   disponibilidad: DisponibilidadMostrador;
 };
@@ -26,6 +27,7 @@ type ProductoRow = {
   marca: string;
   marca_producto: string | null;
   precio_lista: number;
+  precio_taller: number | null;
   stock_actual: number;
 };
 
@@ -83,6 +85,7 @@ function mapRow(r: ProductoRow): ProductoMostrador {
     marcaVehiculo: r.marca,
     marcaProducto,
     precioPublico: Math.round(Number(r.precio_lista)),
+    precioTallerRef: r.precio_taller != null ? Math.round(Number(r.precio_taller)) : undefined,
     stock,
     disponibilidad: stock > 0 ? "bodega" : "bajo_pedido",
   };
@@ -102,6 +105,287 @@ export function detectarAlcanceMensaje(texto: string): AlcanceMensaje {
 export function extraerReferencias(texto: string): string[] {
   const found = texto.match(REF_PATTERN) ?? [];
   return [...new Set(found.map((r) => r.replace(/\s+/g, "-").toUpperCase()))];
+}
+
+export type ContextoCotizacion = {
+  textoCompleto: string;
+  pieza?: string;
+  vehiculo?: string;
+  marcaVehiculo?: string;
+  ano?: string;
+  lado?: "izquierda" | "derecha";
+  posicion?: "delantera" | "trasera";
+  listoParaCotizar: boolean;
+};
+
+const PIEZAS_RX =
+  /\b(bieleta|barra\s+estabilizadora|r[oó]tula|terminal|amortiguador|buje|brazo|tijera|link)\b/i;
+
+const MARCAS_VEH_LISTA = [
+  "chevrolet",
+  "chevy",
+  "renault",
+  "kia",
+  "hyundai",
+  "nissan",
+  "mazda",
+  "toyota",
+  "ford",
+  "citroen",
+  "citroën",
+  "peugeot",
+  "suzuki",
+  "volkswagen",
+  "vw",
+  "bmw",
+  "mercedes",
+  "audi",
+  "fiat",
+  "honda",
+  "mitsubishi",
+  "chery",
+  "great wall",
+  "mg",
+];
+
+const MODELOS_VEH_LISTA = [
+  "aveo",
+  "spark",
+  "onix",
+  "captiva",
+  "logan",
+  "sandero",
+  "duster",
+  "stepway",
+  "picanto",
+  "rio",
+  "sportage",
+  "tucson",
+  "sail",
+  "groove",
+  "swift",
+  "vitara",
+  "sentra",
+  "march",
+  "versa",
+  "c3",
+  "c4",
+  "berlingo",
+  "picasso",
+  "xsara",
+  "206",
+  "207",
+  "208",
+  "301",
+  "308",
+  "getz",
+  "accent",
+  "elantra",
+  "creta",
+];
+
+const MARCAS_VEH_RX = new RegExp(`\\b(${MARCAS_VEH_LISTA.join("|")})\\b`, "i");
+const VEHICULOS_RX = new RegExp(`\\b(${MODELOS_VEH_LISTA.join("|")})\\b`, "i");
+
+function normalizarTextoBusqueda(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/chevy/g, "chevrolet")
+    .replace(/citroën/g, "citroen");
+}
+
+function blobProducto(p: ProductoMostrador): string {
+  return normalizarTextoBusqueda(
+    `${p.nombre} ${p.aplicacion} ${p.categoria} ${p.marcaVehiculo}`,
+  );
+}
+
+/** El producto aplica al vehículo que pidió el cliente (marca + modelo). */
+export function productoAplicaAVehiculo(p: ProductoMostrador, ctx: ContextoCotizacion): boolean {
+  if (!ctx.marcaVehiculo && !ctx.vehiculo) return true;
+
+  const blob = blobProducto(p);
+  const marcaProducto = normalizarTextoBusqueda(p.marcaVehiculo);
+
+  if (ctx.marcaVehiculo) {
+    const marca = normalizarTextoBusqueda(ctx.marcaVehiculo);
+    const marcaOk = marcaProducto.includes(marca) || blob.includes(marca);
+    if (!marcaOk) return false;
+  }
+
+  if (ctx.vehiculo) {
+    const modelo = normalizarTextoBusqueda(ctx.vehiculo);
+    const modeloRx = new RegExp(`\\b${modelo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+    if (!modeloRx.test(blob)) return false;
+  }
+
+  return true;
+}
+
+/** El producto corresponde al tipo de pieza solicitada. */
+export function productoAplicaAPieza(p: ProductoMostrador, ctx: ContextoCotizacion): boolean {
+  if (!ctx.pieza) return true;
+  const pieza = normalizarTextoBusqueda(ctx.pieza.replace("rótula", "rotula"));
+  const blob = blobProducto(p);
+
+  if (pieza === "bieleta" || pieza === "link") {
+    return /\bbieleta\b|\bestab\b|\blink\b|\bbarra\s+estabilizadora\b/.test(blob);
+  }
+  if (pieza === "tijera") {
+    return /\btijera\b/.test(blob);
+  }
+  if (pieza === "brazo") {
+    return /\bbrazo\b|\btijera\b/.test(blob);
+  }
+  return blob.includes(pieza);
+}
+
+/**
+ * Solo devuelve producto si hay coincidencia confiable pieza + vehículo.
+ * Nunca adivina: mejor sin_match que cotizar mal.
+ */
+export function seleccionarProductoConfiable(
+  productos: ProductoMostrador[],
+  ctx: ContextoCotizacion,
+): ProductoMostrador | null {
+  if (!productos.length || !ctx.pieza) return null;
+  if (!ctx.marcaVehiculo && !ctx.vehiculo) return null;
+
+  const candidatos = productos.filter(
+    (p) => productoAplicaAPieza(p, ctx) && productoAplicaAVehiculo(p, ctx),
+  );
+  if (!candidatos.length) return null;
+
+  return priorizarProductosPorContexto(candidatos, ctx)[0] ?? null;
+}
+
+/** Junta todos los mensajes del cliente en un solo texto de búsqueda. */
+export function acumularTextoUsuario(
+  history: Array<{ role: "user" | "assistant"; content: string }>,
+): string {
+  return history
+    .filter((m) => m.role === "user")
+    .map((m) => m.content.trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
+/** Variantes cortas para buscar en catálogo (evita perder contexto en mensajes sueltos). */
+export function terminosBusquedaInteligente(texto: string): string[] {
+  const t = texto.toLowerCase();
+  const out = new Set<string>();
+  const trimmed = texto.trim();
+  if (trimmed) out.add(trimmed);
+
+  const pieza = t.match(PIEZAS_RX)?.[0];
+  const vehiculo = t.match(VEHICULOS_RX)?.[0];
+  const marca = t.match(MARCAS_VEH_RX)?.[0];
+
+  if (pieza && vehiculo) out.add(`${pieza} ${vehiculo}`);
+  if (pieza && marca && vehiculo) out.add(`${pieza} ${marca} ${vehiculo}`);
+  if (marca && vehiculo) out.add(`${marca} ${vehiculo}`);
+  if (marca && pieza) out.add(`${marca} ${pieza}`);
+  if (marca && vehiculo && pieza) out.add(`${marca} ${vehiculo} ${pieza}`);
+  if (pieza) out.add(pieza);
+  if (vehiculo) out.add(vehiculo);
+
+  return [...out];
+}
+
+export function extraerContextoCotizacion(texto: string): ContextoCotizacion {
+  const t = texto.toLowerCase();
+  const pieza = texto.match(PIEZAS_RX)?.[0]?.toLowerCase();
+  let marcaVehiculo = texto.match(MARCAS_VEH_RX)?.[0]?.toLowerCase();
+  if (marcaVehiculo === "chevy") marcaVehiculo = "chevrolet";
+  if (marcaVehiculo === "citroën") marcaVehiculo = "citroen";
+
+  let vehiculo = texto.match(VEHICULOS_RX)?.[0]?.toLowerCase();
+  if (!vehiculo && marcaVehiculo) {
+    const marcaEsc = marcaVehiculo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const modeloDespuesMarca = texto.match(
+      new RegExp(`\\b${marcaEsc}\\s+([a-z0-9]{1,12})\\b`, "i"),
+    );
+    const candidato = modeloDespuesMarca?.[1]?.toLowerCase();
+    if (candidato && !MARCAS_VEH_LISTA.includes(candidato)) {
+      vehiculo = candidato;
+    }
+  }
+
+  const anoMatch = texto.match(/\b(19|20)\d{2}\b/);
+  const ano = anoMatch?.[0];
+  const lado = /\b(izquierd|izq|left)\b/i.test(t)
+    ? ("izquierda" as const)
+    : /\b(derech|der|right)\b/i.test(t)
+      ? ("derecha" as const)
+      : undefined;
+  const posicion = /\bdelantera?\b/i.test(t)
+    ? ("delantera" as const)
+    : /\btrasera?\b/i.test(t)
+      ? ("trasera" as const)
+      : undefined;
+
+  const listoParaCotizar = Boolean(pieza && (vehiculo || marcaVehiculo));
+
+  return {
+    textoCompleto: texto,
+    pieza,
+    vehiculo,
+    marcaVehiculo,
+    ano,
+    lado,
+    posicion,
+    listoParaCotizar,
+  };
+}
+
+/** Contexto desde historial: la pieza más reciente manda (no la primera del chat). */
+export function extraerContextoDesdeHistorial(
+  history: Array<{ role: "user" | "assistant"; content: string }>,
+): ContextoCotizacion {
+  const userMsgs = history.filter((m) => m.role === "user").map((m) => m.content);
+  const textoCompleto = userMsgs.join(" ");
+  const ctx = extraerContextoCotizacion(textoCompleto);
+
+  for (let i = userMsgs.length - 1; i >= 0; i--) {
+    const p = userMsgs[i].match(PIEZAS_RX)?.[0]?.toLowerCase();
+    if (p) {
+      ctx.pieza = p;
+      break;
+    }
+  }
+
+  ctx.textoCompleto = textoCompleto;
+  ctx.listoParaCotizar = Boolean(ctx.pieza && (ctx.vehiculo || ctx.marcaVehiculo));
+  return ctx;
+}
+
+/** Prioriza productos que calzan con vehículo/pieza mencionados. */
+export function priorizarProductosPorContexto(
+  productos: ProductoMostrador[],
+  ctx: ContextoCotizacion,
+): ProductoMostrador[] {
+  if (!productos.length) return productos;
+
+  const score = (p: ProductoMostrador): number => {
+    const blob = blobProducto(p);
+    let s = 0;
+    if (ctx.pieza && productoAplicaAPieza(p, ctx)) s += 8;
+    if (ctx.vehiculo && blob.includes(normalizarTextoBusqueda(ctx.vehiculo))) s += 10;
+    if (ctx.marcaVehiculo) {
+      const marca = normalizarTextoBusqueda(ctx.marcaVehiculo);
+      if (normalizarTextoBusqueda(p.marcaVehiculo).includes(marca) || blob.includes(marca)) s += 8;
+    }
+    if (ctx.lado === "izquierda" && /\b(izq|izquierd|left|lh)\b/i.test(blob)) s += 3;
+    if (ctx.lado === "derecha" && /\b(der|derech|right|rh)\b/i.test(blob)) s += 3;
+    if (ctx.posicion === "delantera" && /\bdelantera?\b/i.test(blob)) s += 2;
+    if (ctx.posicion === "trasera" && /\btrasera?\b/i.test(blob)) s += 2;
+    if (p.stock > 0) s += 1;
+    return s;
+  };
+
+  return [...productos].sort((a, b) => score(b) - score(a));
 }
 
 export function extraerMarcasMencionadas(texto: string): string[] {
@@ -142,13 +426,13 @@ export async function buscarProductosMostrador(
   const url = new URL(`${env.url}/rest/v1/productos`);
   url.searchParams.set(
     "select",
-    "slug,referencia,nombre,aplicacion,categoria,marca,marca_producto,precio_lista,stock_actual",
+    "slug,referencia,nombre,aplicacion,categoria,marca,marca_producto,precio_lista,precio_taller,stock_actual",
   );
   url.searchParams.set("activo", "eq.true");
   url.searchParams.set("limit", String(Math.min(12, Math.max(1, limit))));
   url.searchParams.set(
     "or",
-    `(referencia.ilike.${pattern},nombre.ilike.${pattern},aplicacion.ilike.${pattern},categoria.ilike.${pattern})`,
+    `(referencia.ilike.${pattern},nombre.ilike.${pattern},aplicacion.ilike.${pattern},categoria.ilike.${pattern},marca.ilike.${pattern})`,
   );
   url.searchParams.set("order", "stock_actual.desc,precio_lista.asc");
 
@@ -175,7 +459,7 @@ export async function buscarPorReferenciaExacta(
   const url = new URL(`${env.url}/rest/v1/productos`);
   url.searchParams.set(
     "select",
-    "slug,referencia,nombre,aplicacion,categoria,marca,marca_producto,precio_lista,stock_actual",
+    "slug,referencia,nombre,aplicacion,categoria,marca,marca_producto,precio_lista,precio_taller,stock_actual",
   );
   url.searchParams.set("activo", "eq.true");
   url.searchParams.set("referencia", `eq.${ref}`);
@@ -195,31 +479,59 @@ export async function resolverBusquedaMostrador(
   mensajeUsuario: string,
   piezaPrioritaria?: string,
 ): Promise<ProductoMostrador[]> {
+  const ctx = extraerContextoCotizacion(mensajeUsuario);
+  if (piezaPrioritaria?.trim()) {
+    ctx.pieza = piezaPrioritaria.trim().toLowerCase();
+    ctx.listoParaCotizar = Boolean(ctx.pieza && (ctx.vehiculo || ctx.marcaVehiculo));
+  }
   const refs = extraerReferencias(mensajeUsuario);
-  const found: ProductoMostrador[] = [];
-  const seen = new Set<string>();
+  const scored = new Map<string, { p: ProductoMostrador; score: number }>();
+
+  const addProducto = (p: ProductoMostrador, puntos: number) => {
+    const entry = scored.get(p.slug) ?? { p, score: 0 };
+    entry.score += puntos;
+    scored.set(p.slug, entry);
+  };
 
   for (const ref of refs) {
     const p = await buscarPorReferenciaExacta(ref);
-    if (p && !seen.has(p.slug)) {
-      seen.add(p.slug);
-      found.push(p);
-    }
+    if (p) addProducto(p, 10);
   }
 
-  const queries = [mensajeUsuario.trim(), piezaPrioritaria?.trim()].filter(Boolean) as string[];
-  for (const q of queries) {
-    const res = await buscarProductosMostrador(q, 6);
+  const busquedas = [
+    ...terminosBusquedaInteligente(mensajeUsuario),
+    piezaPrioritaria?.trim(),
+    ctx.pieza && ctx.marcaVehiculo && ctx.vehiculo
+      ? `${ctx.pieza} ${ctx.marcaVehiculo} ${ctx.vehiculo}`
+      : null,
+    ctx.marcaVehiculo && ctx.vehiculo ? `${ctx.marcaVehiculo} ${ctx.vehiculo} ${ctx.pieza ?? ""}` : null,
+    ctx.pieza,
+    ctx.vehiculo,
+    ctx.marcaVehiculo,
+    ctx.ano,
+  ].filter((q): q is string => Boolean(q && q.length >= 2));
+
+  const unicas = [...new Set(busquedas.map((q) => q.toLowerCase()))];
+
+  for (const q of unicas) {
+    const res = await buscarProductosMostrador(q, 12);
     if (!res.ok) continue;
     for (const p of res.productos) {
-      if (!seen.has(p.slug)) {
-        seen.add(p.slug);
-        found.push(p);
-      }
+      addProducto(p, q.includes(ctx.vehiculo ?? "") ? 5 : 2);
     }
   }
 
-  return found.slice(0, 8);
+  const found = [...scored.values()]
+    .sort((a, b) => b.score - a.score)
+    .map((x) => x.p);
+
+  const ranked = priorizarProductosPorContexto(found, ctx);
+  const refsExactas = refs.length > 0;
+  const mejor = refsExactas
+    ? ranked.find((p) => productoAplicaAPieza(p, ctx) && productoAplicaAVehiculo(p, ctx)) ?? null
+    : seleccionarProductoConfiable(ranked, ctx);
+
+  return mejor ? [mejor] : [];
 }
 
 export function formatoInventarioParaPrompt(productos: ProductoMostrador[]): string {
