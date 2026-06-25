@@ -189,7 +189,7 @@ export function itemGroqASegmento(item: WaGroqItem): string {
 }
 
 export function groqInterpretacionHabilitada(): boolean {
-  if (process.env.WHATSAPP_GROQ_INTERPRET === "0") return false;
+  if (process.env.WHATSAPP_GROQ_INTERPRET !== "1") return false;
   return Boolean(process.env.GROQ_API_KEY?.trim());
 }
 

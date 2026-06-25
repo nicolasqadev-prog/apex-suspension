@@ -1,5 +1,7 @@
-import { parsearMensajesEntrantes, verificarWebhookChallenge } from "./whatsapp-cloud.server";
+import { enviarTextoWhatsApp, parsearMensajesEntrantes, verificarWebhookChallenge } from "./whatsapp-cloud.server";
 import { procesarMensajeWhatsAppEntrante } from "./whatsapp-webhook.server";
+
+const WEBHOOK_PROCESS_MS = 22_000;
 
 function contarEventosStatus(payload: unknown): number {
   if (!payload || typeof payload !== "object") return 0;
@@ -13,6 +15,19 @@ function contarEventosStatus(payload: unknown): number {
     }
   }
   return n;
+}
+
+async function avisarTimeout(
+  mensajes: Array<{ from: string }>,
+): Promise<void> {
+  await Promise.all(
+    mensajes.map((m) =>
+      enviarTextoWhatsApp(
+        m.from,
+        "Estoy tardando más de lo normal. Escribe *cancelar* y vuelve a enviar tu consulta.",
+      ).catch(() => false),
+    ),
+  );
 }
 
 /** Maneja GET/POST del webhook de Meta en el entrypoint del Worker (ctx.waitUntil real). */
@@ -78,11 +93,29 @@ export async function handleWhatsAppWebhookRequest(
     ),
   );
 
-  // Responder 200 a Meta de inmediato; el Worker sigue en segundo plano.
-  ctx.waitUntil(work);
+  let timedOut = false;
+  try {
+    await Promise.race([
+      work,
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("timeout")), WEBHOOK_PROCESS_MS);
+      }),
+    ]);
+  } catch (err) {
+    if (err instanceof Error && err.message === "timeout") {
+      timedOut = true;
+      console.error("WhatsApp webhook: timeout", WEBHOOK_PROCESS_MS, "ms");
+      ctx.waitUntil(avisarTimeout(mensajes));
+    } else {
+      console.error("WhatsApp webhook process error:", err);
+    }
+  }
 
-  return new Response(JSON.stringify({ ok: true, processed: mensajes.length, queued: true }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  return new Response(
+    JSON.stringify({ ok: true, processed: mensajes.length, timed_out: timedOut }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    },
+  );
 }

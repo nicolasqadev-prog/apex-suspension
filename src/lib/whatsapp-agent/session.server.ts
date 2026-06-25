@@ -4,7 +4,7 @@ import {
   type WaAgentState,
   type WaSession,
 } from "./types";
-import { normalizeSupabaseUrl } from "../supabase-env";
+import { normalizeSupabaseUrl, supabaseFetch } from "../supabase-env";
 import { normalizeWhatsapp } from "../talleres.server";
 import type { MostradorCotizacionLinea } from "../mostrador";
 
@@ -66,7 +66,7 @@ export async function loadWhatsAppSession(phone: string): Promise<WaSession> {
     url.searchParams.set("select", "history,last_cotizacion,agent_state,updated_at");
     url.searchParams.set("limit", "1");
 
-    const res = await fetch(url.toString(), {
+    const res = await supabaseFetch(url.toString(), {
       headers: { apikey: cfg.key, Authorization: `Bearer ${cfg.key}` },
     });
     if (!res.ok) {
@@ -127,7 +127,7 @@ export async function saveWhatsAppSession(phone: string, session: WaSession): Pr
 
   try {
     // Upsert único: PATCH devolvía 200 aunque no existiera la fila (sesión nunca persistía).
-    const res = await fetch(`${cfg.base}/rest/v1/whatsapp_sesiones?on_conflict=whatsapp`, {
+    const res = await supabaseFetch(`${cfg.base}/rest/v1/whatsapp_sesiones?on_conflict=whatsapp`, {
       method: "POST",
       headers: {
         apikey: cfg.key,

@@ -1,6 +1,6 @@
 import { metaMarcaProveedor, normalizarMarcaProveedor } from "./marcas-proveedor";
 import type { DisponibilidadMostrador } from "./mostrador";
-import { normalizeSupabaseUrl } from "./supabase-env";
+import { normalizeSupabaseUrl, supabaseFetch } from "./supabase-env";
 
 export type { DisponibilidadMostrador };
 
@@ -462,7 +462,7 @@ async function recolectarProductosBusqueda(
     ctx.ano,
   ].filter((q): q is string => Boolean(q && q.length >= 2));
 
-  const unicas = [...new Set(busquedas.map((q) => q.toLowerCase()))];
+  const unicas = [...new Set(busquedas.map((q) => q.toLowerCase()))].slice(0, 6);
 
   for (const q of unicas) {
     const res = await buscarProductosMostrador(q, 16);
@@ -879,7 +879,7 @@ export async function buscarProductosMostrador(
   );
   url.searchParams.set("order", "stock_actual.desc,precio_lista.asc");
 
-  const res = await fetch(url.toString(), { headers: headers(env) });
+  const res = await supabaseFetch(url.toString(), { headers: headers(env) });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     return { ok: false, reason: `Búsqueda falló (${res.status}) ${text}`.slice(0, 180) };
@@ -908,7 +908,7 @@ export async function buscarPorReferenciaExacta(
     url.searchParams.set("referencia", `eq.${ref}`);
     url.searchParams.set("limit", "1");
 
-    const res = await fetch(url.toString(), { headers: headers(env) });
+    const res = await supabaseFetch(url.toString(), { headers: headers(env) });
     if (!res.ok) continue;
     const rows = (await res.json()) as ProductoRow[];
     const row = rows[0];
@@ -929,7 +929,7 @@ export async function buscarPorReferenciaExacta(
   url.searchParams.set("referencia", `ilike.${ref}`);
   url.searchParams.set("limit", "3");
 
-  const res = await fetch(url.toString(), { headers: headers(env) });
+  const res = await supabaseFetch(url.toString(), { headers: headers(env) });
   if (!res.ok) return null;
   const rows = (await res.json()) as ProductoRow[];
   const exacta = rows.find(
