@@ -19,7 +19,7 @@ import {
 import type { MostradorCotizacionLinea } from "../mostrador";
 import { getTallerFidelizadoByWhatsapp } from "../talleres.server";
 import type { AclaracionPendienteWa, BorradorPedidoWa } from "./types";
-import { buildConfirmToken } from "./intents";
+import { buildConfirmToken, esMensajeSinDatosCotizacion } from "./intents";
 import { mensajeResumenPedido } from "./copy";
 import {
   armarCotizacionJuegoAmortiguadores,
@@ -533,6 +533,10 @@ export async function cotizarDesdeCatalogoWhatsApp(args: {
   const tallerRow = w ? await getTallerFidelizadoByWhatsapp(w) : null;
   const esPrecioTaller = Boolean(tallerRow);
   const nombreTaller = tallerRow?.nombreTaller;
+
+  if (esMensajeSinDatosCotizacion(ultimo)) {
+    return { tipo: "falta_contexto", ctx: extraerContextoCotizacion(ultimo) };
+  }
 
   const refsUltimo = extraerReferencias(ultimo);
   if (refsUltimo.length > 0) {

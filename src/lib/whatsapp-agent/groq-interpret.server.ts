@@ -68,6 +68,7 @@ async function callGroqJson(args: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${args.apiKey}`,
     },
+    signal: AbortSignal.timeout(12_000),
     body: JSON.stringify({
       model: process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile",
       temperature: 0.15,

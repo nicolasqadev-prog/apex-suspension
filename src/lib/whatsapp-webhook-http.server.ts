@@ -78,10 +78,10 @@ export async function handleWhatsAppWebhookRequest(
     ),
   );
 
-  // Esperar guardado en Supabase antes de cerrar el worker (evita perder sesión).
-  await work;
+  // Responder 200 a Meta de inmediato; el Worker sigue en segundo plano.
+  ctx.waitUntil(work);
 
-  return new Response(JSON.stringify({ ok: true, processed: mensajes.length }), {
+  return new Response(JSON.stringify({ ok: true, processed: mensajes.length, queued: true }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });

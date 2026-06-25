@@ -156,6 +156,21 @@ export function esSeguimientoRepuestosPendientes(texto: string): boolean {
   return SEGUIMIENTO_REPUESTOS_RX.test(t) || PEDIDO_SIN_COTIZAR_RX.test(t);
 }
 
+/** Mensaje sin pieza/vehículo/ref — saludo o charla, no disparar catálogo. */
+export function esMensajeSinDatosCotizacion(texto: string): boolean {
+  const t = texto.trim();
+  if (!t) return true;
+  if (/^(hola|buenas?|buen[oa]s?\s*(d[ií]as|tardes|noches)|hey|alo|al[oó])[\s!.?]*$/i.test(t)) {
+    return true;
+  }
+  if (t.length > 40) return false;
+  if (NUEVA_PIEZA_RX.test(t)) return false;
+  if (/\b(kwid|rio|megane|aveo|captiva|renault|kia|chevrolet|nissan)\b/i.test(t)) return false;
+  if (/\b(19|20)\d{2}\b/.test(t)) return false;
+  if (/\b[A-Z]{2,}[-\s]?\d{3,}\b/i.test(t)) return false;
+  return t.length < 18;
+}
+
 export function buildConfirmToken(borrador: {
   referencia: string;
   cantidad: number;

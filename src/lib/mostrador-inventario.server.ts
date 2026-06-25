@@ -422,6 +422,16 @@ async function recolectarProductosBusqueda(
   piezaPrioritaria?: string,
 ): Promise<ProductoMostrador[]> {
   const refs = extraerReferencias(mensajeUsuario);
+  if (
+    refs.length === 0 &&
+    !piezaPrioritaria?.trim() &&
+    !ctx.pieza &&
+    !ctx.vehiculo &&
+    !ctx.marcaVehiculo
+  ) {
+    return [];
+  }
+
   const scored = new Map<string, { p: ProductoMostrador; score: number }>();
 
   const addProducto = (p: ProductoMostrador, puntos: number) => {

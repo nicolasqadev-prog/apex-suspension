@@ -11,12 +11,22 @@ export async function procesarMensajeWhatsAppEntrante(msg: {
   const session = await loadWhatsAppSession(msg.from);
   session.history.push({ role: "user", content: msg.body });
 
-  const turno = await ejecutarTurnoAgenteWhatsApp({
-    session,
-    mensajeUsuario: msg.body,
-    phone: msg.from,
-    contactName: msg.contactName,
-  });
+  let turno;
+  try {
+    turno = await ejecutarTurnoAgenteWhatsApp({
+      session,
+      mensajeUsuario: msg.body,
+      phone: msg.from,
+      contactName: msg.contactName,
+    });
+  } catch (err) {
+    console.error("WhatsApp agent crash:", err);
+    await enviarTextoWhatsApp(
+      msg.from,
+      "Tuve un problema técnico al procesar tu mensaje. Escribe *cancelar* y vuelve a intentar.",
+    );
+    return;
+  }
 
   turno.session.history.push({ role: "assistant", content: turno.texto });
   await saveWhatsAppSession(msg.from, turno.session);

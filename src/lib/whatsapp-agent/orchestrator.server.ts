@@ -9,6 +9,7 @@ import {
   esSolicitudCotizacionAdicional,
   esJuegoAmortiguadoresCompleto,
   esConsultaDetalleCotizacion,
+  esMensajeSinDatosCotizacion,
   extraerCantidad,
   buildConfirmToken,
 } from "./intents";
@@ -498,6 +499,19 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
   if (!body) {
     const saludo = prefijoSaludo(session);
     return { texto: saludo + (saludo ? "¿Qué repuesto necesitas?" : mensajeBienvenidaConsulta()), session };
+  }
+
+  if (
+    phase === "idle" &&
+    esMensajeSinDatosCotizacion(body) &&
+    !esSeguimientoRepuestosPendientes(body) &&
+    !esSolicitudCotizacionAdicional(body)
+  ) {
+    const saludo = prefijoSaludo(session);
+    return {
+      texto: saludo + (saludo ? "¿Qué repuesto necesitas?" : mensajeBienvenidaConsulta()),
+      session,
+    };
   }
 
   const historyCotizar =
