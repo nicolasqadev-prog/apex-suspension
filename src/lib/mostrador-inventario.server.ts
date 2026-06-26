@@ -1,4 +1,5 @@
 import { metaMarcaProveedor, normalizarMarcaProveedor } from "./marcas-proveedor";
+import { modeloVehiculoCompacto } from "./catalogo-busqueda";
 import type { DisponibilidadMostrador } from "./mostrador";
 import { normalizeSupabaseUrl, supabaseFetch } from "./supabase-env";
 
@@ -240,6 +241,10 @@ const MODELOS_VEH_LISTA = [
   "np300",
   "frontier",
   "navara",
+  "bt50",
+  "bt-50",
+  "ranger",
+  "b2600",
   "elantra",
   "creta",
 ];
@@ -273,6 +278,10 @@ const MARCA_POR_MODELO: Record<string, string> = {
   np300: "nissan",
   frontier: "nissan",
   navara: "nissan",
+  bt50: "mazda",
+  "bt-50": "mazda",
+  ranger: "ford",
+  b2600: "mazda",
   march: "nissan",
   versa: "nissan",
   sentra: "nissan",
@@ -285,7 +294,6 @@ const MARCA_POR_MODELO: Record<string, string> = {
   prado: "toyota",
   fiesta: "ford",
   focus: "ford",
-  ranger: "ford",
   escape: "ford",
   gol: "volkswagen",
   polo: "volkswagen",
@@ -335,8 +343,13 @@ export function productoAplicaAVehiculo(p: ProductoMostrador, ctx: ContextoCotiz
     if (blob.includes(modelo)) return true;
     const modeloRx = new RegExp(`\\b${modelo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
     if (modeloRx.test(blob)) return true;
+    const modeloCompact = modeloVehiculoCompacto(ctx.vehiculo);
+    if (modeloCompact.length >= 3 && modeloVehiculoCompacto(blob).includes(modeloCompact)) return true;
     // Megane II / Megane 2 en catálogo
     if (modelo === "megane" && /\bmegane\b/i.test(blob)) return true;
+    // BT-50 / Ranger comparten plataforma en catálogo
+    if ((modelo === "bt50" || modelo === "bt-50") && /\b(bt-?50|ranger)\b/i.test(blob)) return true;
+    if (modelo === "ranger" && /\b(bt-?50|ranger)\b/i.test(blob)) return true;
     return false;
   }
 
@@ -416,6 +429,38 @@ export function listarCandidatosConfiables(
   return priorizarProductosPorContexto(candidatos, ctx);
 }
 
+function terminosBusquedaAmortiguador(ctx: ContextoCotizacion): string[] {
+  if (!ctx.pieza?.includes("amortiguador") || !ctx.vehiculo) return [];
+  const veh = ctx.vehiculo;
+  const marca = ctx.marcaVehiculo;
+  const todos = [
+    `amortiguador delantero ${veh}`,
+    `amortiguador trasero ${veh}`,
+    `amortiguador del ${veh}`,
+    `amortiguador tras ${veh}`,
+    ...(marca
+      ? [
+          `amortiguador delantero ${marca} ${veh}`,
+          `amortiguador trasero ${marca} ${veh}`,
+        ]
+      : []),
+    ...(veh === "megane"
+      ? [
+          "amortiguador megane ii delantero",
+          "amortiguador megane ii trasero",
+          "amortiguador renault megane ii delantero",
+        ]
+      : []),
+  ];
+  if (ctx.posicion === "delantera") {
+    return todos.filter((t) => /\bdel(?:antero)?\b/i.test(t));
+  }
+  if (ctx.posicion === "trasera") {
+    return todos.filter((t) => /\btras(?:ero)?\b/i.test(t));
+  }
+  return todos;
+}
+
 async function recolectarProductosBusqueda(
   mensajeUsuario: string,
   ctx: ContextoCotizacion,
@@ -447,6 +492,7 @@ async function recolectarProductosBusqueda(
 
   const busquedas = [
     ...terminosBusquedaInteligente(mensajeUsuario),
+    ...terminosBusquedaAmortiguador(ctx),
     piezaPrioritaria?.trim(),
     ctx.pieza && ctx.marcaVehiculo && ctx.vehiculo
       ? `${ctx.pieza} ${ctx.marcaVehiculo} ${ctx.vehiculo}`
@@ -462,10 +508,12 @@ async function recolectarProductosBusqueda(
     ctx.ano,
   ].filter((q): q is string => Boolean(q && q.length >= 2));
 
-  const unicas = [...new Set(busquedas.map((q) => q.toLowerCase()))].slice(0, 6);
+  const maxBusquedas = ctx.posicion ? 10 : 6;
+  const unicas = [...new Set(busquedas.map((q) => q.toLowerCase()))].slice(0, maxBusquedas);
+  const searchLimit = ctx.posicion || ctx.lado ? 24 : 16;
 
   for (const q of unicas) {
-    const res = await buscarProductosMostrador(q, 16);
+    const res = await buscarProductosMostrador(q, searchLimit);
     if (!res.ok) continue;
     for (const p of res.productos) {
       addProducto(p, q.includes(ctx.vehiculo ?? "") ? 5 : 2);
@@ -480,11 +528,18 @@ async function recolectarProductosBusqueda(
 export async function resolverCandidatosMostrador(
   mensajeUsuario: string,
   piezaPrioritaria?: string,
+  ctxOverride?: Partial<ContextoCotizacion>,
 ): Promise<{ ctx: ContextoCotizacion; candidatos: ProductoMostrador[] }> {
   const ctx = extraerContextoCotizacion(mensajeUsuario);
   if (piezaPrioritaria?.trim()) {
     ctx.pieza = piezaPrioritaria.trim().toLowerCase();
     ctx.listoParaCotizar = Boolean(ctx.pieza && (ctx.vehiculo || ctx.marcaVehiculo));
+  }
+  if (ctxOverride) {
+    Object.assign(ctx, ctxOverride);
+    ctx.listoParaCotizar = Boolean(
+      ctx.pieza && (ctx.vehiculo || ctx.marcaVehiculo || ctxOverride.listoParaCotizar),
+    );
   }
 
   const found = await recolectarProductosBusqueda(mensajeUsuario, ctx, piezaPrioritaria);
@@ -849,6 +904,15 @@ export function vendemosMarca(marca: string): boolean {
   return MARCAS_VENDEMOS.has(k);
 }
 
+function variantesConsultaMostrador(q: string): string[] {
+  const out = new Set<string>([q]);
+  const sinGuion = q.replace(/[-\s]+/g, "");
+  if (sinGuion !== q) out.add(sinGuion);
+  const conGuion = q.replace(/([a-z]{2,})(\d)/i, "$1-$2");
+  if (conGuion !== q) out.add(conGuion);
+  return [...out].filter((v) => v.length >= 2);
+}
+
 export async function buscarProductosMostrador(
   query: string,
   limit = 8,
@@ -859,37 +923,44 @@ export async function buscarProductosMostrador(
   const q = query.trim();
   if (!q) return { ok: true, productos: [] };
 
-  const safe = q
-    .replace(/[%_,.()]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!safe) return { ok: true, productos: [] };
+  const scored = new Map<string, ProductoMostrador>();
 
-  const pattern = `%${safe}%`;
-  const url = new URL(`${env.url}/rest/v1/productos`);
-  url.searchParams.set(
-    "select",
-    "slug,referencia,nombre,aplicacion,categoria,marca,marca_producto,precio_lista,precio_taller,stock_actual",
-  );
-  url.searchParams.set("activo", "eq.true");
-  url.searchParams.set("limit", String(Math.min(24, Math.max(1, limit))));
-  url.searchParams.set(
-    "or",
-    `(referencia.ilike.${pattern},nombre.ilike.${pattern},aplicacion.ilike.${pattern},categoria.ilike.${pattern},marca.ilike.${pattern},marca_producto.ilike.${pattern})`,
-  );
-  url.searchParams.set("order", "stock_actual.desc,precio_lista.asc");
+  for (const variante of variantesConsultaMostrador(q)) {
+    const safe = variante
+      .replace(/[%_,.()]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!safe) continue;
 
-  const res = await supabaseFetch(url.toString(), { headers: headers(env) });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    return { ok: false, reason: `Búsqueda falló (${res.status}) ${text}`.slice(0, 180) };
+    const pattern = `%${safe}%`;
+    const url = new URL(`${env.url}/rest/v1/productos`);
+    url.searchParams.set(
+      "select",
+      "slug,referencia,nombre,aplicacion,categoria,marca,marca_producto,precio_lista,precio_taller,stock_actual",
+    );
+    url.searchParams.set("activo", "eq.true");
+    url.searchParams.set("limit", String(Math.min(24, Math.max(1, limit))));
+    url.searchParams.set(
+      "or",
+      `(referencia.ilike.${pattern},nombre.ilike.${pattern},aplicacion.ilike.${pattern},categoria.ilike.${pattern},marca.ilike.${pattern},marca_producto.ilike.${pattern})`,
+    );
+    url.searchParams.set("order", "stock_actual.desc,precio_lista.asc");
+
+    const res = await supabaseFetch(url.toString(), { headers: headers(env) });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return { ok: false, reason: `Búsqueda falló (${res.status}) ${text}`.slice(0, 180) };
+    }
+
+    const rows = (await res.json()) as ProductoRow[];
+    for (const row of rows) {
+      const p = mapRow(row);
+      if (p.marcaProducto.toUpperCase() === "DISTRICAMIONES") continue;
+      scored.set(p.slug, p);
+    }
   }
 
-  const rows = (await res.json()) as ProductoRow[];
-  const productos = rows
-    .map(mapRow)
-    .filter((p) => p.marcaProducto.toUpperCase() !== "DISTRICAMIONES");
-  return { ok: true, productos };
+  return { ok: true, productos: [...scored.values()].slice(0, limit) };
 }
 
 export async function buscarPorReferenciaExacta(

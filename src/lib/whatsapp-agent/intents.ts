@@ -157,6 +157,11 @@ export function esSeguimientoRepuestosPendientes(texto: string): boolean {
 }
 
 /** Mensaje sin pieza/vehículo/ref — saludo o charla, no disparar catálogo. */
+/** Solo aclara posición o lado (ej. "Delanteros", "trasero"). */
+export function esAclaracionPosicionOLadoCorta(texto: string): boolean {
+  return /^\s*(delantero?s?|trasero?s?|izquierd[ao]?|derech[ao]?)\s*[!.?]*$/i.test(texto.trim());
+}
+
 export function esMensajeSinDatosCotizacion(texto: string): boolean {
   const t = texto.trim();
   if (!t) return true;

@@ -199,14 +199,16 @@ function CatalogoPage() {
   const filtrosActivosBodega = hayFiltrosActivosSeccion(filtrosBodega);
   const filtrosActivosBajoPedido = hayFiltrosActivosSeccion(filtrosBajoPedido);
 
+  const ordenBusqueda = q.trim() && orden === "stock-desc" ? "relevancia" : orden;
+
   const { bodega, bajoPedido } = useMemo(() => {
     const bodegaFiltrada = filtrarPiezas(piezasConStock, filtrosBodega);
     const bajoPedidoFiltrado = filtrarPiezas(piezasSinStock, filtrosBajoPedido);
     return {
-      bodega: ordenarPiezas(bodegaFiltrada, orden, q, precioMostrar),
-      bajoPedido: ordenarBajoPedido(bajoPedidoFiltrado, orden, q, precioMostrar),
+      bodega: ordenarPiezas(bodegaFiltrada, ordenBusqueda, q, precioMostrar),
+      bajoPedido: ordenarBajoPedido(bajoPedidoFiltrado, ordenBusqueda, q, precioMostrar),
     };
-  }, [piezasConStock, piezasSinStock, filtrosBodega, filtrosBajoPedido, orden, q]);
+  }, [piezasConStock, piezasSinStock, filtrosBodega, filtrosBajoPedido, ordenBusqueda, q]);
 
   useEffect(() => {
     if (marcaVehiculoBodega && !marcasOptsBodega.includes(marcaVehiculoBodega)) {
@@ -297,7 +299,7 @@ function CatalogoPage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar por referencia, nombre, vehículo o categoría…"
+            placeholder="Ej: amortiguador kwid · KSA RE028 · chevrolet aveo…"
             className="pl-10 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
           />
         </div>
@@ -552,8 +554,15 @@ function CatalogoPage() {
             </section>
 
             {sinResultados && (
-              <p className="text-center text-gray-500 py-12">
+              <p className="text-center text-gray-500 py-12 text-sm leading-relaxed max-w-md mx-auto">
                 No hay resultados para esa búsqueda.
+                {q.trim() ? (
+                  <>
+                    {" "}
+                    Prueba sin guiones en la referencia, o separa pieza y vehículo (ej.{" "}
+                    <span className="text-gray-400">amortiguador kwid</span>).
+                  </>
+                ) : null}
               </p>
             )}
           </>

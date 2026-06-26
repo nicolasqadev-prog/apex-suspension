@@ -101,10 +101,24 @@ function resolverAmortiguador(
     };
   }
 
+  if (!ctx.posicion && (del.length > 0 || tras.length > 0) && cantidad < 4) {
+    return {
+      tipo: "preguntar",
+      pregunta:
+        `Para el *${veh}*, ¿necesitas amortiguadores *delanteros* o *traseros*?`,
+      candidatosSlugs: candidatos.map((p) => p.slug),
+      ctx,
+      cantidad,
+    };
+  }
+
   let grupo = ctx.posicion
     ? filtrarPorPosicion(candidatos, ctx.posicion)
     : candidatos.filter((p) => !posicionDesdeProducto(p) || posicionDesdeProducto(p) === ctx.posicion);
 
+  if (ctx.posicion && grupo.length === 0) {
+    return { tipo: "sin_match" };
+  }
   if (!grupo.length) grupo = candidatos;
 
   if (ctx.lado) grupo = filtrarPorLado(grupo, ctx.lado);

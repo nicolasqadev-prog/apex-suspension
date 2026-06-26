@@ -67,6 +67,11 @@ export async function enviarTextoWhatsApp(to: string, body: string): Promise<boo
   if (!res.ok) {
     const err = await res.text().catch(() => "");
     console.error("WhatsApp send failed:", res.status, err.slice(0, 300));
+    if (res.status === 401) {
+      console.error(
+        "→ Token inválido en Cloudflare. Corre: npm run secrets:cloudflare (y actualiza GitHub Secret WHATSAPP_ACCESS_TOKEN)",
+      );
+    }
     return false;
   }
   return true;

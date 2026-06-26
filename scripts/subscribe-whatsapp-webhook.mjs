@@ -38,7 +38,9 @@ console.log(body);
 
 if (res.ok) {
   console.log("\nOK: WABA suscrito al webhook de producción.");
-  console.log("Escribe ahora al +1 555 644-5668 desde tu 317.");
+  console.log("\nIMPORTANTE: esto NO suscribe el campo 'messages'.");
+  console.log("Corre: node scripts/fix-whatsapp-webhook-subscription.mjs");
+  console.log("O en Meta → WhatsApp → Configuration → Webhook fields → Subscribe 'messages'.");
 } else {
   console.error("\nFalló. Verifica token y permisos whatsapp_business_management.");
 }

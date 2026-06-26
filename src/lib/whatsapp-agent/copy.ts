@@ -311,8 +311,10 @@ export function mensajeModificar(): string {
 export function mensajeSinMatch(pieza: string, vehiculo: string): string {
   const veh = vehiculo ? ` para *${vehiculo}*` : "";
   return (
-    `No encontré una referencia exacta de ${pieza}${veh} con los datos que me diste.\n` +
-    "Si tienes *referencia* o *foto*, la reviso. ¿Te puedo ayudar con otra pieza?"
+    `No encontré una referencia exacta de ${pieza}${veh} en lo que tengo a la mano ahora.\n` +
+    "Muchas piezas de suspensión las podemos traer *bajo pedido* aunque no aparezcan en bodega — " +
+    "si tienes *referencia*, *foto* o el dato del proveedor, lo reviso y te confirmo precio y tiempo.\n" +
+    "¿Te puedo ayudar con otra pieza?"
   );
 }
 

@@ -357,6 +357,7 @@ export async function cotizarTrasAclaracion(args: {
   const { candidatos } = await resolverCandidatosMostrador(
     args.pendiente.segmento,
     ctxRefinado.pieza,
+    ctxRefinado,
   );
   const pool = candidatos.filter((p) => args.pendiente.candidatosSlugs.includes(p.slug));
 
@@ -384,7 +385,12 @@ export async function cotizarTrasAclaracion(args: {
     }
   }
 
-  const elegibles = pool.length ? pool : candidatos;
+  const elegibles =
+    ctxRefinado.posicion || ctxRefinado.lado
+      ? candidatos
+      : pool.length
+        ? pool
+        : candidatos;
   const decision = resolverConAclaracion(ctxRefinado, elegibles, refinado.cantidad);
 
   if (decision.tipo === "preguntar") {
@@ -401,6 +407,26 @@ export async function cotizarTrasAclaracion(args: {
   }
 
   if (decision.tipo !== "ok") {
+    const retryTexto = `${args.pendiente.segmento} ${args.respuesta}`.trim();
+    const retry = await resolverCandidatosMostrador(
+      retryTexto,
+      ctxRefinado.pieza,
+      ctxRefinado,
+    );
+    const retryElegibles = retry.candidatos;
+    const retryDecision = resolverConAclaracion(ctxRefinado, retryElegibles, refinado.cantidad);
+    if (retryDecision.tipo === "ok") {
+      const linea = mapLinea(retryDecision.producto, args.taller, retryDecision.cantidad);
+      return {
+        tipo: "cotizacion",
+        linea,
+        aplicacion: retryDecision.producto.aplicacion,
+        ctx: ctxRefinado,
+        alcance: detectarAlcanceMensaje(args.pendiente.segmento),
+        esPrecioTaller: linea.esPrecioTaller,
+        nombreTaller: linea.nombreTaller,
+      };
+    }
     return { tipo: "sin_match", ctx: ctxRefinado };
   }
 
@@ -441,7 +467,7 @@ export async function intentarCotizarRespuestaCorta(args: {
 
   const w = args.whatsapp?.trim();
   const tallerRow = w ? await getTallerFidelizadoByWhatsapp(w) : null;
-  const { candidatos } = await resolverCandidatosMostrador(textoHist, ctx.pieza);
+  const { candidatos } = await resolverCandidatosMostrador(textoHist, ctx.pieza, ctx);
   if (!candidatos.length) return null;
 
   const decision = resolverConAclaracion(ctx, candidatos, refinado.cantidad);

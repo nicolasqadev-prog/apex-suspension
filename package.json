@@ -31,7 +31,11 @@
     "qa:whatsapp-pedido-pwa": "npx --yes tsx scripts/qa-whatsapp-pedido-pwa-e2e.ts",
     "qa:whatsapp-casos": "npx --yes tsx scripts/qa-whatsapp-casos-usuario.ts",
     "qa:whatsapp-catalogo": "npx --yes tsx scripts/qa-whatsapp-catalogo-cobertura.ts",
-    "test:webhook-prod": "node scripts/test-webhook-produccion.mjs"
+    "test:webhook-prod": "node scripts/test-webhook-produccion.mjs",
+    "fix:whatsapp-webhook": "node scripts/fix-whatsapp-webhook-subscription.mjs",
+    "audit:whatsapp": "node scripts/audit-whatsapp-completo.mjs",
+    "audit:yokomitsu": "node scripts/audit-yokomitsu-supabase.mjs",
+    "qa:catalogo-busqueda": "npx --yes tsx scripts/qa-catalogo-busqueda.mjs"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",

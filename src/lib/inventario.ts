@@ -1,5 +1,6 @@
 /** Fallback local (10 SKUs demo). En producción el catálogo viene de Supabase. */
 import inventarioEjemplo from "../../data/inventario.ejemplo.json";
+import { coincideBusquedaPieza } from "./catalogo-busqueda";
 import { completarPieza } from "./inventario-normalizar";
 
 export type LineaVehiculo = "liviano" | "camion" | "utilitario";
@@ -47,13 +48,9 @@ export function piezaPorSlug(slug: string): PiezaInventario | undefined {
 }
 
 export function buscarPiezas(consulta: string): PiezaInventario[] {
-  const q = consulta.trim().toLowerCase();
+  const q = consulta.trim();
   if (!q) return listarPiezas();
-  return listarPiezas().filter((p) => {
-    const blob =
-      `${p.marca} ${p.referencia} ${p.nombre} ${p.aplicacion} ${p.categoria}`.toLowerCase();
-    return blob.includes(q);
-  });
+  return listarPiezas().filter((p) => coincideBusquedaPieza(p, q));
 }
 
 export function marcasEnInventario(): string[] {

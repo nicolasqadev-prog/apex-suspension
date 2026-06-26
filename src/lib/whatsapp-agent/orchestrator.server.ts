@@ -9,6 +9,7 @@ import {
   esSolicitudCotizacionAdicional,
   esJuegoAmortiguadoresCompleto,
   esConsultaDetalleCotizacion,
+  esAclaracionPosicionOLadoCorta,
   esMensajeSinDatosCotizacion,
   extraerCantidad,
   buildConfirmToken,
@@ -369,6 +370,44 @@ export async function ejecutarTurnoAgenteWhatsApp(args: {
   if (phase === "cotizado" && session.agent.borrador) {
     const carritoPrevio = intentarRespuestaCarrito(session, body);
     if (carritoPrevio) return carritoPrevio;
+
+    if (esAclaracionPosicionOLadoCorta(body)) {
+      const recuperado = await intentarCotizarRespuestaCorta({
+        history: session.history,
+        whatsapp: args.phone,
+      });
+      if (recuperado?.tipo === "cotizacion") {
+        const cantidad = recuperado.linea.cantidadSugerida ?? 1;
+        const borrador = armarBorradorPedido({
+          linea: recuperado.linea,
+          ctx: recuperado.ctx,
+          alcance: recuperado.alcance,
+          cantidad,
+          esPrecioTaller: recuperado.esPrecioTaller,
+          nombreTaller: recuperado.nombreTaller,
+        });
+        session.agent.borrador = borrador;
+        session.agent.phase = "cotizado";
+        session.lastCotizacion = [recuperado.linea];
+        registrarItemsCotizadosEnCarrito(session, borrador);
+        const texto = mensajeCotizacionBreve({
+          linea: recuperado.linea,
+          aplicacion: recuperado.aplicacion,
+          vehiculoResumen: borrador.vehiculoResumen,
+          piezaResumen: borrador.piezaResumen,
+          alcance: recuperado.alcance,
+          incluirSaludo: false,
+          esPrecioTaller: recuperado.esPrecioTaller,
+          nombreTaller: recuperado.nombreTaller,
+        });
+        return { texto: texto.slice(0, 4000), session };
+      }
+      if (recuperado?.tipo === "necesita_aclaracion") {
+        session.agent.aclaracionPendiente = recuperado.pendiente;
+        session.agent.phase = "esperando_aclaracion";
+        return { texto: recuperado.pendiente.pregunta, session };
+      }
+    }
 
     if (intent === "consulta_plazo") {
       const b = session.agent.borrador;

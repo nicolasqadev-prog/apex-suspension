@@ -1,3 +1,4 @@
+import { coincideBusquedaPieza, scoreRelevanciaBusqueda } from "./catalogo-busqueda";
 import type { LineaVehiculo, PiezaInventario } from "./inventario";
 
 export type OrdenCatalogo = "relevancia" | "precio-asc" | "precio-desc" | "stock-desc";
@@ -116,28 +117,15 @@ export function categoriasOpciones(piezas: PiezaInventario[]): string[] {
 }
 
 export function scoreRelevancia(p: PiezaInventario, q: string): number {
-  const ref = p.referencia.toLowerCase();
-  const nom = p.nombre.toLowerCase();
-  if (ref === q) return 0;
-  if (ref.startsWith(q)) return 1;
-  if (ref.includes(q)) return 2;
-  if (nom.startsWith(q)) return 3;
-  if (nom.includes(q)) return 4;
-  return 5;
+  return scoreRelevanciaBusqueda(p, q);
 }
 
 export function filtrarPiezas(
   piezas: PiezaInventario[],
   filtros: FiltrosCatalogo,
 ): PiezaInventario[] {
-  const qn = filtros.q.trim().toLowerCase();
-  let list = qn
-    ? piezas.filter((p) => {
-        const blob =
-          `${p.marca} ${p.marcaProducto} ${p.referencia} ${p.nombre} ${p.aplicacion} ${p.categoria} ${categoriaDePieza(p)}`.toLowerCase();
-        return blob.includes(qn);
-      })
-    : piezas;
+  const qn = filtros.q.trim();
+  let list = qn ? piezas.filter((p) => coincideBusquedaPieza(p, qn)) : piezas;
 
   if (filtros.marcaVehiculo) {
     list = list.filter((p) => marcaVehiculoDePieza(p) === filtros.marcaVehiculo);

@@ -73,9 +73,26 @@ apex-wa-verify-2026-secreto-largo
 
 4. **Verify token:** el mismo que pusiste en `WHATSAPP_VERIFY_TOKEN`.
 5. Guardá. Meta hace un GET de prueba; el Worker debe responder con `hub.challenge`.
-6. **Subscribe to fields:** marcá al menos **`messages`**.
+6. **Subscribe to fields:** marcá al menos **`messages`** (toggle **Subscribe**). Sin esto Meta **no envía** mensajes entrantes al webhook aunque la URL esté verificada.
+
+7. **WABA → app** (si el bot envía pero no recibe): en terminal:
+   ```bash
+   npm run fix:whatsapp-webhook
+   ```
+   O solo override: `node scripts/subscribe-whatsapp-webhook.mjs`
 
 > Antes de esto tenés que haber hecho **deploy** con los secretos cargados en Cloudflare.
+
+### App Secret (opcional, para automatizar paso 6)
+
+En **App → Settings → Basic** copiá **App ID** y **App Secret** a `.env.local`:
+
+```env
+META_APP_ID=1019859547408341
+META_APP_SECRET=tu_secreto
+```
+
+Luego `npm run fix:whatsapp-webhook` suscribe el campo `messages` vía API.
 
 ---
 
@@ -104,6 +121,26 @@ GROQ_API_KEY=gsk_...
 ```
 
 Luego: `npm run build` y `node scripts/sync-cloudflare-secrets.mjs` (o deploy por GitHub).
+
+### Token en Cloudflare ≠ token en `.env.local` (error 401)
+
+Si el bot **recibe** el webhook pero **no responde**, revisa logs del Worker (`wrangler tail apex-suspension`):
+
+```
+WhatsApp send failed: 401 {"error":{"message":"Authentication Error"...
+```
+
+**Causa:** el `WHATSAPP_ACCESS_TOKEN` en Cloudflare es viejo o distinto al permanente de `.env.local`.
+
+**Solución:**
+
+```bash
+npm run secrets:cloudflare
+```
+
+Y en **GitHub → Settings → Secrets → Actions**, actualiza `WHATSAPP_ACCESS_TOKEN` con el **mismo** token permanente (system user). Si no, el próximo deploy de GitHub Actions vuelve a poner el token viejo.
+
+Verificación: `npm run audit:whatsapp`
 
 ---
 
