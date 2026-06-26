@@ -22,6 +22,10 @@ dist-ssr
 
 # Local Claude / Cursor assistant metadata
 .claude/
+.cursor/
+
+# Salidas locales de scripts QA (regenerables)
+qa-*-out.json
 
 # Editor directories and files
 .vscode/*

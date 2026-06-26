@@ -1,0 +1,262 @@
+{
+  "fecha": "2026-06-26T02:11:31.149Z",
+  "excel": {
+    "archivo": "apex finanzas/YOKOMITSU_Actualizado_v2.xlsx",
+    "filasYokomitsu": 1921
+  },
+  "supabase": {
+    "yokomitsuTotal": 2066,
+    "yokomitsuActivos": 2066,
+    "productosActivosTotales": 9757
+  },
+  "cobertura": {
+    "enExcelYEnBd": 1921,
+    "faltanEnSupabase": 0,
+    "pctCobertura": 100,
+    "inactivosEnSupabase": 0,
+    "soloEnSupabase": 145,
+    "precioDivergente": 1921
+  },
+  "caso7168251306": {
+    "referencia": "7168251306",
+    "nombre": "AMORTIGUADOR TRASERO RH/LH GAS",
+    "precio_lista": 138800,
+    "stock_actual": 0,
+    "activo": true,
+    "marca_producto": "Yokomitsu"
+  },
+  "bt50AmortiguadoresYokomitsu": [
+    {
+      "referencia": "7115621203",
+      "nombre": "AMORTIGUADOR DELANTERO RH/LH GAS",
+      "stock": 0,
+      "precio": 97700
+    },
+    {
+      "referencia": "7115621303",
+      "nombre": "AMORTIGUADOR TRASERO RH/LH GAS",
+      "stock": 0,
+      "precio": 90000
+    },
+    {
+      "referencia": "7168251203",
+      "nombre": "AMORTIGUADOR DELANTERO RH/LH GAS CABEZAL SIMPLE",
+      "stock": 0,
+      "precio": 115700
+    },
+    {
+      "referencia": "7168251206",
+      "nombre": "AMORTIGUADOR DELANTERO RH/LH GAS",
+      "stock": 0,
+      "precio": 102800
+    },
+    {
+      "referencia": "7168251213",
+      "nombre": "AMORTIGUADOR DELANTERO RH/LH GAS",
+      "stock": 0,
+      "precio": 141400
+    },
+    {
+      "referencia": "7168251223",
+      "nombre": "AMORTIGUADOR DELANTERO RH/LH GAS",
+      "stock": 0,
+      "precio": 220400
+    },
+    {
+      "referencia": "7168251303",
+      "nombre": "AMORTIGUADOR TRASERO RH/LH GAS CABEZAL SIMPLE",
+      "stock": 0,
+      "precio": 110500
+    },
+    {
+      "referencia": "7168251306",
+      "nombre": "AMORTIGUADOR TRASERO RH/LH GAS",
+      "stock": 0,
+      "precio": 138800
+    },
+    {
+      "referencia": "7168251313",
+      "nombre": "AMORTIGUADOR TRASERO RH/LH GAS",
+      "stock": 0,
+      "precio": 138800
+    },
+    {
+      "referencia": "7168251323",
+      "nombre": "AMORTIGUADOR TRASERO RH/LH GAS 4X4",
+      "stock": 0,
+      "precio": 141400
+    }
+  ],
+  "muestras": {
+    "faltanEnSupabase": [],
+    "precioDivergente": [
+      {
+        "referencia": "7185723001",
+        "precioExcel": 40000,
+        "precioBd": 102800,
+        "diff": 62800
+      },
+      {
+        "referencia": "7185723002",
+        "precioExcel": 40000,
+        "precioBd": 102800,
+        "diff": 62800
+      },
+      {
+        "referencia": "7184101313",
+        "precioExcel": 30000,
+        "precioBd": 77100,
+        "diff": 47100
+      },
+      {
+        "referencia": "7184105900",
+        "precioExcel": 135000,
+        "precioBd": 371900,
+        "diff": 236900
+      },
+      {
+        "referencia": "7184107503",
+        "precioExcel": 51000,
+        "precioBd": 131100,
+        "diff": 80100
+      },
+      {
+        "referencia": "7184802020",
+        "precioExcel": 80000,
+        "precioBd": 220400,
+        "diff": 140400
+      },
+      {
+        "referencia": "7111011201",
+        "precioExcel": 68000,
+        "precioBd": 174800,
+        "diff": 106800
+      },
+      {
+        "referencia": "7111011202",
+        "precioExcel": 68000,
+        "precioBd": 174800,
+        "diff": 106800
+      },
+      {
+        "referencia": "7111017200",
+        "precioExcel": 18700,
+        "precioBd": 45100,
+        "diff": 26400
+      },
+      {
+        "referencia": "7111017401",
+        "precioExcel": 31500,
+        "precioBd": 81000,
+        "diff": 49500
+      },
+      {
+        "referencia": "7111043001",
+        "precioExcel": 95000,
+        "precioBd": 261700,
+        "diff": 166700
+      },
+      {
+        "referencia": "7111043002",
+        "precioExcel": 95000,
+        "precioBd": 261700,
+        "diff": 166700
+      },
+      {
+        "referencia": "7111075810",
+        "precioExcel": 230000,
+        "precioBd": 633500,
+        "diff": 403500
+      },
+      {
+        "referencia": "7111074103",
+        "precioExcel": 15000,
+        "precioBd": 36100,
+        "diff": 21100
+      },
+      {
+        "referencia": "7111077503",
+        "precioExcel": 45000,
+        "precioBd": 115700,
+        "diff": 70700
+      }
+    ],
+    "soloEnSupabase": [
+      {
+        "referencia": "7111327503",
+        "nombre": "PUNTA EJE LADO RUEDA GM-001A (33X29X47.6) C/ABS P/EXT",
+        "activo": true
+      },
+      {
+        "referencia": "7111483211",
+        "nombre": "BASE PORTA CALIPER TRASERO RH",
+        "activo": true
+      },
+      {
+        "referencia": "7111483212",
+        "nombre": "BASE PORTA CALIPER TRASERO LH",
+        "activo": true
+      },
+      {
+        "referencia": "7111497503",
+        "nombre": "PUNTA EJE LADO RUEDA MI-827 (28X29X55) S/ABS P/EXT",
+        "activo": true
+      },
+      {
+        "referencia": "7111517605",
+        "nombre": "PUNTA EJE LADO CAJA SK-522 (22X20X35) S/ABS C/TRICETA",
+        "activo": true
+      },
+      {
+        "referencia": "7111663211",
+        "nombre": "PORTAMANGUETA RH 4X2",
+        "activo": true
+      },
+      {
+        "referencia": "7111663212",
+        "nombre": "PORTAMANGUETA LH 4X2",
+        "activo": true
+      },
+      {
+        "referencia": "7111723091",
+        "nombre": "TIJERA INFERIOR RH C/ROTULA",
+        "activo": true
+      },
+      {
+        "referencia": "7111746000",
+        "nombre": "CAJA DIRECCION HIDRAULICA C/AXIALES C/GPOLVO C/TERMINALES",
+        "activo": true
+      },
+      {
+        "referencia": "7111747300",
+        "nombre": "RODAMIENTO RUEDA TRAS S/ABS",
+        "activo": true
+      },
+      {
+        "referencia": "7111805891",
+        "nombre": "SOPORTE BOMBA DIRECCION HIDRAULICA",
+        "activo": true
+      },
+      {
+        "referencia": "7111813212",
+        "nombre": "PORTAMANGUETA RUEDA LH",
+        "activo": true
+      },
+      {
+        "referencia": "7111827410",
+        "nombre": "BOCIN DELANTERO C/ABS C/RODAMIENTO C/CONECTOR SENSOR C/PERNOS 4X2",
+        "activo": true
+      },
+      {
+        "referencia": "7111877633",
+        "nombre": "PUNTA EJE LADO CAJA RT-S609 (22X21X35) S/ABS C/TRICETA",
+        "activo": true
+      },
+      {
+        "referencia": "7115097503",
+        "nombre": "PUNTA EJE LADO RUEDA FD-005 (24X30X46) S/ABS P/EXT",
+        "activo": true
+      }
+    ]
+  }
+}
