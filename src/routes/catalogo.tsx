@@ -1,5 +1,5 @@
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useDeferredValue, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronLeft,
@@ -209,18 +209,16 @@ function CatalogoPage() {
   const piezasConStock = useMemo(() => piezasBase.filter((p) => p.stock > 0), [piezasBase]);
   const piezasSinStock = useMemo(() => piezasBase.filter((p) => p.stock <= 0), [piezasBase]);
 
-  const marcasOptsBodega = useMemo(() => marcasVehiculoOpciones(piezasConStock), [piezasConStock]);
-  const modelosOptsBodega = useMemo(
-    () => modelosVehiculoOpciones(marcaVehiculoBodega || undefined),
-    [marcaVehiculoBodega],
-  );
-  const categoriasOptsBodega = useMemo(() => categoriasOpciones(piezasConStock), [piezasConStock]);
-  const marcasOptsBajoPedido = useMemo(() => marcasVehiculoOpciones(piezasBase), [piezasBase]);
-  const modelosOptsBajoPedido = useMemo(
-    () => modelosVehiculoOpciones(marcaVehiculoBajoPedido || undefined),
-    [marcaVehiculoBajoPedido],
-  );
-  const categoriasOptsBajoPedido = useMemo(() => categoriasOpciones(piezasBase), [piezasBase]);
+  const listaCargando = taller && cargandoTaller;
+  const listaError = taller && !cargandoTaller && piezasTaller === null;
+
+  const filtrosActivosBajoPedido = hayFiltrosActivosSeccion({
+    q,
+    marcaVehiculo: marcaVehiculoBajoPedido,
+    modeloVehiculo: modeloVehiculoBajoPedido,
+    categoria: categoriaBajoPedido,
+  });
+  const mostrarBajoPedido = verBajoPedido || filtrosActivosBajoPedido;
 
   const filtrosBodega = useMemo(
     () => ({
@@ -249,18 +247,92 @@ function CatalogoPage() {
   );
 
   const filtrosActivosBodega = hayFiltrosActivosSeccion(filtrosBodega);
-  const filtrosActivosBajoPedido = hayFiltrosActivosSeccion(filtrosBajoPedido);
 
   const ordenBusqueda = q.trim() && orden === "stock-desc" ? "relevancia" : orden;
+  const qProcesada = useDeferredValue(q);
 
-  const { bodega, bajoPedido } = useMemo(() => {
-    const bodegaFiltrada = filtrarPiezas(piezasConStock, filtrosBodega);
-    const bajoPedidoFiltrado = filtrarPiezas(piezasSinStock, filtrosBajoPedido);
-    return {
-      bodega: ordenarPiezas(bodegaFiltrada, ordenBusqueda, q, precioMostrar),
-      bajoPedido: ordenarBajoPedido(bajoPedidoFiltrado, ordenBusqueda, q, precioMostrar),
+  const modelosOptsBodega = useMemo(
+    () => modelosVehiculoOpciones(marcaVehiculoBodega || undefined),
+    [marcaVehiculoBodega],
+  );
+  const modelosOptsBajoPedido = useMemo(
+    () => modelosVehiculoOpciones(marcaVehiculoBajoPedido || undefined),
+    [marcaVehiculoBajoPedido],
+  );
+
+  const [marcasOptsBodega, setMarcasOptsBodega] = useState<string[]>([]);
+  const [categoriasOptsBodega, setCategoriasOptsBodega] = useState<string[]>([]);
+  const [marcasOptsBajoPedido, setMarcasOptsBajoPedido] = useState<string[]>([]);
+  const [categoriasOptsBajoPedido, setCategoriasOptsBajoPedido] = useState<string[]>([]);
+  const [bodega, setBodega] = useState<PiezaVista[]>([]);
+  const [bajoPedido, setBajoPedido] = useState<PiezaVista[]>([]);
+  const [procesandoLista, setProcesandoLista] = useState(false);
+
+  /** En móvil el procesamiento de miles de piezas bloquea el UI; se difiere al siguiente tick. */
+  useEffect(() => {
+    if (listaCargando || listaError || piezasBase.length === 0) {
+      setMarcasOptsBodega([]);
+      setCategoriasOptsBodega([]);
+      setMarcasOptsBajoPedido([]);
+      setCategoriasOptsBajoPedido([]);
+      setBodega([]);
+      setBajoPedido([]);
+      setProcesandoLista(false);
+      return;
+    }
+
+    let cancelado = false;
+    setProcesandoLista(true);
+
+    const timer = window.setTimeout(() => {
+      if (cancelado) return;
+
+      const marcasBodega = marcasVehiculoOpciones(piezasConStock);
+      const catsBodega = categoriasOpciones(piezasConStock);
+      const bodegaOrdenada = ordenarPiezas(
+        filtrarPiezas(piezasConStock, filtrosBodega),
+        ordenBusqueda,
+        qProcesada,
+        precioMostrar,
+      );
+      const bajoOrdenado = mostrarBajoPedido
+        ? ordenarBajoPedido(
+            filtrarPiezas(piezasSinStock, filtrosBajoPedido),
+            ordenBusqueda,
+            qProcesada,
+            precioMostrar,
+          )
+        : [];
+      const marcasBajo = mostrarBajoPedido ? marcasVehiculoOpciones(piezasBase) : [];
+      const catsBajo = mostrarBajoPedido ? categoriasOpciones(piezasBase) : [];
+
+      if (!cancelado) {
+        setMarcasOptsBodega(marcasBodega);
+        setCategoriasOptsBodega(catsBodega);
+        setMarcasOptsBajoPedido(marcasBajo);
+        setCategoriasOptsBajoPedido(catsBajo);
+        setBodega(bodegaOrdenada);
+        setBajoPedido(bajoOrdenado);
+        setProcesandoLista(false);
+      }
+    }, 0);
+
+    return () => {
+      cancelado = true;
+      window.clearTimeout(timer);
     };
-  }, [piezasConStock, piezasSinStock, filtrosBodega, filtrosBajoPedido, ordenBusqueda, q]);
+  }, [
+    piezasBase,
+    piezasConStock,
+    piezasSinStock,
+    filtrosBodega,
+    filtrosBajoPedido,
+    ordenBusqueda,
+    qProcesada,
+    mostrarBajoPedido,
+    listaCargando,
+    listaError,
+  ]);
 
   useEffect(() => {
     if (marcaVehiculoBodega && !marcasOptsBodega.includes(marcaVehiculoBodega)) {
@@ -328,12 +400,8 @@ function CatalogoPage() {
   }, [paginaBajoPedido, bajoPedidoPag.pagina]);
 
   /** Colapsado por defecto; se abre al buscar, filtrar bajo pedido o al pulsar "Ver bajo pedido". */
-  const mostrarBajoPedido = verBajoPedido || filtrosActivosBajoPedido;
-
-  const sinResultados = bodega.length === 0 && (!mostrarBajoPedido || bajoPedido.length === 0);
-
-  const listaCargando = taller && cargandoTaller;
-  const listaError = taller && !cargandoTaller && piezasTaller === null;
+  const sinResultados =
+    !procesandoLista && bodega.length === 0 && (!mostrarBajoPedido || bajoPedido.length === 0);
 
   return (
     <div className="min-h-screen flex flex-col bg-[oklch(0.18_0.04_250)] text-gray-200 antialiased">
@@ -468,6 +536,10 @@ function CatalogoPage() {
           </p>
         )}
 
+        {!listaCargando && procesandoLista && (
+          <p className="text-center text-sm text-emerald-200/80 py-12">Preparando listado…</p>
+        )}
+
         {listaError && (
           <p className="text-center text-sm text-red-300/90 py-12">
             No pudimos cargar tu catálogo de taller. Cierra sesión e ingresa de nuevo en{" "}
@@ -478,7 +550,7 @@ function CatalogoPage() {
           </p>
         )}
 
-        {!listaCargando && !listaError && (
+        {!listaCargando && !listaError && !procesandoLista && (
           <>
             <section ref={seccionBodegaRef} className="mb-8">
               <div className="mb-3">
