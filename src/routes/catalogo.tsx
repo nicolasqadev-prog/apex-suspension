@@ -172,14 +172,14 @@ function CatalogoPage() {
 
   const marcasOptsBodega = useMemo(() => marcasVehiculoOpciones(piezasConStock), [piezasConStock]);
   const modelosOptsBodega = useMemo(
-    () => modelosVehiculoOpciones(piezasConStock, marcaVehiculoBodega || undefined),
-    [piezasConStock, marcaVehiculoBodega],
+    () => modelosVehiculoOpciones(marcaVehiculoBodega || undefined),
+    [marcaVehiculoBodega],
   );
   const categoriasOptsBodega = useMemo(() => categoriasOpciones(piezasConStock), [piezasConStock]);
   const marcasOptsBajoPedido = useMemo(() => marcasVehiculoOpciones(piezasBase), [piezasBase]);
   const modelosOptsBajoPedido = useMemo(
-    () => modelosVehiculoOpciones(piezasBase, marcaVehiculoBajoPedido || undefined),
-    [piezasBase, marcaVehiculoBajoPedido],
+    () => modelosVehiculoOpciones(marcaVehiculoBajoPedido || undefined),
+    [marcaVehiculoBajoPedido],
   );
   const categoriasOptsBajoPedido = useMemo(() => categoriasOpciones(piezasBase), [piezasBase]);
 

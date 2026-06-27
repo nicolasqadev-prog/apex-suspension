@@ -73,19 +73,25 @@ function blobVehiculoPieza(p: PiezaInventario): string {
   return normalizarTextoBusqueda(`${p.nombre} ${p.aplicacion} ${p.marca} ${p.marcaProducto ?? ""}`);
 }
 
-function blobVehiculoCompacto(p: PiezaInventario): string {
-  return modeloVehiculoCompacto(blobVehiculoPieza(p));
+function vehBlobPieza(p: PiezaInventario): { norm: string; compact: string } {
+  const norm = blobVehiculoPieza(p);
+  return { norm, compact: modeloVehiculoCompacto(norm) };
+}
+
+function patronEnBlob(
+  blob: { norm: string; compact: string },
+  patrones: string[],
+): boolean {
+  return patrones.some((pat) => {
+    const pNorm = normalizarTextoBusqueda(pat);
+    if (blob.norm.includes(pNorm)) return true;
+    const pCompact = modeloVehiculoCompacto(pNorm);
+    return pCompact.length >= 2 && blob.compact.includes(pCompact);
+  });
 }
 
 function patronEnPieza(p: PiezaInventario, patrones: string[]): boolean {
-  const blob = blobVehiculoPieza(p);
-  const compact = blobVehiculoCompacto(p);
-  return patrones.some((pat) => {
-    const pNorm = normalizarTextoBusqueda(pat);
-    if (blob.includes(pNorm)) return true;
-    const pCompact = modeloVehiculoCompacto(pNorm);
-    return pCompact.length >= 2 && compact.includes(pCompact);
-  });
+  return patronEnBlob(vehBlobPieza(p), patrones);
 }
 
 /** Modelos detectados en una pieza (ids únicos, más específicos primero). */
@@ -108,27 +114,12 @@ export function piezaCoincideModeloFiltro(p: PiezaInventario, modeloId: string):
   return patronEnPieza(p, modelo.patrones);
 }
 
-function piezaCoincideMarcaVehiculo(p: PiezaInventario, marcaVehiculo: string): boolean {
-  const marcaNorm = normalizarTextoBusqueda(marcaVehiculo);
-  const blob = normalizarTextoBusqueda(`${p.aplicacion} ${p.nombre} ${p.marca}`);
-  if (blob.includes(marcaNorm)) return true;
-  return modelosDetectadosEnPieza(p).some(
-    (m) => normalizarTextoBusqueda(m.marca) === marcaNorm,
-  );
-}
-
-export function modelosVehiculoOpciones(
-  piezas: PiezaInventario[],
-  marcaVehiculo?: string,
-): ModeloVehiculoCatalogo[] {
-  const map = new Map<string, ModeloVehiculoCatalogo>();
-  for (const p of piezas) {
-    if (marcaVehiculo && !piezaCoincideMarcaVehiculo(p, marcaVehiculo)) continue;
-    for (const m of modelosDetectadosEnPieza(p)) {
-      if (marcaVehiculo && normalizarTextoBusqueda(m.marca) !== normalizarTextoBusqueda(marcaVehiculo))
-        continue;
-      map.set(m.id, m);
-    }
-  }
-  return [...map.values()].sort((a, b) => a.label.localeCompare(b.label, "es"));
+/** Opciones del filtro por modelo (lista estática por marca; no escanea miles de piezas en el Worker). */
+export function modelosVehiculoOpciones(marcaVehiculo?: string): ModeloVehiculoCatalogo[] {
+  const base = marcaVehiculo
+    ? MODELOS_VEHICULO_CATALOGO.filter(
+        (m) => normalizarTextoBusqueda(m.marca) === normalizarTextoBusqueda(marcaVehiculo),
+      )
+    : MODELOS_VEHICULO_CATALOGO;
+  return [...base].sort((a, b) => a.label.localeCompare(b.label, "es"));
 }
