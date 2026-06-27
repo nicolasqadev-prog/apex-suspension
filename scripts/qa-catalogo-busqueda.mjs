@@ -85,6 +85,54 @@ casos.push(
   { pieza: bt50, q: "mazda bt50 amortiguador trasero", esperado: true, nombre: "mazda bt50 amort trasero" },
 );
 
+const bieletaOptra = {
+  referencia: "KSL-1010",
+  nombre: "Bieleta Estab. Optra Del DER",
+  aplicacion: "Bieleta Estab. Optra Del DER",
+  marca: "Chevrolet",
+  marcaProducto: "KTC",
+  categoria: "Bujes y Bieletas",
+  stock: 2,
+};
+casos.push(
+  { pieza: bieletaOptra, q: "bieleta chevrolet optra 1.8", esperado: true, nombre: "bieleta optra con cilindraje" },
+  { pieza: bieletaOptra, q: "bieleta optra", esperado: true, nombre: "bieleta optra sin marca" },
+  { pieza: bieletaOptra, q: "ksl1010", esperado: true, nombre: "ref bieleta compacta" },
+  { pieza: bieletaOptra, q: "bieleta toyota corolla", esperado: false, nombre: "bieleta vehículo incorrecto" },
+);
+
+const rotulaAveo = {
+  referencia: "KSA-CV100",
+  nombre: "Rotula Inferior Aveo",
+  aplicacion: "Chevrolet Aveo 1.4 Del",
+  marca: "Chevrolet",
+  marcaProducto: "KTC",
+  categoria: "Terminales y rótulas",
+  stock: 1,
+};
+const megane2 = {
+  referencia: "7150441313",
+  nombre: "AMORTIGUADOR DELANTERO GAS",
+  aplicacion: "RENAULT MEGANE II 1.6 16V",
+  marca: "Renault",
+  marcaProducto: "Yokomitsu",
+  categoria: "Amortiguadores",
+  stock: 0,
+};
+casos.push(
+  { pieza: bieletaOptra, q: "barra estab optra", esperado: true, nombre: "barra estab coloquial" },
+  { pieza: bieletaOptra, q: "estabilizadora chevrolet optra", esperado: true, nombre: "estabilizadora optra" },
+  { pieza: kwid, q: "amort delantero kwid", esperado: true, nombre: "amort abreviado kwid" },
+  { pieza: kwid, q: "monoshock kwid", esperado: true, nombre: "monoshock kwid" },
+  { pieza: rotulaAveo, q: "rotula aveo", esperado: true, nombre: "rotula aveo coloquial" },
+  { pieza: rotulaAveo, q: "rotula direccion aveo", esperado: true, nombre: "rotula direccion aveo" },
+  { pieza: megane2, q: "amortiguador megane 2", esperado: true, nombre: "megane 2 coloquial" },
+  { pieza: megane2, q: "shock megane ii", esperado: true, nombre: "shock megane ii" },
+  { pieza: bt50, q: "monoshock bt50", esperado: true, nombre: "monoshock bt50" },
+  { pieza: bt50, q: "amort bt 50 trasero", esperado: true, nombre: "amort bt 50 con espacio" },
+  { pieza: rio, q: "amort toyota corolla", esperado: false, nombre: "vehículo incorrecto corolla" },
+);
+
 let ok = 0;
 let fail = 0;
 console.log("=== QA búsqueda catálogo ===\n");

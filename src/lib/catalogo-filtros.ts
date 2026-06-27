@@ -1,5 +1,8 @@
 import { coincideBusquedaPieza, scoreRelevanciaBusqueda } from "./catalogo-busqueda";
+import { piezaCoincideModeloFiltro } from "./catalogo-vehiculo";
 import type { LineaVehiculo, PiezaInventario } from "./inventario";
+
+export { modelosVehiculoOpciones } from "./catalogo-vehiculo";
 
 export type OrdenCatalogo = "relevancia" | "precio-asc" | "precio-desc" | "stock-desc";
 
@@ -8,6 +11,7 @@ export type LineaFiltro = "liviano" | "camion" | "todos";
 export type FiltrosCatalogo = {
   q: string;
   marcaVehiculo: string;
+  modeloVehiculo: string;
   marcaProducto: string;
   categoria: string;
   lineaVehiculo: LineaFiltro;
@@ -130,6 +134,9 @@ export function filtrarPiezas(
   if (filtros.marcaVehiculo) {
     list = list.filter((p) => marcaVehiculoDePieza(p) === filtros.marcaVehiculo);
   }
+  if (filtros.modeloVehiculo) {
+    list = list.filter((p) => piezaCoincideModeloFiltro(p, filtros.modeloVehiculo));
+  }
   if (filtros.marcaProducto) {
     list = list.filter((p) => p.marcaProducto === filtros.marcaProducto);
   }
@@ -233,11 +240,15 @@ export function particionarPorBodega<T extends PiezaInventario>(piezas: T[]) {
 }
 
 export function hayFiltrosActivos(filtros: FiltrosCatalogo): boolean {
-  return Boolean(filtros.q.trim() || filtros.marcaVehiculo || filtros.categoria);
+  return Boolean(
+    filtros.q.trim() || filtros.marcaVehiculo || filtros.modeloVehiculo || filtros.categoria,
+  );
 }
 
 export function hayFiltrosActivosSeccion(
-  filtros: Pick<FiltrosCatalogo, "q" | "marcaVehiculo" | "categoria">,
+  filtros: Pick<FiltrosCatalogo, "q" | "marcaVehiculo" | "modeloVehiculo" | "categoria">,
 ): boolean {
-  return Boolean(filtros.q.trim() || filtros.marcaVehiculo || filtros.categoria);
+  return Boolean(
+    filtros.q.trim() || filtros.marcaVehiculo || filtros.modeloVehiculo || filtros.categoria,
+  );
 }

@@ -23,6 +23,7 @@ import {
   filtrarPiezas,
   hayFiltrosActivosSeccion,
   marcasVehiculoOpciones,
+  modelosVehiculoOpciones,
   marcaVehiculoDePieza,
   ordenarBajoPedido,
   ordenarPiezas,
@@ -104,8 +105,10 @@ function CatalogoPage() {
   const [cargandoTaller, setCargandoTaller] = useState(false);
   const [q, setQ] = useState("");
   const [marcaVehiculoBodega, setMarcaVehiculoBodega] = useState("");
+  const [modeloVehiculoBodega, setModeloVehiculoBodega] = useState("");
   const [categoriaBodega, setCategoriaBodega] = useState("");
   const [marcaVehiculoBajoPedido, setMarcaVehiculoBajoPedido] = useState("");
+  const [modeloVehiculoBajoPedido, setModeloVehiculoBajoPedido] = useState("");
   const [categoriaBajoPedido, setCategoriaBajoPedido] = useState("");
   const [orden, setOrden] = useState<OrdenCatalogo>("stock-desc");
   const [verBajoPedido, setVerBajoPedido] = useState(false);
@@ -168,32 +171,42 @@ function CatalogoPage() {
   const piezasSinStock = useMemo(() => piezasBase.filter((p) => p.stock <= 0), [piezasBase]);
 
   const marcasOptsBodega = useMemo(() => marcasVehiculoOpciones(piezasConStock), [piezasConStock]);
+  const modelosOptsBodega = useMemo(
+    () => modelosVehiculoOpciones(piezasConStock, marcaVehiculoBodega || undefined),
+    [piezasConStock, marcaVehiculoBodega],
+  );
   const categoriasOptsBodega = useMemo(() => categoriasOpciones(piezasConStock), [piezasConStock]);
   const marcasOptsBajoPedido = useMemo(() => marcasVehiculoOpciones(piezasBase), [piezasBase]);
+  const modelosOptsBajoPedido = useMemo(
+    () => modelosVehiculoOpciones(piezasBase, marcaVehiculoBajoPedido || undefined),
+    [piezasBase, marcaVehiculoBajoPedido],
+  );
   const categoriasOptsBajoPedido = useMemo(() => categoriasOpciones(piezasBase), [piezasBase]);
 
   const filtrosBodega = useMemo(
     () => ({
       q,
       marcaVehiculo: marcaVehiculoBodega,
+      modeloVehiculo: modeloVehiculoBodega,
       marcaProducto: "",
       categoria: categoriaBodega,
       lineaVehiculo: "todos" as const,
       stockFiltro: "todos" as const,
     }),
-    [q, marcaVehiculoBodega, categoriaBodega],
+    [q, marcaVehiculoBodega, modeloVehiculoBodega, categoriaBodega],
   );
 
   const filtrosBajoPedido = useMemo(
     () => ({
       q,
       marcaVehiculo: marcaVehiculoBajoPedido,
+      modeloVehiculo: modeloVehiculoBajoPedido,
       marcaProducto: "",
       categoria: categoriaBajoPedido,
       lineaVehiculo: "todos" as const,
       stockFiltro: "todos" as const,
     }),
-    [q, marcaVehiculoBajoPedido, categoriaBajoPedido],
+    [q, marcaVehiculoBajoPedido, modeloVehiculoBajoPedido, categoriaBajoPedido],
   );
 
   const filtrosActivosBodega = hayFiltrosActivosSeccion(filtrosBodega);
@@ -217,10 +230,31 @@ function CatalogoPage() {
   }, [marcaVehiculoBodega, marcasOptsBodega]);
 
   useEffect(() => {
+    if (modeloVehiculoBodega && !modelosOptsBodega.some((m) => m.id === modeloVehiculoBodega)) {
+      setModeloVehiculoBodega("");
+    }
+  }, [modeloVehiculoBodega, modelosOptsBodega]);
+
+  useEffect(() => {
     if (categoriaBodega && !categoriasOptsBodega.includes(categoriaBodega)) {
       setCategoriaBodega("");
     }
   }, [categoriaBodega, categoriasOptsBodega]);
+
+  useEffect(() => {
+    if (marcaVehiculoBajoPedido && !marcasOptsBajoPedido.includes(marcaVehiculoBajoPedido)) {
+      setMarcaVehiculoBajoPedido("");
+    }
+  }, [marcaVehiculoBajoPedido, marcasOptsBajoPedido]);
+
+  useEffect(() => {
+    if (
+      modeloVehiculoBajoPedido &&
+      !modelosOptsBajoPedido.some((m) => m.id === modeloVehiculoBajoPedido)
+    ) {
+      setModeloVehiculoBajoPedido("");
+    }
+  }, [modeloVehiculoBajoPedido, modelosOptsBajoPedido]);
 
   useEffect(() => {
     setPaginaBodega(1);
@@ -228,8 +262,10 @@ function CatalogoPage() {
   }, [
     q,
     marcaVehiculoBodega,
+    modeloVehiculoBodega,
     categoriaBodega,
     marcaVehiculoBajoPedido,
+    modeloVehiculoBajoPedido,
     categoriaBajoPedido,
     orden,
     porPagina,
@@ -299,7 +335,7 @@ function CatalogoPage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Ej: amortiguador kwid · KSA RE028 · chevrolet aveo…"
+            placeholder="Ej: amort kwid · bieleta optra · shock megane 2 · KSA RE028…"
             className="pl-10 bg-[oklch(0.14_0.04_250)] border-gray-700 text-white placeholder:text-gray-500"
           />
         </div>
@@ -319,18 +355,36 @@ function CatalogoPage() {
         <p className="text-[10px] text-emerald-500/80 mb-2">
           Filtros de bodega — solo piezas con stock físico (despacho inmediato)
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-2 text-xs">
           <label className="flex flex-col gap-1 text-gray-500 min-w-0">
             <span className="font-medium text-gray-400">Marca del vehículo</span>
             <select
               value={marcaVehiculoBodega}
-              onChange={(e) => setMarcaVehiculoBodega(e.target.value)}
+              onChange={(e) => {
+                setMarcaVehiculoBodega(e.target.value);
+                setModeloVehiculoBodega("");
+              }}
               className="w-full rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2.5"
             >
               <option value="">Todas</option>
               {marcasOptsBodega.map((m) => (
                 <option key={m} value={m}>
                   {m}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-gray-500 min-w-0">
+            <span className="font-medium text-gray-400">Modelo del vehículo</span>
+            <select
+              value={modeloVehiculoBodega}
+              onChange={(e) => setModeloVehiculoBodega(e.target.value)}
+              className="w-full rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2.5"
+            >
+              <option value="">Todos</option>
+              {modelosOptsBodega.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
                 </option>
               ))}
             </select>
@@ -468,7 +522,7 @@ function CatalogoPage() {
               </div>
 
               {mostrarBajoPedido && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 text-xs">
                   <label className="flex flex-col gap-1 text-gray-500 min-w-0">
                     <span className="font-medium text-gray-400">Marca del vehículo</span>
                     <span className="text-[10px] text-gray-600">
@@ -476,13 +530,34 @@ function CatalogoPage() {
                     </span>
                     <select
                       value={marcaVehiculoBajoPedido}
-                      onChange={(e) => setMarcaVehiculoBajoPedido(e.target.value)}
+                      onChange={(e) => {
+                        setMarcaVehiculoBajoPedido(e.target.value);
+                        setModeloVehiculoBajoPedido("");
+                      }}
                       className="w-full rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2.5"
                     >
                       <option value="">Todas</option>
                       {marcasOptsBajoPedido.map((m) => (
                         <option key={m} value={m}>
                           {m}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex flex-col gap-1 text-gray-500 min-w-0">
+                    <span className="font-medium text-gray-400">Modelo del vehículo</span>
+                    <span className="text-[10px] text-gray-600">
+                      Catálogo completo · bajo pedido
+                    </span>
+                    <select
+                      value={modeloVehiculoBajoPedido}
+                      onChange={(e) => setModeloVehiculoBajoPedido(e.target.value)}
+                      className="w-full rounded-md border border-gray-700 bg-[oklch(0.14_0.04_250)] text-gray-200 px-2 py-2.5"
+                    >
+                      <option value="">Todos</option>
+                      {modelosOptsBajoPedido.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.label}
                         </option>
                       ))}
                     </select>
