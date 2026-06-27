@@ -79,3 +79,21 @@ jobs:
           put_secret WHATSAPP_PHONE_NUMBER_ID "$WHATSAPP_PHONE_NUMBER_ID"
           put_secret WHATSAPP_VERIFY_TOKEN "$WHATSAPP_VERIFY_TOKEN"
           put_secret GROQ_API_KEY "$GROQ_API_KEY"
+
+      - name: Smoke post-deploy
+        env:
+          SITE_URL: ${{ secrets.VITE_SITE_URL || 'https://apex-suspension.com.co' }}
+        run: node scripts/qa-produccion-smoke.mjs
+
+      - name: Alertar si smoke falla (ntfy)
+        if: failure()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -n "$NTFY_TOPIC" ]; then
+            curl -fsS \
+              -H "Title: Apex deploy con fallo" \
+              -H "Priority: high" \
+              -d "Smoke post-deploy falló tras publicar en Cloudflare." \
+              "https://ntfy.sh/$NTFY_TOPIC"
+          fi

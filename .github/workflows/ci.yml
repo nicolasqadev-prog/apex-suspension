@@ -26,3 +26,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Guardrails catálogo (anti Worker 1102)
+        run: npm run qa:catalogo-guards
+
+      - name: QA búsqueda catálogo
+        run: npm run qa:catalogo-busqueda

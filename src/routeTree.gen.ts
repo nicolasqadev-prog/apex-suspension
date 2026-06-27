@@ -24,6 +24,7 @@ import { Route as TallerCuentaRouteImport } from './routes/taller.cuenta'
 import { Route as TallerAccesoRouteImport } from './routes/taller.acceso'
 import { Route as SitemapProductsPageRouteImport } from './routes/sitemap-products.$page'
 import { Route as RepuestoSlugRouteImport } from './routes/repuesto.$slug'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as TallerPedidosIndexRouteImport } from './routes/taller.pedidos.index'
 import { Route as TallerPedidosIdRouteImport } from './routes/taller.pedidos.$id'
 import { Route as TallerPedidoRecibidoRouteImport } from './routes/taller.pedido.recibido'
@@ -104,6 +105,11 @@ const RepuestoSlugRoute = RepuestoSlugRouteImport.update({
   path: '/repuesto/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TallerPedidosIndexRoute = TallerPedidosIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap-static.xml': typeof SitemapStaticDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/health': typeof ApiHealthRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/taller/acceso': typeof TallerAccesoRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap-static.xml': typeof SitemapStaticDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/health': typeof ApiHealthRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/taller/acceso': typeof TallerAccesoRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap-static.xml': typeof SitemapStaticDotxmlRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/health': typeof ApiHealthRoute
   '/repuesto/$slug': typeof RepuestoSlugRoute
   '/sitemap-products/$page': typeof SitemapProductsPageRoute
   '/taller/acceso': typeof TallerAccesoRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap-static.xml'
     | '/sitemap.xml'
+    | '/api/health'
     | '/repuesto/$slug'
     | '/sitemap-products/$page'
     | '/taller/acceso'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap-static.xml'
     | '/sitemap.xml'
+    | '/api/health'
     | '/repuesto/$slug'
     | '/sitemap-products/$page'
     | '/taller/acceso'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap-static.xml'
     | '/sitemap.xml'
+    | '/api/health'
     | '/repuesto/$slug'
     | '/sitemap-products/$page'
     | '/taller/acceso'
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapStaticDotxmlRoute: typeof SitemapStaticDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   RepuestoSlugRoute: typeof RepuestoSlugRoute
   SitemapProductsPageRoute: typeof SitemapProductsPageRoute
   TallerAccesoRoute: typeof TallerAccesoRoute
@@ -379,6 +392,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RepuestoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/taller/pedidos/': {
       id: '/taller/pedidos/'
       path: '/'
@@ -444,6 +464,7 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapStaticDotxmlRoute: SitemapStaticDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiHealthRoute: ApiHealthRoute,
   RepuestoSlugRoute: RepuestoSlugRoute,
   SitemapProductsPageRoute: SitemapProductsPageRoute,
   TallerAccesoRoute: TallerAccesoRoute,

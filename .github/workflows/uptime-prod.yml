@@ -1,0 +1,39 @@
+# Monitoreo continuo de producción (smoke + alerta opcional).
+name: Uptime producción
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Smoke rutas críticas
+        env:
+          SITE_URL: ${{ secrets.VITE_SITE_URL || 'https://apex-suspension.com.co' }}
+        run: node scripts/qa-produccion-smoke.mjs
+
+      - name: Alertar (ntfy)
+        if: failure()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -n "$NTFY_TOPIC" ]; then
+            curl -fsS \
+              -H "Title: Apex PWA caída" \
+              -H "Priority: high" \
+              -d "Smoke producción falló. Revisa GitHub Actions → Uptime producción." \
+              "https://ntfy.sh/$NTFY_TOPIC"
+          else
+            echo "Sin NTFY_TOPIC configurado — configura el secret para alertas al celular (ver docs/produccion-blindaje.md)"
+          fi

@@ -39,10 +39,49 @@ import StudioFooterSignature from "@/components/StudioFooterSignature";
 import PiezaCatalogoImagen from "@/components/PiezaCatalogoImagen";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+function CatalogoError({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[oklch(0.18_0.04_250)] px-4 text-center text-gray-200">
+      <Package className="h-12 w-12 text-[oklch(0.7_0.2_40)] mb-4" />
+      <h1 className="text-xl font-bold text-white">Catálogo temporalmente no disponible</h1>
+      <p className="mt-2 text-sm text-gray-400 max-w-md">
+        Hubo un problema al cargar el catálogo. Puedes reintentar o consultarnos por WhatsApp mientras
+        se restablece.
+      </p>
+      {import.meta.env.DEV && error.message && (
+        <pre className="mt-4 max-w-md overflow-auto rounded bg-black/30 p-3 text-left text-xs text-red-300">
+          {error.message}
+        </pre>
+      )}
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <Button
+          type="button"
+          onClick={() => {
+            void router.invalidate({ filter: (m) => m.routeId === Route.id });
+            reset();
+          }}
+        >
+          Reintentar catálogo
+        </Button>
+        <Button type="button" variant="outline" asChild className="border-gray-600">
+          <Link to="/">Ir al inicio</Link>
+        </Button>
+        <Button type="button" variant="outline" asChild className="border-emerald-700 text-emerald-400">
+          <a href={enlaceWhatsApp("Hola Apex, el catálogo web no me carga. ¿Me ayudan?")} target="_blank" rel="noreferrer">
+            WhatsApp
+          </a>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/catalogo")({
   loader: () => obtenerCatalogoPublico(),
   staleTime: 0,
   component: CatalogoPage,
+  errorComponent: CatalogoError,
   head: () => {
     const href = canonicalHref("/catalogo");
     return {

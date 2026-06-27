@@ -35,7 +35,10 @@
     "fix:whatsapp-webhook": "node scripts/fix-whatsapp-webhook-subscription.mjs",
     "audit:whatsapp": "node scripts/audit-whatsapp-completo.mjs",
     "audit:yokomitsu": "node scripts/audit-yokomitsu-supabase.mjs",
-    "qa:catalogo-busqueda": "npx --yes tsx scripts/qa-catalogo-busqueda.mjs"
+    "export:catalogo-excel": "node scripts/export-catalogo-precios-excel.mjs",
+    "qa:catalogo-busqueda": "npx --yes tsx scripts/qa-catalogo-busqueda.mjs",
+    "qa:catalogo-guards": "npx --yes tsx scripts/qa-catalogo-guards.mjs",
+    "qa:produccion": "node scripts/qa-produccion-smoke.mjs"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
